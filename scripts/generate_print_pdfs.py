@@ -489,7 +489,7 @@ poster_html = f'''<!DOCTYPE html>
         </div>
         <div class="feature-card is-center">
           <div class="feature-head">🏛️ 地元の確かなプロ施工</div>
-          <div class="feature-desc">松山「お墓のトータルエージェント」提携石材店が真心込めて合掌・丁寧にお掃除します。</div>
+          <div class="feature-desc">松山まごころ墓苑サポート等の地元提携店が真心込めて合掌・丁寧にお掃除します。</div>
         </div>
         <div class="feature-card is-right">
           <div class="feature-head">💳 明朗会計・追加料金なし</div>
@@ -533,7 +533,7 @@ poster_html = f'''<!DOCTYPE html>
 
     <div class="footer-wrap">
       <div class="footer-info-col">
-        <div class="footer-vendor-title">提携窓口: 株式会社トータルエージェント・パートナーズ</div>
+        <div class="footer-vendor-title">提携窓口: 株式会社 伊予メモリアルパートナーズ（ダミー）</div>
         <div class="footer-address">愛媛県松山市土居田町 / 宝塔寺旭ヶ丘霊園ほか松山市内霊園全域対応</div>
         <div class="footer-phone-row">
           <div class="footer-phone-btn">📞 089-997-XXXX</div>
@@ -1235,7 +1235,7 @@ leaflet_html = f'''<!DOCTYPE html>
 
       <div class="back-vendor-info">
         <div style="font-size: 9px; font-weight: 800; color: #065f46; margin-bottom: 1px;">愛媛・松山エリア公認パートナー</div>
-        <div class="back-vendor-name">株式会社トータルエージェント・パートナーズ</div>
+        <div class="back-vendor-name">株式会社 伊予メモリアルパートナーズ（ダミー）</div>
         <div class="back-vendor-addr">
           〒790-0056 愛媛県松山市土居田町<br>
           営業時間：9:00〜18:00（年中無休）

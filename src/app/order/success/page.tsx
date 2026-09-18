@@ -90,7 +90,7 @@ function SuccessContent() {
           </div>
           <div className="flex justify-between">
             <span className="text-stone-500">担当業者</span>
-            <span className="font-medium text-stone-800">{order?.vendorName || '松山お墓のトータルエージェント（ダミー提携パートナー）'}</span>
+            <span className="font-medium text-stone-800">{order?.vendorName || '松山まごころ墓苑サポート（ダミー提携パートナー）'}</span>
           </div>
         </div>
 

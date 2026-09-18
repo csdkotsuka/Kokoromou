@@ -54,39 +54,39 @@ export const SAMPLE_SERVICE_PLANS: ServicePlan[] = [
 ];
 
 /**
- * 提携業者サンプル（お墓のトータルエージェント様をモデルにしたダミー会社）
+ * 提携業者サンプル（松山エリアの特色あるダミー提携会社）
  */
 export const SAMPLE_VENDORS: User[] = [
   {
     id: 'vendor_001',
-    email: 'info@totalagent-partner-dummy.example.com',
+    email: 'info@iyo-memorial-dummy.example.com',
     role: 'vendor',
-    displayName: '松山お墓のトータルエージェント（ダミー提携パートナー）',
+    displayName: '松山まごころ墓苑サポート（ダミー提携パートナー）',
     phoneNumber: '089-997-XXXX',
     createdAt: '2026-01-10T10:00:00Z',
     updatedAt: '2026-09-01T10:00:00Z',
     vendorProfile: {
-      companyName: '株式会社トータルエージェント・パートナーズ（松山本部・ダミー）',
+      companyName: '株式会社 伊予メモリアルパートナーズ（ダミー）',
       representativeName: '松山 誠司（お墓ディレクター）',
       serviceAreas: ['松山市全域', '東温市', '伊予市', '伊予郡松前町', '伊予郡砥部町'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor01', // Stripe Connect 提携先ID
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
-      description: '松山市土居田町を拠点にお墓の清掃代行・墓じまい・永代供養までトータルでサポート。宝塔寺霊園など市内各霊園での施工実績多数。真心を込めてお墓を守ります。',
+      description: '松山市土居田町を拠点にお墓の清掃代行・墓じまい・永代供養までトータルでサポート。宝塔寺旭ヶ丘霊園など市内各霊園での施工実績多数。真心を込めてお墓を守ります。',
       rating: 4.9,
       completedJobsCount: 168,
     },
   },
   {
     id: 'vendor_002',
-    email: 'support@iyoji-memorial-dummy.example.com',
+    email: 'support@jonan-kankyo-dummy.example.com',
     role: 'vendor',
-    displayName: 'いよ路メモリアル・クリーン（中予支部・ダミー）',
+    displayName: '城南みちお墓クリーン（ダミー提携パートナー）',
     phoneNumber: '089-912-XXXX',
     createdAt: '2026-02-15T09:00:00Z',
     updatedAt: '2026-09-05T09:00:00Z',
     vendorProfile: {
-      companyName: 'いよ路メモリアルサービス 合同会社（ダミー）',
+      companyName: '合同会社 城南環境サポート（ダミー）',
       representativeName: '越智 健一',
       serviceAreas: ['松山市', '伊予市', '東温市'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor02', // Stripe Connect 提携先ID
@@ -99,14 +99,14 @@ export const SAMPLE_VENDORS: User[] = [
   },
   {
     id: 'vendor_003',
-    email: 'contact@setouchi-sekizai-dummy.example.com',
+    email: 'contact@iyotakumi-dummy.example.com',
     role: 'vendor',
-    displayName: '瀬戸内石材ケア・松山（ダミー提携パートナー）',
+    displayName: '伊予匠・石材メンテナンス工房（ダミー提携パートナー）',
     phoneNumber: '089-943-XXXX',
     createdAt: '2026-03-01T09:00:00Z',
     updatedAt: '2026-09-10T09:00:00Z',
     vendorProfile: {
-      companyName: '株式会社 瀬戸内石材工房・愛媛（ダミー）',
+      companyName: '株式会社 伊予匠石材技研（ダミー）',
       representativeName: '白石 孝之（一級石材施工技能士）',
       serviceAreas: ['松山市', '今治市', '東温市', '伊予郡松前町'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor03',
@@ -119,14 +119,14 @@ export const SAMPLE_VENDORS: User[] = [
   },
   {
     id: 'vendor_004',
-    email: 'info@dogo-mimamori-dummy.example.com',
+    email: 'info@dogo-komorebi-dummy.example.com',
     role: 'vendor',
-    displayName: '道後みまもり墓苑サービス（ダミー提携パートナー）',
+    displayName: '道後こもれび墓苑ケア（ダミー提携パートナー）',
     phoneNumber: '089-977-XXXX',
     createdAt: '2026-03-20T10:00:00Z',
     updatedAt: '2026-09-12T10:00:00Z',
     vendorProfile: {
-      companyName: '道後ライフサポート 株式会社（ダミー）',
+      companyName: '道後フラワー＆ケア 株式会社（ダミー）',
       representativeName: '門屋 裕美（終活カウンセラー・お墓ディレクター2級）',
       serviceAreas: ['松山市全域', '伊予市', '伊予郡砥部町'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor04',
@@ -139,14 +139,14 @@ export const SAMPLE_VENDORS: User[] = [
   },
   {
     id: 'vendor_005',
-    email: 'info@iyo-nanrei-clean-dummy.example.com',
+    email: 'info@ryokufu-grave-dummy.example.com',
     role: 'vendor',
-    displayName: '伊予南嶺クリーンサポート（ダミー提携パートナー）',
+    displayName: '中予山間部・緑風墓苑管理（ダミー提携パートナー）',
     phoneNumber: '089-983-XXXX',
     createdAt: '2026-04-10T08:30:00Z',
     updatedAt: '2026-09-15T08:30:00Z',
     vendorProfile: {
-      companyName: '南嶺環境保全サービス 有限会社（ダミー）',
+      companyName: '緑風環境保全 有限会社（ダミー）',
       representativeName: '重松 健二（造園施工管理技士）',
       serviceAreas: ['松山市南部', '伊予市', '伊予郡松前町', '伊予郡砥部町', '大洲市'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor05',
@@ -159,14 +159,14 @@ export const SAMPLE_VENDORS: User[] = [
   },
   {
     id: 'vendor_006',
-    email: 'service@matsuyama-chuo-dummy.example.com',
+    email: 'service@katsuyama-bisou-dummy.example.com',
     role: 'vendor',
-    displayName: '松山中央メモリアル工房（ダミー提携パートナー）',
+    displayName: '勝山お墓美装メンテナンス（ダミー提携パートナー）',
     phoneNumber: '089-931-XXXX',
     createdAt: '2026-05-01T10:00:00Z',
     updatedAt: '2026-09-16T10:00:00Z',
     vendorProfile: {
-      companyName: '松山中央石材サービス 株式会社（ダミー）',
+      companyName: '勝山石材美装 株式会社（ダミー）',
       representativeName: '高市 勝也（お墓ディレクター1級）',
       serviceAreas: ['松山市全域', '東温市', '伊予郡松前町'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor06',
@@ -190,7 +190,7 @@ export const SAMPLE_ORDERS: Order[] = [
     clientName: '山田 太郎',
     clientEmail: 'taro.yamada@example.com',
     vendorId: 'vendor_001',
-    vendorName: '松山お墓のトータルエージェント（ダミー提携パートナー）',
+    vendorName: '松山まごころ墓苑サポート（ダミー提携パートナー）',
     vendorStripeAccountId: 'acct_1OuTESTConnectVendor01',
     servicePlanId: 'plan_standard_service',
     servicePlanName: '標準お参り・徹底お掃除プラン',
@@ -224,7 +224,7 @@ export const SAMPLE_REPORTS: Report[] = [
     id: 'report_sample_001',
     orderId: 'order_sample_001',
     vendorId: 'vendor_001',
-    vendorName: '松山お墓のトータルエージェント（ダミー提携パートナー）',
+    vendorName: '松山まごころ墓苑サポート（ダミー提携パートナー）',
     workDate: '2026-09-25',
     weather: '快晴（松山）',
     beforePhotos: [

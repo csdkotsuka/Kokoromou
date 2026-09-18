@@ -195,7 +195,7 @@ export default function FlyerPage() {
                   </div>
                   <div className="bg-emerald-50/50 border-t-4 border-emerald-600 p-3.5 rounded-b-lg">
                     <div className="font-bold text-xs text-stone-900 mb-1">🏛️ 地元の確かなプロ施工</div>
-                    <p className="text-[10px] text-stone-600 leading-relaxed">松山「お墓のトータルエージェント」提携店が真心施工。</p>
+                    <p className="text-[10px] text-stone-600 leading-relaxed">松山まごころ墓苑サポート等の地元提携店が真心施工。</p>
                   </div>
                   <div className="bg-amber-50/50 border-t-4 border-amber-500 p-3.5 rounded-b-lg">
                     <div className="font-bold text-xs text-stone-900 mb-1">💳 明朗会計・追加料金なし</div>
@@ -243,7 +243,7 @@ export default function FlyerPage() {
               {/* フッターCTA */}
               <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 p-6 border-t-2 border-emerald-500 flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs font-black text-emerald-950 mb-0.5">提携窓口: 株式会社トータルエージェント・パートナーズ</div>
+                  <div className="text-xs font-black text-emerald-950 mb-0.5">提携窓口: 株式会社 伊予メモリアルパートナーズ（ダミー）</div>
                   <p className="text-[10px] text-stone-600 mb-2">愛媛県松山市土居田町 / 宝塔寺旭ヶ丘霊園ほか市内霊園全域対応</p>
                   <div className="inline-flex items-center gap-1 bg-white px-3 py-1 rounded border border-emerald-400 font-black text-emerald-800 text-sm">
                     <Phone className="w-3.5 h-3.5" />
@@ -324,7 +324,7 @@ export default function FlyerPage() {
                   </div>
                   <div className="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100 space-y-0.5">
                     <span className="text-[9px] font-bold text-emerald-800">愛媛・松山エリア公認パートナー</span>
-                    <p className="text-xs font-black text-stone-900">株式会社トータルエージェント・パートナーズ</p>
+                    <p className="text-xs font-black text-stone-900">株式会社 伊予メモリアルパートナーズ（ダミー）</p>
                     <p className="text-[8.5px] text-stone-600 leading-tight">
                       〒790-0056 愛媛県松山市土居田町 / 営業時間：9:00〜18:00
                     </p>
