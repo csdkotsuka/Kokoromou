@@ -34,18 +34,18 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
   const [weather, setWeather] = useState<string>('快晴');
   const [beforePhotos, setBeforePhotos] = useState<PhotoItem[]>([
     {
-      url: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
-      caption: '作業前：墓石全体の落ち葉・雑草繁茂の状況',
+      url: 'https://images.unsplash.com/photo-1561503972-839d0c56de17?auto=format&fit=crop&w=600&q=80',
+      caption: '作業前：墓石本体と足元の雑草・落ち葉の状況',
     },
   ]);
   const [afterPhotos, setAfterPhotos] = useState<PhotoItem[]>([
     {
-      url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
-      caption: '作業後：雑草を全手作業で除去し、墓石の水洗い完了',
+      url: 'https://images.unsplash.com/photo-1574063900403-a4e29a4690b5?auto=format&fit=crop&w=600&q=80',
+      caption: '作業後：雑草を全手作業で除去し、墓石水拭き・お線香をお供え',
     },
     {
-      url: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
-      caption: '作業後：季節の生花・お線香をお供えし合掌いたしました',
+      url: 'https://images.unsplash.com/photo-1543274420-090dfb67739d?auto=format&fit=crop&w=600&q=80',
+      caption: '作業後：季節の生花をお供えし、心を込めて合掌礼拝いたしました',
     },
   ]);
   const [workNotes, setWorkNotes] = useState<string>(

@@ -140,33 +140,33 @@ export default function Home() {
             <div className="space-y-3">
               <div className="relative rounded-2xl overflow-hidden border border-stone-200 shadow-inner group">
                 <img 
-                  src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80" 
-                  alt="作業前の墓石の様子" 
-                  className="w-full h-64 sm:h-72 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1561503972-839d0c56de17?auto=format&fit=crop&w=900&q=80" 
+                  alt="作業前の墓石の様子（苔・水垢・雑草の繁茂）" 
+                  className="w-full h-72 sm:h-80 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-3 left-3 bg-stone-900/80 backdrop-blur-xs text-white text-xs font-bold px-3 py-1 rounded-full">
+                <div className="absolute top-3 left-3 bg-stone-900/85 backdrop-blur-xs text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">
                   作業前 (Before)
                 </div>
               </div>
-              <p className="text-xs text-stone-500">
-                潮風や雨風による水垢、苔、敷地内に伸びた雑草や落ち葉が堆積している状態。
+              <p className="text-xs text-stone-600 leading-relaxed">
+                墓石本体の水垢・苔の付着、文字彫刻部分の汚れ、敷地内に伸びた雑草や落ち葉が溜まっている状態。
               </p>
             </div>
 
             {/* After 写真 */}
             <div className="space-y-3">
-              <div className="relative rounded-2xl overflow-hidden border border-emerald-300 shadow-md group">
+              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-lg group">
                 <img 
-                  src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=800&q=80" 
-                  alt="作業後のお参り完了の様子" 
-                  className="w-full h-64 sm:h-72 object-cover transition-transform duration-500 group-hover:scale-105"
+                  src="https://images.unsplash.com/photo-1574063900403-a4e29a4690b5?auto=format&fit=crop&w=900&q=80" 
+                  alt="作業後のお参り完了の様子（専用水拭き・お線香とお花のお供え）" 
+                  className="w-full h-72 sm:h-80 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-3 left-3 bg-emerald-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                <div className="absolute top-3 left-3 bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">
                   作業完了 (After)
                 </div>
               </div>
-              <p className="text-xs text-emerald-800 font-medium">
-                手作業で根元から雑草を抜き取り、墓石・花立てを水洗い清掃。色鮮やかな季節の生花とお線香を供え、合掌礼拝を完了。
+              <p className="text-xs text-emerald-900 font-medium leading-relaxed">
+                手作業による敷地内の全面除草、墓石・花立て・香炉の専用水洗いを実施。お線香を焚き、色鮮やかな生花をお供えして合掌礼拝。
               </p>
             </div>
           </div>
