@@ -178,19 +178,28 @@ function OrderFormContent() {
                         onChange={() => setSelectedVendorId(vendor.id)}
                         className="mt-1 text-emerald-600 focus:ring-emerald-500"
                       />
-                      <div>
-                        <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold text-stone-900 text-sm">{vendor.displayName}</span>
                           <span className="text-[10px] text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded font-medium">
                             Stripe Connect Verified
                           </span>
+                          <span className="text-amber-600 font-bold text-xs">
+                            ★ {vendor.vendorProfile?.rating}
+                          </span>
                         </div>
-                        <p className="text-xs text-stone-500 mt-1">
-                          対応地域: {vendor.vendorProfile?.serviceAreas.join('・')}
+                        {vendor.vendorProfile?.representativeName && (
+                          <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
+                            担当: {vendor.vendorProfile.representativeName}
+                          </p>
+                        )}
+                        <p className="text-xs text-stone-600 mt-1 leading-relaxed">
+                          {vendor.vendorProfile?.description}
                         </p>
-                        <p className="text-[11px] text-stone-400 mt-1">
-                          実績: {vendor.vendorProfile?.completedJobsCount}件 / 評価 ★{vendor.vendorProfile?.rating}
-                        </p>
+                        <div className="flex flex-wrap items-center justify-between text-[11px] text-stone-500 mt-2 pt-2 border-t border-stone-100">
+                          <span>対応: {vendor.vendorProfile?.serviceAreas.join('・')}</span>
+                          <span className="font-semibold text-emerald-800">施工実績: {vendor.vendorProfile?.completedJobsCount}件</span>
+                        </div>
                       </div>
                     </div>
                   </label>

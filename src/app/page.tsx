@@ -461,23 +461,35 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {SAMPLE_VENDORS.map((vendor) => (
-              <div key={vendor.id} className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex flex-col justify-between">
+              <div key={vendor.id} className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-base font-bold text-stone-900">{vendor.displayName}</span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-base font-bold text-stone-900 leading-snug">{vendor.displayName}</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
                       <ShieldCheck className="w-3 h-3" /> Stripe Verified
                     </span>
                   </div>
-                  <p className="text-xs text-stone-500 mt-1 font-medium">{vendor.vendorProfile?.companyName}</p>
-                  <p className="text-xs text-stone-600 mt-3">{vendor.vendorProfile?.description}</p>
+                  <div className="mt-1 flex items-center justify-between text-xs text-stone-500">
+                    <span className="font-medium">{vendor.vendorProfile?.companyName}</span>
+                    <span className="text-amber-600 font-bold flex items-center gap-0.5">
+                      ★ {vendor.vendorProfile?.rating}
+                    </span>
+                  </div>
+                  {vendor.vendorProfile?.representativeName && (
+                    <p className="text-[11px] text-emerald-800 font-medium mt-1">
+                      代表・担当: {vendor.vendorProfile.representativeName}
+                    </p>
+                  )}
+                  <p className="text-xs text-stone-600 mt-3 leading-relaxed">{vendor.vendorProfile?.description}</p>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-                  <span>対応地域: {vendor.vendorProfile?.serviceAreas.join('・')}</span>
-                  <span className="font-semibold text-emerald-800">実績: {vendor.vendorProfile?.completedJobsCount}件</span>
+                <div className="mt-5 pt-3 border-t border-stone-100 flex flex-col gap-1 text-xs text-stone-500">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[11px]">対応: {vendor.vendorProfile?.serviceAreas.slice(0, 3).join('・')}他</span>
+                    <span className="font-semibold text-emerald-800 text-[11px]">施工実績: {vendor.vendorProfile?.completedJobsCount}件</span>
+                  </div>
                 </div>
               </div>
             ))}
