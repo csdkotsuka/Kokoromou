@@ -85,12 +85,12 @@ function SuccessContent() {
           <div className="flex justify-between border-b border-stone-200 pb-2">
             <span className="text-stone-500">対象霊園</span>
             <span className="font-medium text-stone-800">
-              {order?.graveInfo?.cemeteryName || '福岡市立 平尾霊園'} ({order?.graveInfo?.sectionPlotNumber || '3区 12番'})
+              {order?.graveInfo?.cemeteryName || '松山市営 梅津寺霊園'} ({order?.graveInfo?.sectionPlotNumber || '西地区 3列 15番'})
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-stone-500">担当業者</span>
-            <span className="font-medium text-stone-800">{order?.vendorName || '博多石材・お墓守り本舗'}</span>
+            <span className="font-medium text-stone-800">{order?.vendorName || '伊予石材・松山お墓守り本舗'}</span>
           </div>
         </div>
 

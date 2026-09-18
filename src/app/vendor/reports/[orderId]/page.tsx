@@ -178,11 +178,11 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div className="bg-stone-50 p-3 rounded-xl">
             <span className="text-stone-500 block mb-0.5">霊園・寺院名</span>
-            <span className="font-bold text-stone-800">{order?.graveInfo?.cemeteryName || '福岡市立 平尾霊園'}</span>
+            <span className="font-bold text-stone-800">{order?.graveInfo?.cemeteryName || '松山市営 梅津寺霊園'}</span>
           </div>
           <div className="bg-stone-50 p-3 rounded-xl">
             <span className="text-stone-500 block mb-0.5">区画・墓石番号</span>
-            <span className="font-bold text-stone-800">{order?.graveInfo?.sectionPlotNumber || '第5区 8列 14番'}</span>
+            <span className="font-bold text-stone-800">{order?.graveInfo?.sectionPlotNumber || '西地区 3列 15番'}</span>
           </div>
           <div className="bg-stone-50 p-3 rounded-xl">
             <span className="text-stone-500 block mb-0.5">施主様お名前</span>

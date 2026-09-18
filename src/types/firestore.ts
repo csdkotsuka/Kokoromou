@@ -10,7 +10,7 @@ export type UserRole = 'client' | 'vendor' | 'admin';
 export interface VendorProfile {
   companyName: string;
   representativeName: string;
-  serviceAreas: string[]; // 例: ["福岡県福岡市", "福岡県糸島市"]
+  serviceAreas: string[]; // 例: ["愛媛県松山市", "愛媛県伊予市"]
   stripeConnectAccountId?: string; // Stripe Connect Custom/Express Account ID (acct_xxx)
   stripeChargesEnabled: boolean;
   stripePayoutsEnabled: boolean;
