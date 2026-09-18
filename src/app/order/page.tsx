@@ -16,9 +16,9 @@ function OrderFormContent() {
   const [formData, setFormData] = useState({
     clientName: '山田 太郎',
     clientEmail: 'client@example.com',
-    cemeteryName: '松山市営 梅津寺霊園',
-    locationAddress: '愛媛県松山市梅津寺町1382',
-    sectionPlotNumber: '西地区 3列 15番',
+    cemeteryName: '宝塔寺 旭ヶ丘霊園（モデル霊園）',
+    locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
+    sectionPlotNumber: '東区 5列 12番',
     deceasedName: '山田家先祖代々',
     specialRequests: '墓石側面の苔が気になるので、水洗いでしっかり落としていただけますと幸いです。',
     preferredDate: '2026-09-25',
@@ -250,7 +250,7 @@ function OrderFormContent() {
                   onChange={handleChange}
                   required
                   className="w-full text-sm border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  placeholder="例: 松山市営 梅津寺霊園"
+                  placeholder="例: 宝塔寺 旭ヶ丘霊園"
                 />
               </div>
 
@@ -265,7 +265,7 @@ function OrderFormContent() {
                   onChange={handleChange}
                   required
                   className="w-full text-sm border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  placeholder="例: 西地区 3列 15番"
+                  placeholder="例: 東区 5列 12番"
                 />
               </div>
             </div>
@@ -278,7 +278,7 @@ function OrderFormContent() {
                 value={formData.locationAddress}
                 onChange={handleChange}
                 className="w-full text-sm border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                placeholder="例: 愛媛県松山市梅津寺町1382"
+                placeholder="例: 愛媛県松山市朝日ヶ丘1丁目"
               />
             </div>
 

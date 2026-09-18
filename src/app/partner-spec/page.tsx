@@ -65,9 +65,9 @@ export default function PartnerSpecPage() {
         <div className="bg-emerald-900/10 border border-emerald-700/20 rounded-2xl p-6 mb-12">
           <h2 className="text-base font-bold text-emerald-950 flex items-center gap-2 mb-3">
             <Building2 className="w-5 h-5 text-emerald-700" />
-            <span>提携業者様にとっての安心ポイント（3分まとめ）</span>
+            <span>提携事業者様にとっての安心・成長ポイント（3分まとめ）</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-stone-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-stone-700">
             <div className="bg-white p-4 rounded-xl border border-emerald-900/10 shadow-sm">
               <span className="font-bold text-emerald-800 block mb-1">① 請求・回収リスクゼロ</span>
               <p className="leading-relaxed">
@@ -75,7 +75,7 @@ export default function PartnerSpecPage() {
               </p>
             </div>
             <div className="bg-white p-4 rounded-xl border border-emerald-900/10 shadow-sm">
-              <span className="font-bold text-emerald-800 block mb-1">② 口座番号・カード番号の非保持</span>
+              <span className="font-bold text-emerald-800 block mb-1">② 口座番号・カードの非保持</span>
               <p className="leading-relaxed">
                 貴社の振込口座情報は世界基準（PCI-DSS Lv1）のStripeが直接管理。本アプリ側で金融情報を保持・流出させるリスクはありません。
               </p>
@@ -84,6 +84,12 @@ export default function PartnerSpecPage() {
               <span className="font-bold text-emerald-800 block mb-1">③ アプリインストール不要</span>
               <p className="leading-relaxed">
                 スマートフォンやタブレットの標準ブラウザ（Safari/Chrome）から直接写真アップロードと報告が行えます。
+              </p>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-emerald-900/10 shadow-sm">
+              <span className="font-bold text-emerald-800 block mb-1">④ 永代供養・墓じまい連携</span>
+              <p className="leading-relaxed">
+                遠方施主との継続的な接点が生まれ、宝塔寺霊園等の永代供養・送骨・墓じまい相談への自然な送客に繋がります。
               </p>
             </div>
           </div>

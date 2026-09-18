@@ -7,12 +7,12 @@ export const SAMPLE_SERVICE_PLANS: ServicePlan[] = [
   {
     id: 'plan_basic_clean',
     name: '基本お参り・簡易清掃プラン',
-    description: '遠方でなかなか行けない方向け。枯れ葉拾い、墓石の水拭き、合掌礼拝を代行します。',
+    description: '遠方にお住まいで帰省が難しい方向け。落ち葉拾い、墓石の水拭き、合掌礼拝を代行します。',
     price: 8800,
     platformFeePercent: 20, // 手数料 20% (1,760円) -> 業者受取 7,040円
     estimatedDuration: '約45分',
     features: [
-      '墓地敷地内の落ち葉・ゴミ拾い',
+      '敷地内の落ち葉・雑草の簡易除去',
       '墓石・花立て・香炉の水洗い清掃',
       'お線香のお供え・合掌礼拝',
       '作業前後の写真付き完了レポート',
@@ -21,86 +21,86 @@ export const SAMPLE_SERVICE_PLANS: ServicePlan[] = [
   {
     id: 'plan_standard_service',
     name: '標準お参り・徹底お掃除プラン',
-    description: '一番人気の定番プラン。雑草抜きから花立て洗浄、生花のお供えまで心を込めて実施します。',
+    description: '一番人気の定番プラン。敷地内全面の雑草手抜き、水垢・コケ落とし、生花のお供えまで心を込めて実施します。',
     price: 14800,
     platformFeePercent: 20, // 手数料 20% (2,960円) -> 業者受取 11,840円
     estimatedDuration: '約90分',
     features: [
-      '手作業による徹底的な雑草除去（敷地内全面）',
+      '手作業による敷地内全面の徹底的な除草',
       '専用ブラシと洗剤による水垢・コケ落とし',
       '季節の生花（1対）のお供え',
-      'お線香・ろうそくのお供え・読経/合掌',
-      '作業前後の高解像度写真レポート',
-      '墓石の傷み・ひび割れチェック報告',
+      'お線香・ろうそくのお供え・合掌礼拝',
+      '高解像度の作業前後Before/After写真レポート',
+      '墓石の傷み・ひび割れ・目地チェック報告',
     ],
     isPopular: true,
   },
   {
     id: 'plan_premium_service',
-    name: 'プレミアム美装・防草コーティングプラン',
-    description: '命日やお盆・お彼岸の前に。本格的な高圧洗浄と防草砂・撥水コーティングを施工します。',
+    name: 'プレミアム美装・撥水コーティングプラン',
+    description: 'ご命日やお盆・お彼岸の前に。本格的な高圧洗浄と墓石コーティング、防草施工を実施します。',
     price: 29800,
     platformFeePercent: 20, // 手数料 20% (5,960円) -> 業者受取 23,840円
     estimatedDuration: '約180分',
     features: [
       '標準プランのすべての作業内容',
       '墓石専用撥水コーティング施工（ツヤ復元・汚れ防止）',
-      '除草剤散布または防草シート簡易施工',
+      '除草剤散布または防草砂簡易施工',
       '高級生花・特選線香のお供え',
       '詳細点検レポート（目地・傾き診断）',
-      '1ヶ月のアフターフォロー保証',
+      '永代供養・墓じまい等の専門ご相談対応',
     ],
   },
 ];
 
 /**
- * 提携業者（愛媛県松山市・中予エリア / Stripe Connect連携済み）サンプルデータ
+ * 提携業者サンプル（お墓のトータルエージェント様をモデルにしたダミー会社）
  */
 export const SAMPLE_VENDORS: User[] = [
   {
     id: 'vendor_001',
-    email: 'contact@iyo-sekizai.example.com',
+    email: 'info@totalagent-partner-dummy.example.com',
     role: 'vendor',
-    displayName: '伊予石材・松山お墓守り本舗',
-    phoneNumber: '089-912-3456',
+    displayName: '松山お墓のトータルエージェント（ダミー提携パートナー）',
+    phoneNumber: '089-997-XXXX',
     createdAt: '2026-01-10T10:00:00Z',
     updatedAt: '2026-09-01T10:00:00Z',
     vendorProfile: {
-      companyName: '有限会社 伊予石材クリーンサービス',
-      representativeName: '越智 健一（墓石施工技士）',
-      serviceAreas: ['松山市', '東温市', '伊予市', '伊予郡松前町', '伊予郡砥部町'],
+      companyName: '株式会社トータルエージェント・パートナーズ（松山本部・ダミー）',
+      representativeName: '松山 誠司（お墓ディレクター）',
+      serviceAreas: ['松山市全域', '東温市', '伊予市', '伊予郡松前町', '伊予郡砥部町'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor01', // Stripe Connect 提携先ID
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
-      description: '創業40年。松山城下や道後周辺で代々続く石材のプロが、遠方のご家族に代わって真心を込めて清掃・お参りいたします。',
+      description: '松山市土居田町を拠点にお墓の清掃代行・墓じまい・永代供養までトータルでサポート。宝塔寺霊園など市内各霊園での施工実績多数。真心を込めてお墓を守ります。',
       rating: 4.9,
-      completedJobsCount: 156,
+      completedJobsCount: 168,
     },
   },
   {
     id: 'vendor_002',
-    email: 'support@iyoji-cleaning.example.com',
+    email: 'support@iyoji-memorial-dummy.example.com',
     role: 'vendor',
-    displayName: 'いよ路 代行サービス（松山・中予）',
-    phoneNumber: '089-987-6543',
+    displayName: 'いよ路メモリアル・クリーン（中予支部・ダミー）',
+    phoneNumber: '089-912-XXXX',
     createdAt: '2026-02-15T09:00:00Z',
     updatedAt: '2026-09-05T09:00:00Z',
     vendorProfile: {
-      companyName: 'いよ路環境サービス 合同会社',
-      representativeName: '白石 誠',
-      serviceAreas: ['松山市', '伊予市', '東温市', '今治市南部'],
+      companyName: 'いよ路メモリアルサービス 合同会社（ダミー）',
+      representativeName: '越智 健一',
+      serviceAreas: ['松山市', '伊予市', '東温市'],
       stripeConnectAccountId: 'acct_1OuTESTConnectVendor02', // Stripe Connect 提携先ID
       stripeChargesEnabled: true,
       stripePayoutsEnabled: true,
-      description: '瀬戸内の温暖な気候で育ちやすい雑草も根元から徹底除去。四国霊場・お遍路の地に寄り添い、丁寧にお墓を守ります。',
+      description: '松山城下や道後周辺の寺院墓地・公営墓地に対応。地域に根ざした職人が丁寧にお参り・清掃を代行いたします。',
       rating: 4.8,
-      completedJobsCount: 94,
+      completedJobsCount: 85,
     },
   },
 ];
 
 /**
- * サンプル注文データ（愛媛県松山市）
+ * サンプル注文データ（宝塔寺霊園をモデルにしたダミー霊園）
  */
 export const SAMPLE_ORDERS: Order[] = [
   {
@@ -110,7 +110,7 @@ export const SAMPLE_ORDERS: Order[] = [
     clientName: '山田 太郎',
     clientEmail: 'taro.yamada@example.com',
     vendorId: 'vendor_001',
-    vendorName: '伊予石材・松山お墓守り本舗',
+    vendorName: '松山お墓のトータルエージェント（ダミー提携パートナー）',
     vendorStripeAccountId: 'acct_1OuTESTConnectVendor01',
     servicePlanId: 'plan_standard_service',
     servicePlanName: '標準お参り・徹底お掃除プラン',
@@ -122,11 +122,11 @@ export const SAMPLE_ORDERS: Order[] = [
     stripePaymentIntentId: 'pi_test_sample_payment_intent_456',
     status: 'paid',
     graveInfo: {
-      cemeteryName: '松山市営 梅津寺霊園',
-      locationAddress: '愛媛県松山市梅津寺町1382',
-      sectionPlotNumber: '西地区 3列 15番',
+      cemeteryName: '宝塔寺 旭ヶ丘霊園（モデル霊園・ダミー）',
+      locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
+      sectionPlotNumber: '東区 5列 12番',
       deceasedName: '山田家先祖代々之墓',
-      specialRequests: '墓石側面の苔が目立ってきたため、水洗いでしっかり落としていただけると助かります。',
+      specialRequests: '花立ての水垢と墓石周辺の雑草が目立ってきたため、水洗いでしっかり綺麗にしていただきたいです。',
     },
     preferredDate: '2026-09-25',
     scheduledDate: '2026-09-25',
@@ -137,20 +137,20 @@ export const SAMPLE_ORDERS: Order[] = [
 ];
 
 /**
- * サンプル作業完了レポートデータ（愛媛県松山市）
+ * サンプル作業完了レポートデータ（宝塔寺 旭ヶ丘霊園モデル）
  */
 export const SAMPLE_REPORTS: Report[] = [
   {
     id: 'report_sample_001',
     orderId: 'order_sample_001',
     vendorId: 'vendor_001',
-    vendorName: '伊予石材・松山お墓守り本舗',
+    vendorName: '松山お墓のトータルエージェント（ダミー提携パートナー）',
     workDate: '2026-09-25',
-    weather: '快晴（松山・瀬戸内側）',
+    weather: '快晴（松山）',
     beforePhotos: [
       {
         url: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80',
-        caption: '作業前：墓石全体の様子（潮風によるくすみと落ち葉の堆積）',
+        caption: '作業前：墓石全体の様子（落ち葉や雑草の堆積）',
       },
       {
         url: 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=800&q=80',
@@ -160,7 +160,7 @@ export const SAMPLE_REPORTS: Report[] = [
     afterPhotos: [
       {
         url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
-        caption: '作業後：雑草を全て手作業で抜去し、墓石水洗い完了',
+        caption: '作業後：雑草を全て手作業で抜去し、墓石の水洗い清掃完了',
       },
       {
         url: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=800&q=80',
@@ -168,9 +168,9 @@ export const SAMPLE_REPORTS: Report[] = [
       },
     ],
     workNotes:
-      '本日、松山市営 梅津寺霊園にて山田家様のお墓参りおよび清掃代行作業を滞りなく完了いたしました。敷地内の雑草を手作業で根元から抜き取り、墓石・花立て・香炉の専用水洗いを行いました。季節の生花（菊・リンドウ）をお供えし、お線香を焚いてご先祖様へのご冥福をお祈りいたしました。',
+      '本日、宝塔寺 旭ヶ丘霊園にて山田家様のお墓参りおよび清掃代行作業を滞りなく完了いたしました。敷地内の雑草を手作業で根元から抜き取り、墓石・花立て・香炉の専用水洗いを行いました。季節の生花をお供えし、お線香を焚いてご先祖様へのご冥福をお祈りいたしました。',
     graveConditionNotes:
-      '墓石本体はしっかりしておりますが、台座目地の一部に経年によるわずかな摩耗が見られます。今すぐの補修は不要ですが、次回の法要などの機会にご点検をお勧めいたします。',
+      '墓石本体は健全な状態を保っておりますが、台座目地の一部に若干の経年摩耗が見られます。直ちに対応が必要な状態ではありませんが、今後のお参り時にも経過を確認いたします。',
     status: 'submitted',
     submittedAt: '2026-09-25T15:30:00Z',
     createdAt: '2026-09-25T15:00:00Z',
