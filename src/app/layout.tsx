@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { FileText } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -23,7 +25,19 @@ export default function RootLayout({
             <p className="mt-2 text-xs text-stone-500">
               安心・安全の決済基盤：Stripe Connect (Destination Charges) / データ保護：Firebase
             </p>
-            <p className="mt-4 text-xs text-stone-600">
+
+            {/* 提携業者向け技術仕様書リンクボタン（小さく、でも分かりやすい位置に配置） */}
+            <div className="mt-5 pt-5 border-t border-stone-800/80 flex justify-center items-center">
+              <Link
+                href="/partner-spec"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-800/90 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-medium border border-stone-700/80 transition-colors shadow-xs group"
+              >
+                <FileText className="w-3.5 h-3.5 text-emerald-400 group-hover:text-emerald-300" />
+                <span>【提携をご検討の業者様へ】システム概要・技術仕様書</span>
+              </Link>
+            </div>
+
+            <p className="mt-4 text-[11px] text-stone-600">
               &copy; {new Date().getFullYear()} Kokoromou Inc. All rights reserved.
             </p>
           </div>
