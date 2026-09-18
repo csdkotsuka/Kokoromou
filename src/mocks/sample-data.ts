@@ -149,22 +149,14 @@ export const SAMPLE_REPORTS: Report[] = [
     weather: '快晴（松山）',
     beforePhotos: [
       {
-        url: 'https://images.unsplash.com/photo-1561503972-839d0c56de17?auto=format&fit=crop&w=800&q=80',
-        caption: '作業前：墓石本体と足元の様子（水垢・落ち葉・雑草の繁茂）',
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1681670833259-5e1ad5177ed8?auto=format&fit=crop&w=800&q=80',
-        caption: '作業前：花立て・香炉周辺の苔と汚れ',
+        url: '/images/grave_before.jpg',
+        caption: '作業前：墓石全体の様子（苔・水垢・落ち葉・雑草の繁茂）',
       },
     ],
     afterPhotos: [
       {
-        url: 'https://images.unsplash.com/photo-1574063900403-a4e29a4690b5?auto=format&fit=crop&w=800&q=80',
-        caption: '作業後：墓石・花立てを専用水洗いし、お線香をお供え',
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1543274420-090dfb67739d?auto=format&fit=crop&w=800&q=80',
-        caption: '作業後：季節の生花をお供えし、真心を込めて合掌礼拝いたしました',
+        url: '/images/grave_after.jpg',
+        caption: '作業後：雑草を除去し墓石を水洗い清掃。季節の生花・お線香をお供えし合掌礼拝いたしました',
       },
     ],
     workNotes:

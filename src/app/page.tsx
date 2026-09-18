@@ -140,8 +140,8 @@ export default function Home() {
             <div className="space-y-3">
               <div className="relative rounded-2xl overflow-hidden border border-stone-200 shadow-inner group">
                 <img 
-                  src="https://images.unsplash.com/photo-1561503972-839d0c56de17?auto=format&fit=crop&w=900&q=80" 
-                  alt="作業前の墓石の様子（苔・水垢・雑草の繁茂）" 
+                  src="/images/grave_before.jpg" 
+                  alt="作業前の墓石の様子（苔・水垢・落ち葉・枯れ草の堆積）" 
                   className="w-full h-72 sm:h-80 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-3 left-3 bg-stone-900/85 backdrop-blur-xs text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">
@@ -149,16 +149,16 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-xs text-stone-600 leading-relaxed">
-                墓石本体の水垢・苔の付着、文字彫刻部分の汚れ、敷地内に伸びた雑草や落ち葉が溜まっている状態。
+                墓石本体の水垢・苔の付着、敷地内に散らばった落ち葉や雑草、花立ての枯れ草が堆積しているお手入れ前の状態。
               </p>
             </div>
 
             {/* After 写真 */}
             <div className="space-y-3">
-              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-lg group">
+              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-600 shadow-lg group">
                 <img 
-                  src="https://images.unsplash.com/photo-1574063900403-a4e29a4690b5?auto=format&fit=crop&w=900&q=80" 
-                  alt="作業後のお参り完了の様子（専用水拭き・お線香とお花のお供え）" 
+                  src="/images/grave_after.jpg" 
+                  alt="作業後のお参り完了の様子（専用水拭き・手作業除草・季節の生花とお線香）" 
                   className="w-full h-72 sm:h-80 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-3 left-3 bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">
@@ -166,7 +166,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-xs text-emerald-900 font-medium leading-relaxed">
-                手作業による敷地内の全面除草、墓石・花立て・香炉の専用水洗いを実施。お線香を焚き、色鮮やかな生花をお供えして合掌礼拝。
+                手作業で落ち葉や雑草を全掃去し、墓石・敷石を専用水洗い。色鮮やかな生花（菊・リンドウ）をお供えし、お線香を焚いて合掌礼拝。
               </p>
             </div>
           </div>

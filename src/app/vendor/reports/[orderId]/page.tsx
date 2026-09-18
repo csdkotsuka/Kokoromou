@@ -34,18 +34,14 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
   const [weather, setWeather] = useState<string>('快晴');
   const [beforePhotos, setBeforePhotos] = useState<PhotoItem[]>([
     {
-      url: 'https://images.unsplash.com/photo-1561503972-839d0c56de17?auto=format&fit=crop&w=600&q=80',
-      caption: '作業前：墓石本体と足元の雑草・落ち葉の状況',
+      url: '/images/grave_before.jpg',
+      caption: '作業前：墓石全体の様子（苔・水垢・落ち葉・雑草の繁茂）',
     },
   ]);
   const [afterPhotos, setAfterPhotos] = useState<PhotoItem[]>([
     {
-      url: 'https://images.unsplash.com/photo-1574063900403-a4e29a4690b5?auto=format&fit=crop&w=600&q=80',
-      caption: '作業後：雑草を全手作業で除去し、墓石水拭き・お線香をお供え',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1543274420-090dfb67739d?auto=format&fit=crop&w=600&q=80',
-      caption: '作業後：季節の生花をお供えし、心を込めて合掌礼拝いたしました',
+      url: '/images/grave_after.jpg',
+      caption: '作業後：手作業除草・水洗い清掃完了、季節の生花・お線香をお供え',
     },
   ]);
   const [workNotes, setWorkNotes] = useState<string>(
