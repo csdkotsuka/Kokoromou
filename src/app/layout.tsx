@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, UserCheck, ShieldCheck } from "lucide-react";
+import { FileText, UserCheck, ShieldCheck, Printer } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -46,6 +46,14 @@ export default function RootLayout({
                 >
                   <UserCheck className="w-3.5 h-3.5 text-stone-400 group-hover:text-emerald-300 transition-colors" />
                   <span>提携業者ポータル（作業報告デモ）</span>
+                </Link>
+
+                <Link
+                  href="/flyer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-amber-300 hover:text-amber-200 text-xs font-medium border border-amber-800/60 transition-colors shadow-xs group"
+                >
+                  <Printer className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span>販促チラシ・三つ折りリーフレット叩き台</span>
                 </Link>
               </div>
             </div>
