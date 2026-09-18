@@ -12,10 +12,54 @@ import {
   Star,
   Quote,
   Clock,
-  Flower2
+  Flower2,
+  HelpCircle,
 } from 'lucide-react';
 
 export default function Home() {
+  // よくある質問（FAQ）
+  const FAQS = [
+    {
+      q: '当日、現地へ立ち会う必要はありますか？',
+      a: '一切不要です。遠方にお住まいの方やご高齢で移動が難しい方のために、鍵の手配や墓所への立ち入り手続きも含め、すべて現地の提携パートナーが代行いたします。完了後は写真付きのWeb報告書をお送りします。',
+    },
+    {
+      q: '見積もり以上の追加料金や出張費が発生することはありますか？',
+      a: '基本プランの料金内ですべて完結し、松山市内および周辺対応エリア（伊予市・東温市・松前町・砥部町など）の標準出張費も含んでおります。墓所の著しい倒壊や特殊伐採など特別工事が必要な場合を除き、事前の承諾なく追加費用を請求することは一切ございません。',
+    },
+    {
+      q: '寺院墓地や地域共同墓地、みなし墓地でも対応してもらえますか？',
+      a: 'はい、公営霊園・民営霊園・寺院墓地・山間部の地域共同墓地など、どのような形態のお墓でも対応可能です。寺院墓地の場合、事前にご住職へ代理清掃の旨をご一報いただけるとよりスムーズです。',
+    },
+    {
+      q: '宗派や宗教に合わせたお参りはお願いできますか？',
+      a: 'はい、仏教各宗派（浄土真宗、曹洞宗、真言宗、日蓮宗等）をはじめ、神道（神葬祭・榊のお供え）、キリスト教など、ご指定の作法やお気持ちに寄り添って敬虔に合掌・拝礼いたします。ご要望はお申し込み時の備考欄にご記入ください。',
+    },
+    {
+      q: '雨天や台風などの悪天候時はどうなりますか？',
+      a: '豪雨や台風などの荒天時は、丁寧な清掃作業と安全な線香着火・鮮明な写真撮影が困難となるため、天候回復を待って順延いたします。その際は事前に予定日の再調整メールをご連絡いたします。',
+    },
+    {
+      q: '作業完了の報告はいつ、どのように届きますか？',
+      a: '作業完了後、原則24時間〜48時間以内に、専用のWeb完了報告ページ（URL）をメールでお届けします。スマートフォンやPCから、作業前後の高画質比較写真（墓石全体、水鉢、花立、香炉、足回り）や専門スタッフの点検所見をいつでも閲覧・保存・ご親族へ共有いただけます。',
+    },
+    {
+      q: 'お供えするお花やお線香の指定、故人の好物などのお供えは可能ですか？',
+      a: '標準・プレミアムプランには季節の新鮮な生花一対とお線香が含まれます。「故人が好きだった色合いの花にしてほしい」「お酒や果物をお供えして手を合わせた後に持ち帰って処分してほしい」などのご要望にも柔軟に対応いたします（※鳥獣被害防止のため、供物は拝礼後に回収いたします）。',
+    },
+    {
+      q: '墓石のひび割れや傾き、目地の劣化が見つかった場合はどうなりますか？',
+      a: '現地清掃時に、経験豊富な石材技能士・お墓ディレクターが墓石全体の健全度を目視点検いたします。破損や劣化を発見した場合は、報告書に写真を添えて詳細を記載し、ご希望に応じて適切な補修プランやアドバイスをご案内いたします（無理な営業等は一切行いません）。',
+    },
+    {
+      q: '年に複数回（春・秋のお彼岸、お盆、年末など）の定期清掃は頼めますか？',
+      a: 'はい、年2回〜年4回の定期清掃や、複数回まとめてのご予約も承っております。定期契約いただくことで割引特典や優先日程確保のメリットもございます。お気軽にお問い合わせください。',
+    },
+    {
+      q: '支払い方法は何が使えますか？',
+      a: '各種クレジットカード（VISA、Mastercard、JCB、American Express、Diners等）による即時安全決済（Stripe）に対応しております。決済手数料は無料で、電子領収書も即時発行されます。',
+    },
+  ];
   // 利用者の声（ダミーデータ）
   const REVIEWS = [
     {
@@ -341,6 +385,68 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* よくある質問（FAQ）セクション */}
+      <section id="faq" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full mb-3">
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Q&A</span>
+          </div>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-700">Frequently Asked Questions</h2>
+          <p className="mt-2 text-3xl font-bold text-stone-900 sm:text-4xl">よくあるご質問</p>
+          <p className="mt-3 text-sm text-stone-600">
+            お申し込みや施工、お支払いに関して多くいただくご質問をまとめました。
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          {FAQS.map((item, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-800 text-white font-black text-sm shrink-0">
+                    Q
+                  </span>
+                  <h3 className="text-base font-bold text-stone-900 leading-snug pt-0.5">
+                    {item.q}
+                  </h3>
+                </div>
+                <div className="flex items-start gap-3 mt-4 pt-4 border-t border-stone-100">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-100 text-amber-900 font-black text-sm shrink-0">
+                    A
+                  </span>
+                  <p className="text-sm text-stone-600 leading-relaxed font-light">
+                    {item.a}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 相談窓口のご案内 */}
+        <div className="mt-12 bg-emerald-50 border border-emerald-200 rounded-2xl p-6 sm:p-8 text-center max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base font-bold text-emerald-950">
+            他にご不明な点や、特殊なご要望はございますか？
+          </p>
+          <p className="text-xs sm:text-sm text-emerald-800 mt-1">
+            お墓の場所が分からない場合や、複数区画のご相談もお気軽にお問い合わせください。
+          </p>
+          <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/order"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors"
+            >
+              <span>Webでお見積り・相談する</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

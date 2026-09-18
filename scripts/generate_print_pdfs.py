@@ -600,7 +600,7 @@ leaflet_html = f'''<!DOCTYPE html>
   .panel {{
     width: 99mm;
     height: 210mm;
-    padding: 12mm 9mm;
+    padding: 8mm 7.5mm;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -616,47 +616,75 @@ leaflet_html = f'''<!DOCTYPE html>
     border-right: 1px dashed #cbd5e1;
   }}
   .flap-badge {{
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 800;
     color: #059669;
     letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     display: block;
   }}
   .flap-h1 {{
-    font-size: 18.5px;
+    font-size: 17px;
     font-weight: 900;
     color: #0f172a;
     line-height: 1.35;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }}
   .flap-intro {{
-    font-size: 10px;
+    font-size: 9px;
     color: #475569;
-    line-height: 1.5;
-    margin-bottom: 10px;
+    line-height: 1.45;
+    margin-bottom: 8px;
     background: #ffffff;
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
   }}
   .flap-reason-card {{
     background: #ffffff;
     border-radius: 6px;
-    padding: 8px 10px;
-    margin-bottom: 7px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    padding: 7px 9px;
+    margin-bottom: 6px;
+    border: 1px solid #f1f5f9;
   }}
   .flap-reason-title {{
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 800;
     color: #065f46;
     margin-bottom: 2px;
   }}
   .flap-reason-desc {{
-    font-size: 9.5px;
+    font-size: 8.5px;
     color: #475569;
     line-height: 1.4;
+  }}
+  .staff-msg-box {{
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+  }}
+  .staff-msg-title {{
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #065f46;
+    margin-bottom: 2px;
+  }}
+  .staff-msg-text {{
+    font-size: 8.5px;
+    color: #064e3b;
+    line-height: 1.35;
+  }}
+  .repeat-box {{
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-size: 9px;
+    color: #92400e;
+    font-weight: 700;
+    text-align: center;
   }}
 
   /* 面2（中）：裏表紙 */
@@ -665,69 +693,102 @@ leaflet_html = f'''<!DOCTYPE html>
     border-right: 1px dashed #cbd5e1;
   }}
   .back-heading {{
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 900;
     color: #065f46;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
   }}
   .back-vendor-info {{
     background: #f0fdf4;
-    border-radius: 8px;
-    padding: 9px 10px;
-    margin-bottom: 8px;
+    border-radius: 6px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
+    border: 1px solid #dcfce7;
   }}
   .back-vendor-name {{
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
     color: #0f172a;
     margin-bottom: 2px;
   }}
   .back-vendor-addr {{
-    font-size: 9.5px;
+    font-size: 8.5px;
     color: #475569;
     line-height: 1.4;
   }}
   .back-tel-row {{
-    margin-top: 5px;
-    font-size: 14.5px;
+    margin-top: 4px;
+    font-size: 13.5px;
     font-weight: 900;
     color: #059669;
   }}
+  .back-area-list {{
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 8px;
+    color: #475569;
+    line-height: 1.35;
+    margin-bottom: 6px;
+    border: 1px solid #e2e8f0;
+  }}
+  .back-area-title {{
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }}
   .back-faq-sec {{
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }}
   .back-faq-title {{
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 800;
     color: #0f172a;
     border-bottom: 1px solid #cbd5e1;
     padding-bottom: 2px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
+  }}
+  .back-faq-grid {{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }}
   .back-faq-item {{
-    font-size: 9.5px;
+    font-size: 8.5px;
     color: #475569;
     line-height: 1.35;
-    margin-bottom: 6px;
+    background: #fafaf9;
+    padding: 5px 7px;
+    border-radius: 5px;
   }}
   .back-faq-item strong {{
     color: #065f46;
   }}
-  .back-qr-box {{
+  .back-pay-info {{
+    font-size: 8.5px;
+    color: #475569;
+    text-align: center;
     background: #f8fafc;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 6px;
+    border: 1px solid #e2e8f0;
+  }}
+  .back-qr-box {{
+    background: #ffffff;
     border: 1.5px solid #059669;
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 6px 8px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }}
   .back-qr-img {{
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     flex-shrink: 0;
   }}
 
@@ -744,16 +805,16 @@ leaflet_html = f'''<!DOCTYPE html>
   .cover-brand-logo {{
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 17px;
+    gap: 5px;
+    font-size: 16px;
     font-weight: 900;
   }}
   .cover-area-pill {{
     background: #f59e0b;
     color: #0f172a;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 900;
-    padding: 3px 8px;
+    padding: 2px 7px;
     border-radius: 4px;
   }}
   .cover-center {{
@@ -773,19 +834,49 @@ leaflet_html = f'''<!DOCTYPE html>
     letter-spacing: -0.3px;
   }}
   .cover-desc {{
-    font-size: 10px;
+    font-size: 9.5px;
     color: #f0fdf4;
     line-height: 1.45;
     margin-top: 6px;
   }}
+  .cover-target-box {{
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin: 8px 0;
+    font-size: 8.5px;
+    line-height: 1.4;
+  }}
+  .cover-target-title {{
+    font-weight: 800;
+    color: #fef08a;
+    margin-bottom: 2px;
+  }}
+  .cover-trust-row {{
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    margin: 6px 0 10px 0;
+  }}
+  .cover-trust-item {{
+    flex: 1;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+    border-radius: 4px;
+    padding: 5px 2px;
+    text-align: center;
+    font-size: 8.5px;
+    font-weight: 700;
+    line-height: 1.25;
+  }}
   .cover-photo-card {{
     background: #ffffff;
     border-radius: 8px;
-    padding: 8px;
+    padding: 7px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.18);
   }}
   .cover-photo-head {{
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 800;
     color: #065f46;
     text-align: center;
@@ -794,17 +885,17 @@ leaflet_html = f'''<!DOCTYPE html>
   .cover-photo-grid {{
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 5px;
   }}
   .cover-photo-grid img {{
     width: 100%;
-    height: 84px;
+    height: 98px;
     object-fit: cover;
     border-radius: 4px;
     display: block;
   }}
   .cover-photo-tag {{
-    font-size: 8.5px;
+    font-size: 8px;
     text-align: center;
     padding: 2px 0;
     margin-top: 2px;
@@ -816,7 +907,7 @@ leaflet_html = f'''<!DOCTYPE html>
     border-right: 1px dashed #cbd5e1;
   }}
   .sec-heading {{
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
     color: #0f172a;
     margin-bottom: 6px;
@@ -825,12 +916,13 @@ leaflet_html = f'''<!DOCTYPE html>
   }}
   .trouble-list {{
     background: #fffbeb;
+    border: 1px solid #fde68a;
     border-radius: 6px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
+    padding: 7px 9px;
+    margin-bottom: 7px;
   }}
   .trouble-item {{
-    font-size: 9.5px;
+    font-size: 8.5px;
     color: #78350f;
     line-height: 1.45;
     margin-bottom: 3px;
@@ -842,32 +934,50 @@ leaflet_html = f'''<!DOCTYPE html>
   
   .trust-box {{
     background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 6px;
     padding: 7px 9px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    margin-bottom: 7px;
   }}
   .trust-title {{
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 800;
     color: #065f46;
     margin-bottom: 2px;
   }}
   .trust-desc {{
-    font-size: 9px;
+    font-size: 8.5px;
     color: #475569;
+    line-height: 1.4;
+  }}
+  .find-grave-box {{
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 6px;
+    padding: 6px 9px;
+    margin-bottom: 7px;
+  }}
+  .find-grave-title {{
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #065f46;
+    margin-bottom: 1px;
+  }}
+  .find-grave-desc {{
+    font-size: 8.5px;
+    color: #064e3b;
     line-height: 1.35;
   }}
 
   .step-row {{
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     background: #ffffff;
     padding: 5px 8px;
     border-radius: 6px;
-    margin-bottom: 4px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    margin-bottom: 5px;
+    border: 1px solid #f1f5f9;
   }}
   .step-num {{
     width: 18px;
@@ -883,14 +993,14 @@ leaflet_html = f'''<!DOCTYPE html>
     flex-shrink: 0;
   }}
   .step-text {{
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
     color: #1e293b;
   }}
   .step-sub {{
-    font-size: 8.5px;
+    font-size: 8px;
     color: #64748b;
-    margin-left: 4px;
+    margin-left: 3px;
     font-weight: normal;
   }}
 
@@ -903,13 +1013,12 @@ leaflet_html = f'''<!DOCTYPE html>
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    padding: 8px 10px;
-    margin-bottom: 7px;
+    padding: 7px 9px;
+    margin-bottom: 6px;
   }}
   .plan-card-in.is-pop {{
     background: #f0fdf4;
     border: 2px solid #059669;
-    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
   }}
   .plan-card-in-head {{
     display: flex;
@@ -918,7 +1027,7 @@ leaflet_html = f'''<!DOCTYPE html>
     margin-bottom: 3px;
   }}
   .plan-card-in-title {{
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 800;
     color: #0f172a;
   }}
@@ -926,21 +1035,43 @@ leaflet_html = f'''<!DOCTYPE html>
     color: #065f46;
   }}
   .plan-card-in-price {{
-    font-size: 15.5px;
+    font-size: 15px;
     font-weight: 900;
     color: #0f172a;
   }}
   .plan-card-in.is-pop .plan-card-in-price {{
-    font-size: 18.5px;
+    font-size: 17.5px;
     color: #059669;
   }}
-  .plan-checklist {{
+  .plan-list-items {{
     font-size: 8.5px;
     color: #475569;
     line-height: 1.4;
   }}
-  .plan-checklist strong {{
+  .plan-list-items div {{
+    margin-bottom: 1px;
+  }}
+  .plan-list-items strong {{
     color: #064e3b;
+  }}
+  .option-box-in {{
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }}
+  .option-box-title {{
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }}
+  .option-box-desc {{
+    font-size: 8px;
+    color: #64748b;
+    line-height: 1.35;
   }}
 
   /* 内側右面：実例・声 */
@@ -950,18 +1081,18 @@ leaflet_html = f'''<!DOCTYPE html>
   .example-photos-row {{
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 5px;
+    margin-bottom: 6px;
   }}
   .example-photo-box {{
     background: #ffffff;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
   }}
   .example-photo-box img {{
     width: 100%;
-    height: 64px;
+    height: 72px;
     object-fit: cover;
     display: block;
   }}
@@ -979,35 +1110,60 @@ leaflet_html = f'''<!DOCTYPE html>
   }}
   .voice-bubble {{
     background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 6px 8px;
-    margin-bottom: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    padding: 5px 8px;
+    margin-bottom: 5px;
   }}
   .voice-bubble-title {{
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 800;
     color: #92400e;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
+    display: flex;
+    justify-content: space-between;
   }}
   .voice-bubble-text {{
     font-size: 8.5px;
     color: #475569;
-    line-height: 1.35;
+    line-height: 1.3;
+  }}
+  .support-contact-box {{
+    background: #ffffff;
+    border: 1.5px solid #059669;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    text-align: center;
+  }}
+  .support-contact-title {{
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #065f46;
+  }}
+  .support-contact-tel {{
+    font-size: 14px;
+    font-weight: 900;
+    color: #059669;
+    margin: 1px 0;
+  }}
+  .support-contact-time {{
+    font-size: 8px;
+    color: #64748b;
   }}
   .inside-footer-cta {{
     background: #059669;
     color: #ffffff;
     border-radius: 6px;
-    padding: 8px 10px;
+    padding: 7px 8px;
     text-align: center;
   }}
   .inside-footer-cta-title {{
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 900;
   }}
   .inside-footer-cta-sub {{
-    font-size: 9px;
+    font-size: 8.5px;
     color: #d1fae5;
     margin-top: 1px;
   }}
@@ -1030,83 +1186,111 @@ leaflet_html = f'''<!DOCTYPE html>
           真心を込めて繋ぐ。
         </div>
         <div class="flap-intro">
-          「お墓参りに行けずご先祖様に申し訳ない」「お墓が荒れていないか心配」というご家族の想いに寄り添い、松山の地元石材パートナーとともに立ち上げました。
-        </div>
-
-        <div class="flap-reason-card">
-          <div class="flap-reason-title">🌸 単なる作業ではない「供養の心」</div>
-          <div class="flap-reason-desc">雑草抜きや水洗いだけでなく、お線香を焚き、生花をお供えし、ご家族に代わって真心を込めて合掌いたします。</div>
-        </div>
-
-        <div class="flap-reason-card">
-          <div class="flap-reason-title">🏛️ 松山エリア専門の確かな技術</div>
-          <div class="flap-reason-desc">石材・墓石の専門知識を持つ地元職人が、墓石を傷つけない専用洗浄剤と道具で丁寧に施工します。</div>
-        </div>
-
-        <div class="flap-reason-card">
-          <div class="flap-reason-title">📸 鮮明な高画質写真レポート</div>
-          <div class="flap-reason-desc">作業前後の写真をメールやLINEで迅速にお届け。遠方のご家族全員で安心を共有していただけます。</div>
-        </div>
-
-        <div class="flap-reason-card">
-          <div class="flap-reason-title">🤝 永代供養・墓じまいのご相談も</div>
-          <div class="flap-reason-desc">宝塔寺旭ヶ丘霊園での永代供養や、将来の墓じまい・改葬までワンストップでご相談いただけます。</div>
+          「お墓参りに行けず申し訳ない」「お墓が荒れていないか心配」というご家族の想いに寄り添い、松山の地元石材パートナーとともに立ち上げました。
         </div>
       </div>
 
-      <div style="text-align: center; font-size: 10.5px; font-weight: 800; color: #059669; padding-top: 6px; border-top: 1px solid #e2e8f0;">
+      <div class="flap-reason-card">
+        <div class="flap-reason-title">🌸 単なる作業ではない「供養の心」</div>
+        <div class="flap-reason-desc">雑草抜きや水洗いだけでなく、生花をお供えし線香を焚き、敬虔に合掌いたします。</div>
+      </div>
+
+      <div class="flap-reason-card">
+        <div class="flap-reason-title">🏛️ 松山エリア専門の確かな技術</div>
+        <div class="flap-reason-desc">石材技能士の知識を持つ地元職人が、墓石を傷めない専用水洗いと手作業除草で施工。</div>
+      </div>
+
+      <div class="flap-reason-card">
+        <div class="flap-reason-title">📸 鮮明な高画質写真レポート</div>
+        <div class="flap-reason-desc">作業前後の比較写真をWebでお届け。遠方のご家族全員で安心を共有できます。</div>
+      </div>
+
+      <div class="flap-reason-card">
+        <div class="flap-reason-title">🤝 永代供養・墓じまいのご相談も</div>
+        <div class="flap-reason-desc">宝塔寺旭ヶ丘霊園での永代供養や、将来の墓じまい・改葬までワンストップ対応。</div>
+      </div>
+
+      <div class="staff-msg-box">
+        <div class="staff-msg-title">💬 地元技術スタッフより</div>
+        <div class="staff-msg-text">
+          「松山の気候風土とお墓を知り尽くした私たちが、ご家族の想いを大切にお墓へお届けします。」
+        </div>
+      </div>
+
+      <div class="repeat-box">
+        📅 年間定期管理（年2〜4回）なら全プラン10%OFF
+      </div>
+
+      <div style="text-align: center; font-size: 10px; font-weight: 800; color: #059669; padding-top: 5px; border-top: 1px solid #e2e8f0;">
         ▶ ページを開いて詳しいプランをご覧ください
       </div>
     </div>
 
     <!-- 面2（中）：裏表紙（提携窓口・Q&A・QR） -->
     <div class="panel p-outside-center">
-      <div>
-        <div class="back-heading">
-          <span>🌸</span>
-          <span>提携窓口・会社概要</span>
-        </div>
+      <div class="back-heading">
+        <span>🌸</span>
+        <span>提携窓口・会社概要</span>
+      </div>
 
-        <div class="back-vendor-info">
-          <div style="font-size: 9.5px; font-weight: 800; color: #065f46; margin-bottom: 2px;">愛媛・松山エリア公認パートナー</div>
-          <div class="back-vendor-name">株式会社トータルエージェント・パートナーズ</div>
-          <div class="back-vendor-addr">
-            〒790-0056 愛媛県松山市土居田町<br>
-            対応エリア：松山市全域・東温市・伊予市・松前町・砥部町<br>
-            主な霊園：宝塔寺旭ヶ丘霊園、松山市営霊園、市内各寺院・共同墓地
-          </div>
-          <div class="back-tel-row">
-            📞 TEL: 089-997-XXXX
-          </div>
+      <div class="back-vendor-info">
+        <div style="font-size: 9px; font-weight: 800; color: #065f46; margin-bottom: 1px;">愛媛・松山エリア公認パートナー</div>
+        <div class="back-vendor-name">株式会社トータルエージェント・パートナーズ</div>
+        <div class="back-vendor-addr">
+          〒790-0056 愛媛県松山市土居田町<br>
+          営業時間：9:00〜18:00（年中無休）
         </div>
+        <div class="back-tel-row">
+          📞 TEL: 089-997-XXXX
+        </div>
+      </div>
 
-        <div class="back-faq-sec">
-          <div class="back-faq-title">よくあるご質問</div>
+      <div class="back-area-list">
+        <div class="back-area-title">📍 主な対応エリア・霊園一覧</div>
+        対応地域：松山市全域・東温市・伊予市・松前町・砥部町<br>
+        主な霊園：宝塔寺旭ヶ丘霊園、松山市営大明神霊園、客谷霊園、鷺谷霊園、市内各寺院・地域共同墓地
+      </div>
+
+      <div class="back-faq-sec">
+        <div class="back-faq-title">よくあるご質問（抜粋）</div>
+        <div class="back-faq-grid">
           <div class="back-faq-item">
             <strong>Q. 立ち会いは必要ですか？</strong><br>
-            A. 不要です。現地作業の前後に鮮明な写真レポートをお送りします。
+            A. 一切不要です。作業前後の高画質写真をWebでお送りします。
           </div>
           <div class="back-faq-item">
             <strong>Q. 追加料金はかかりますか？</strong><br>
-            A. かかりません。明朗会計で提示料金のみで施工いたします。
+            A. かかりません。出張費・資材費込みの明朗会計です。
           </div>
           <div class="back-faq-item">
-            <strong>Q. 雨天の場合はどうなりますか？</strong><br>
-            A. 丁寧な清掃のため、天候回復後に順延して確実に実施します。
+            <strong>Q. 宗派や宗教の指定は？</strong><br>
+            A. 仏教各宗派、神道、キリスト教の作法に配慮いたします。
           </div>
           <div class="back-faq-item">
-            <strong>Q. 定期管理の相談もできますか？</strong><br>
-            A. 年1回から年4回（お盆・彼岸・年末）の定期管理も承ります。
+            <strong>Q. 寺院や山間部の墓地でも可能？</strong><br>
+            A. はい。寺院・公営・民間・共同墓地に対応可能です。
+          </div>
+          <div class="back-faq-item">
+            <strong>Q. 雨天の場合は？</strong><br>
+            A. 丁寧な清掃のため、天候回復後に順延して実施します。
+          </div>
+          <div class="back-faq-item">
+            <strong>Q. 墓石の破損が見つかったら？</strong><br>
+            A. 写真付きで報告し、ご希望に応じて補修見積もりを案内します。
           </div>
         </div>
+      </div>
+
+      <div class="back-pay-info">
+        💳 各種クレジットカード（VISA/Master/JCB/Amex）即時決済対応
       </div>
 
       <div class="back-qr-box">
         <img class="back-qr-img" src="{qr_b64}" alt="QRコード">
         <div>
-          <div style="font-size: 11.5px; font-weight: 900; color: #064e3b;">スマホで24時間受付</div>
-          <div style="font-size: 10px; font-weight: 800; color: #d97706;">簡単Webお申し込み</div>
-          <div style="font-size: 8.5px; color: #64748b;">カメラをかざすだけで注文完了</div>
+          <div style="font-size: 11px; font-weight: 900; color: #064e3b;">スマホで24時間受付</div>
+          <div style="font-size: 9.5px; font-weight: 800; color: #d97706;">簡単3分Webお申し込み</div>
+          <div style="font-size: 8px; color: #64748b;">カメラをかざすだけで注文完了</div>
         </div>
       </div>
     </div>
@@ -1129,8 +1313,21 @@ leaflet_html = f'''<!DOCTYPE html>
           ピカピカに。
         </div>
         <div class="cover-desc">
-          松山の地元石材専門パートナーが、ご家族に代わって丁寧に清掃・合掌。鮮明な写真レポートをお届けします。
+          松山の地元石材パートナーが、ご家族に代わって丁寧に清掃・合掌。鮮明な写真レポートをお届けします。
         </div>
+      </div>
+
+      <div class="cover-target-box">
+        <div class="cover-target-title">こんな方にご利用いただいています</div>
+        ・遠方在住で帰省が難しい方<br>
+        ・足腰の不安でお参りの階段がつらい方<br>
+        ・お盆や命日にお墓を綺麗にしておきたい方
+      </div>
+
+      <div class="cover-trust-row">
+        <div class="cover-trust-item">① 明朗会計<br>追加費用なし</div>
+        <div class="cover-trust-item">② 鮮明写真<br>Web完了報告</div>
+        <div class="cover-trust-item">③ 生花・線香<br>真心の合掌込</div>
       </div>
 
       <div class="cover-photo-card">
@@ -1145,6 +1342,10 @@ leaflet_html = f'''<!DOCTYPE html>
             <div class="cover-photo-tag" style="background:#ecfdf5; color:#065f46; font-weight:bold;">作業完了後 ✨</div>
           </div>
         </div>
+      </div>
+
+      <div style="font-size: 8.5px; color: #e2e8f0; text-align: center; padding-top: 3px;">
+        松山市・中予エリア全域対応 / 初めての方もお気軽にご相談ください
       </div>
     </div>
 
@@ -1161,123 +1362,181 @@ leaflet_html = f'''<!DOCTYPE html>
         <div class="sec-heading">こんなお悩み、ございませんか？</div>
         <div class="trouble-list">
           <div class="trouble-item"><span>✓</span> 遠方に住んでいてなかなか松山へ帰省できない</div>
-          <div class="trouble-item"><span>✓</span> 高齢になり階段や坂道のある墓参りがつらい</div>
-          <div class="trouble-item"><span>✓</span> お盆や命日にお墓が荒れていないか心配</div>
-          <div class="trouble-item"><span>✓</span> 墓石のコケや雑草抜きが一人では大変</div>
+          <div class="trouble-item"><span>✓</span> 高齢になり階段や山道の墓参りが体力的にきつい</div>
+          <div class="trouble-item"><span>✓</span> お盆や命日にお墓が荒れていないか気がかり</div>
+          <div class="trouble-item"><span>✓</span> 墓石のコケやしつこい水垢、雑草抜きが大変</div>
         </div>
+      </div>
 
-        <div class="trust-box">
-          <div class="trust-title">🌸 ココロモウが選ばれる安心</div>
-          <div class="trust-desc">
-            松山の地元石材パートナー施工・写真レポート即時納品・追加料金なしの明朗会計で、遠方でも安心してお任せいただけます。
-          </div>
+      <div class="trust-box">
+        <div class="trust-title">🌸 松山密着だからできる安心対応</div>
+        <div class="trust-desc">
+          地元石材のプロが専用資材で墓石を傷めず手作業清掃。お花も松山市内の提携花店から新鮮な状態でお供えします。
         </div>
+      </div>
 
-        <div class="sec-heading" style="margin-top: 6px;">ご利用の流れ（簡単4ステップ）</div>
+      <div class="find-grave-box">
+        <div class="find-grave-title">💡 お墓の場所が曖昧でも大丈夫</div>
+        <div class="find-grave-desc">
+          霊園名とお墓の特徴、施主名をお知らせいただければ、管理事務所と連携してスタッフがお墓をお探しします。
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-heading">ご利用の流れ（簡単4ステップ）</div>
         <div class="steps-box">
           <div class="step-row">
             <div class="step-num">1</div>
-            <div><span class="step-text">Web・お電話でお申し込み</span><span class="step-sub">霊園名・区画をご指定</span></div>
+            <div>
+              <div class="step-text">Web・お電話で申込み</div>
+              <div class="step-sub">霊園名と希望日を選ぶだけ（所要3分）</div>
+            </div>
           </div>
           <div class="step-row">
             <div class="step-num">2</div>
-            <div><span class="step-text">事前決済（明朗会計）</span><span class="step-sub">クレジットカード即時決済</span></div>
+            <div>
+              <div class="step-text">事前決済（明朗会計）</div>
+              <div class="step-sub">クレカ即時決済で追加費用なし</div>
+            </div>
           </div>
           <div class="step-row">
             <div class="step-num">3</div>
-            <div><span class="step-text">現地清掃・真心の合掌</span><span class="step-sub">地元職人が丁寧に施工</span></div>
+            <div>
+              <div class="step-text">現地清掃・真心の合掌</div>
+              <div class="step-sub">職人が丁寧に施工・生花線香をお供え</div>
+            </div>
           </div>
           <div class="step-row">
             <div class="step-num">4</div>
-            <div><span class="step-text">写真レポート納品</span><span class="step-sub">スマホで仕上がりを確認</span></div>
+            <div>
+              <div class="step-text">写真レポート納品</div>
+              <div class="step-sub">スマホで仕上がり確認・親族へ共有可能</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div style="font-size: 8.5px; color: #94a3b8; text-align: center; padding-top: 4px; border-top: 1px solid #e2e8f0;">
+      <div style="font-size: 8.5px; color: #64748b; text-align: center; padding-top: 4px; border-top: 1px solid #e2e8f0;">
         安心の事前決済・追加料金は一切いただきません
       </div>
     </div>
 
     <!-- 面5（中）：選べる3つのプラン詳細 -->
     <div class="panel p-inside-center">
-      <div>
-        <div class="sec-heading">選べる3つの代行プラン（税込）</div>
+      <div class="sec-heading">選べる3つの代行プラン（税込）</div>
 
-        <!-- 基本プラン -->
-        <div class="plan-card-in">
-          <div class="plan-card-in-head">
-            <span class="plan-card-in-title">基本お参りプラン</span>
-            <span class="plan-card-in-price">¥8,800</span>
-          </div>
-          <div class="plan-checklist">
-            敷地内落ち葉・ゴミ清掃／墓石水拭き／お線香合掌／完了写真レポート
-          </div>
+      <!-- 基本プラン -->
+      <div class="plan-card-in">
+        <div class="plan-card-in-head">
+          <span class="plan-card-in-title">基本お参りプラン</span>
+          <span class="plan-card-in-price">¥8,800</span>
         </div>
-
-        <!-- 標準プラン（一番人気） -->
-        <div class="plan-card-in is-pop">
-          <div style="font-size: 8.5px; font-weight: 900; color: #d97706; margin-bottom: 2px;">★ 一番人気・おすすめ</div>
-          <div class="plan-card-in-head">
-            <span class="plan-card-in-title" style="font-size: 12.5px;">標準徹底お掃除プラン</span>
-            <span class="plan-card-in-price">¥14,800</span>
-          </div>
-          <div class="plan-checklist">
-            <strong>手作業徹底除草</strong>／墓石・花立・香炉の専用水洗い／コケ水垢落とし／<strong>季節の生花1対（松山生花店直送）</strong>／お線香献香・真心の合掌／詳細点検写真レポート
-          </div>
-        </div>
-
-        <!-- プレミアムプラン -->
-        <div class="plan-card-in">
-          <div class="plan-card-in-head">
-            <span class="plan-card-in-title">プレミアム美装プラン</span>
-            <span class="plan-card-in-price">¥29,800</span>
-          </div>
-          <div class="plan-checklist">
-            高圧洗浄機による頑固汚れ洗浄／墓石撥水防汚コーティング／防草砂施工／墓石目地点検／永代供養改葬相談
-          </div>
+        <div class="plan-list-items">
+          <div>✓ 敷地内の落ち葉・雑草・ゴミ清掃</div>
+          <div>✓ 墓石全体の水拭き清掃</div>
+          <div>✓ お線香献香・真心の合掌</div>
+          <div>✓ 完了写真レポート（メール納品）</div>
         </div>
       </div>
 
-      <div style="background: #f8fafc; border-radius: 6px; padding: 6px 8px; font-size: 8.5px; color: #475569; text-align: center;">
-        ※ 1坪を超える広い区画や、年4回の定期管理契約も承ります
+      <!-- 標準プラン（一番人気） -->
+      <div class="plan-card-in is-pop">
+        <div style="font-size: 8.5px; font-weight: 900; color: #d97706; margin-bottom: 1px;">★ 一番人気・おすすめ</div>
+        <div class="plan-card-in-head">
+          <span class="plan-card-in-title" style="font-size: 12px;">標準徹底お掃除プラン</span>
+          <span class="plan-card-in-price">¥14,800</span>
+        </div>
+        <div class="plan-list-items">
+          <div>✓ <strong>手作業徹底除草（根から除去）</strong></div>
+          <div>✓ <strong>墓石・花立・香炉の専用水洗い</strong></div>
+          <div>✓ <strong>頑固なコケ・水垢・汚れ落とし</strong></div>
+          <div>✓ <strong>季節の生花1対（松山生花店直送）</strong></div>
+          <div>✓ お線香献香・真心の合掌</div>
+          <div>✓ 墓石健全度目地点検・詳細写真レポート</div>
+        </div>
+      </div>
+
+      <!-- プレミアムプラン -->
+      <div class="plan-card-in">
+        <div class="plan-card-in-head">
+          <span class="plan-card-in-title">プレミアム美装プラン</span>
+          <span class="plan-card-in-price">¥29,800</span>
+        </div>
+        <div class="plan-list-items">
+          <div>✓ 標準プランの全作業内容</div>
+          <div>✓ 外柵・敷石の高圧洗浄機クリーニング</div>
+          <div>✓ <strong>墓石撥水防汚コーティング施工</strong></div>
+          <div>✓ <strong>防草砂（固まる土）施工</strong></div>
+          <div>✓ 永代供養・改葬・墓じまい優先無料相談</div>
+        </div>
+      </div>
+
+      <div class="option-box-in">
+        <div class="option-box-title">🔧 個別オプション対応</div>
+        <div class="option-box-desc">
+          墓石文字の墨入れ（白・黒）／花立・線香皿のステンレス交換／樹木の剪定・伐採／墓じまい相談
+        </div>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 7px; font-size: 8.5px; color: #065f46; font-weight: 700; text-align: center;">
+        ※ お得な年間定期契約（年2〜4回）なら全プラン10%OFF
       </div>
     </div>
 
     <!-- 面6（右）：実例とお客さまの声 -->
     <div class="panel p-inside-right">
-      <div>
-        <div class="sec-heading">施工実績とお客さまの声</div>
+      <div class="sec-heading">施工実績とお客さまの声</div>
 
-        <div class="example-photos-row">
-          <div class="example-photo-box">
-            <img src="{grave_before_b64}" alt="Before">
-            <div class="example-photo-lbl">作業前 (手入れ前)</div>
-          </div>
-          <div class="example-photo-box is-after">
-            <img src="{grave_after_b64}" alt="After">
-            <div class="example-photo-lbl">作業完了 (献花・合掌) ✨</div>
-          </div>
+      <div class="example-photos-row">
+        <div class="example-photo-box">
+          <img src="{grave_before_b64}" alt="Before">
+          <div class="example-photo-lbl">作業前 (手入れ前)</div>
         </div>
+        <div class="example-photo-box is-after">
+          <img src="{grave_after_b64}" alt="After">
+          <div class="example-photo-lbl">作業完了 (献花・合掌) ✨</div>
+        </div>
+      </div>
 
-        <div class="voice-bubble">
-          <div class="voice-bubble-title">「届いた写真を見て家族で涙が出ました」</div>
-          <div class="voice-bubble-text">
-            東京在住で帰省できず心配でしたが、ピカピカになり生花が供えられた写真を見て本当に安心しました。（50代女性・宝塔寺旭ヶ丘霊園）
-          </div>
+      <div class="voice-bubble">
+        <div class="voice-bubble-title">
+          <span>「届いた写真を見て家族で涙が出ました」</span>
+          <span style="color:#f59e0b;">★★★★★</span>
         </div>
+        <div class="voice-bubble-text">
+          東京在住で帰省できず心配でしたが、ピカピカになり生花が供えられた写真を見て本当に安心しました。（50代女性・宝塔寺旭ヶ丘霊園）
+        </div>
+      </div>
 
-        <div class="voice-bubble">
-          <div class="voice-bubble-title">「目地の点検所見まで添えていただき感謝」</div>
-          <div class="voice-bubble-text">
-            高齢で坂道がつらかったのですが、目地の状態まで報告していただき助かりました。（60代男性・松山市）
-          </div>
+      <div class="voice-bubble">
+        <div class="voice-bubble-title">
+          <span>「目地の点検所見まで添えていただき感謝」</span>
+          <span style="color:#f59e0b;">★★★★★</span>
         </div>
+        <div class="voice-bubble-text">
+          高齢で坂道がつらかったのですが、目地の状態まで写真付きで報告していただき助かりました。（60代男性・松山市）
+        </div>
+      </div>
+
+      <div class="voice-bubble">
+        <div class="voice-bubble-title">
+          <span>「遠く離れていても親孝行ができました」</span>
+          <span style="color:#f59e0b;">★★★★★</span>
+        </div>
+        <div class="voice-bubble-text">
+          仕事でなかなか帰省できませんでしたが、親族からも大変喜ばれました。（40代男性・大明神霊園）
+        </div>
+      </div>
+
+      <div class="support-contact-box">
+        <div class="support-contact-title">お電話でのご相談・お見積りもお気軽に</div>
+        <div class="support-contact-tel">📞 089-997-XXXX</div>
+        <div class="support-contact-time">受付時間: 9:00〜18:00（年中無休）</div>
       </div>
 
       <div class="inside-footer-cta">
         <div class="inside-footer-cta-title">Web・お電話で簡単お申し込み</div>
-        <div class="inside-footer-cta-sub">年中無休で受付中 / TEL: 089-997-XXXX</div>
+        <div class="inside-footer-cta-sub">スマホから3分で完了 / クレジットカード決済対応</div>
       </div>
     </div>
 
