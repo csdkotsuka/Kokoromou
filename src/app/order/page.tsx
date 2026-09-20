@@ -15,7 +15,14 @@ import {
   Maximize2, 
   AlertTriangle,
   ExternalLink,
-  HelpCircle
+  HelpCircle,
+  Camera,
+  Upload,
+  Image as ImageIcon,
+  X,
+  ChevronDown,
+  ChevronUp,
+  UserCheck
 } from 'lucide-react';
 
 function OrderFormContent() {
@@ -28,6 +35,11 @@ function OrderFormContent() {
   // オプションステート
   const [graveCount, setGraveCount] = useState<number>(1);
   const [plotSize, setPlotSize] = useState<'standard' | 'large' | 'extra_large'>('standard');
+
+  // お墓の写真ステート（プレビュー表示およびアップロード用）
+  const [frontInscriptionPhoto, setFrontInscriptionPhoto] = useState<string | null>('/images/grave_front_example.jpg');
+  const [builderNamePhoto, setBuilderNamePhoto] = useState<string | null>('/images/grave_side_builder_example.jpg');
+  const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
 
   // フォームステート
   const [formData, setFormData] = useState({
@@ -46,6 +58,22 @@ function OrderFormContent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 画像アップロードハンドラー
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'builder') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (type === 'front') {
+          setFrontInscriptionPhoto(event.target?.result as string);
+        } else {
+          setBuilderNamePhoto(event.target?.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const selectedPlan = SAMPLE_SERVICE_PLANS.find((p) => p.id === selectedPlanId) || SAMPLE_SERVICE_PLANS[0];
   const selectedVendor = SAMPLE_VENDORS.find((v) => v.id === selectedVendorId) || SAMPLE_VENDORS[0];
@@ -90,6 +118,8 @@ function OrderFormContent() {
           vendorId: selectedVendorId,
           graveCount,
           plotSize,
+          frontInscriptionPhotoUrl: frontInscriptionPhoto,
+          builderNamePhotoUrl: builderNamePhoto,
           ...formData,
         }),
       });
@@ -116,15 +146,43 @@ function OrderFormContent() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       {/* ページ見出し */}
-      <div className="text-center max-w-2xl mx-auto mb-10">
+      <div className="text-center max-w-2xl mx-auto mb-8">
         <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
           <Sparkles className="w-3.5 h-3.5" />
           <span>現場の職人が真心を込めて代行いたします</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900">お墓参り・お掃除代行のお申し込み</h1>
         <p className="mt-2 text-sm text-stone-600">
-          プラン・区画オプションとお墓の情報を入力し、Stripeの安全な決済システムにてお支払いへお進みください。
+          プラン・基数（複数のお墓）と墓石の特定情報（正面文字・側面建立者名・写真）を入力し、安全に決済いただけます。
         </p>
+      </div>
+
+      {/* ステップフロー案内バー（全体の流れが一目でわかるナビゲーション） */}
+      <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-8 shadow-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+            <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0">1</span>
+            <span>① プラン選択</span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
+            <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0">2</span>
+            <div className="leading-tight">
+              <span>② 墓石の基数・広さ</span>
+              <span className="block text-[9px] text-emerald-700 font-normal">複数基の料金自動連動</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-700 font-medium">
+            <span className="w-5 h-5 rounded-full bg-stone-300 text-stone-700 text-[11px] flex items-center justify-center shrink-0">3</span>
+            <span>③ 提携業者選択</span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-700 font-medium">
+            <span className="w-5 h-5 rounded-full bg-stone-300 text-stone-700 text-[11px] flex items-center justify-center shrink-0">4</span>
+            <div className="leading-tight">
+              <span>④ 墓石登録・写真</span>
+              <span className="block text-[9px] text-stone-500 font-normal">正面・側面建立者名</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {searchParams.get('canceled') && (
@@ -451,38 +509,194 @@ function OrderFormContent() {
               </div>
             </div>
 
-            {/* お墓の特定情報（正面文字 & 側面の建立者名：必須） */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-emerald-50/40 rounded-xl border border-emerald-200/70">
-              <div>
-                <label className="block text-xs font-bold text-stone-900 mb-1">
-                  正面の刻印文字（家名・題目等） <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="frontInscription"
-                  value={formData.frontInscription}
-                  onChange={handleChange}
-                  required
-                  className="w-full text-sm bg-white border border-emerald-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  placeholder="例: 山田家之墓 / 南無阿弥陀仏"
-                />
-                <p className="text-[10px] text-stone-500 mt-1">墓石の正面に彫られている文字</p>
+            {/* 墓石の特定ガイド（図解アコーディオン） */}
+            <div className="bg-stone-50 border border-stone-200 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowGuideModal(!showGuideModal)}
+                className="w-full px-4 py-3 text-left flex items-center justify-between text-xs font-bold text-stone-800 hover:bg-stone-100 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-emerald-700" />
+                  <span>【図解】お墓の「正面文字」と「側面の建立者名」の確認方法を見る</span>
+                </span>
+                {showGuideModal ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
+              </button>
+              {showGuideModal && (
+                <div className="p-4 bg-white border-t border-stone-200 space-y-3">
+                  <img
+                    src="/images/grave_inscription_guide.jpg"
+                    alt="和型墓石の彫刻見方ガイド（正面家名と側面建立者名）"
+                    className="w-full rounded-lg border border-stone-200 shadow-sm"
+                  />
+                  <p className="text-[11px] text-stone-600 leading-relaxed">
+                    日本の伝統的なお墓（和型墓石）では、正面に家名（例: 〇〇家之墓）、側面または裏面に誰が建てたか（例: 昭和〇〇年 〇〇建之）が刻まれています。同じ姓のお墓が多い共同墓地でも、この「正面文字」と「側面の建立者名」があれば現地で確実に特定できます。
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* お墓の特定情報（正面文字 & 側面の建立者名：必須）＋写真添付 */}
+            <div className="space-y-4 p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 1. 正面文字 & 写真 */}
+                <div className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      正面の刻印文字（家名・題目等） <span className="text-rose-500">*必須</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="frontInscription"
+                      value={formData.frontInscription}
+                      onChange={handleChange}
+                      required
+                      className="w-full text-sm bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      placeholder="例: 山田家之墓 / 南無阿弥陀仏"
+                    />
+                    <p className="text-[10px] text-stone-500 mt-1">墓石の正面に彫られている文字</p>
+                  </div>
+
+                  {/* 正面写真アップロード & プレビュー */}
+                  <div className="pt-2 border-t border-stone-100">
+                    <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Camera className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>正面の写真（参考・添付）</span>
+                      </span>
+                      <span className="text-[10px] text-emerald-700 font-normal">写真があると確実です</span>
+                    </label>
+
+                    {frontInscriptionPhoto ? (
+                      <div className="relative rounded-lg overflow-hidden border border-emerald-300 bg-stone-100 group">
+                        <img
+                          src={frontInscriptionPhoto}
+                          alt="正面の文字写真"
+                          className="w-full h-36 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <label className="cursor-pointer bg-white text-stone-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow hover:bg-stone-50 transition">
+                            <span>写真を変更</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handlePhotoUpload(e, 'front')}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setFrontInscriptionPhoto(null)}
+                            className="bg-rose-600 text-white text-xs p-1.5 rounded-lg shadow hover:bg-rose-700 transition"
+                            title="削除"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-1.5 left-2 bg-stone-900/80 text-white text-[10px] px-2 py-0.5 rounded">
+                          正面写真添付済
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-lg p-3 text-center cursor-pointer block transition bg-stone-50 hover:bg-emerald-50/30">
+                        <Upload className="w-5 h-5 text-stone-400 mx-auto mb-1" />
+                        <span className="text-xs font-semibold text-stone-700 block">正面の写真を添付する</span>
+                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handlePhotoUpload(e, 'front')}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. 側面建立者名 & 写真 */}
+                <div className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      側面の建立者名（建てた方） <span className="text-rose-500">*必須</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="builderName"
+                      value={formData.builderName}
+                      onChange={handleChange}
+                      required
+                      className="w-full text-sm bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      placeholder="例: 昭和50年 山田太郎建之"
+                    />
+                    <p className="text-[10px] text-emerald-800 font-medium mt-1">※特定に必須（年月が不明な場合はお名前だけでも可）</p>
+                  </div>
+
+                  {/* 側面写真アップロード & プレビュー */}
+                  <div className="pt-2 border-t border-stone-100">
+                    <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Camera className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>側面（建立者名）の写真（推奨）</span>
+                      </span>
+                      <span className="text-[10px] text-emerald-700 font-normal">取り違え防止に直結</span>
+                    </label>
+
+                    {builderNamePhoto ? (
+                      <div className="relative rounded-lg overflow-hidden border border-emerald-300 bg-stone-100 group">
+                        <img
+                          src={builderNamePhoto}
+                          alt="側面の建立者名写真"
+                          className="w-full h-36 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <label className="cursor-pointer bg-white text-stone-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow hover:bg-stone-50 transition">
+                            <span>写真を変更</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handlePhotoUpload(e, 'builder')}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setBuilderNamePhoto(null)}
+                            className="bg-rose-600 text-white text-xs p-1.5 rounded-lg shadow hover:bg-rose-700 transition"
+                            title="削除"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-1.5 left-2 bg-stone-900/80 text-white text-[10px] px-2 py-0.5 rounded">
+                          側面写真添付済
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-lg p-3 text-center cursor-pointer block transition bg-stone-50 hover:bg-emerald-50/30">
+                        <Upload className="w-5 h-5 text-stone-400 mx-auto mb-1" />
+                        <span className="text-xs font-semibold text-stone-700 block">側面の写真を添付する</span>
+                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handlePhotoUpload(e, 'builder')}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-stone-900 mb-1">
-                  側面の建立者名（建てた方） <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="builderName"
-                  value={formData.builderName}
-                  onChange={handleChange}
-                  required
-                  className="w-full text-sm bg-white border border-emerald-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  placeholder="例: 昭和50年 山田太郎建之"
-                />
-                <p className="text-[10px] text-emerald-800 font-medium mt-1">※特定に必須（年月が不明な場合はお名前だけでも可）</p>
+              {/* マイページ登録保存に関する安心案内 */}
+              <div className="bg-emerald-100/60 border border-emerald-300/80 rounded-xl p-3 text-xs text-emerald-950 flex items-start gap-2">
+                <UserCheck className="w-4 h-4 text-emerald-800 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <span className="font-bold">次回のお参り依頼もスムーズに（マイページ自動連携）：</span>
+                  <p className="text-[11px] text-emerald-900 mt-0.5">
+                    今回ご登録いただいたお墓の情報・写真は、ご注文完了後に施主様専用マイページへ自動保存されます。次回のお盆やお彼岸、ご命日の際には、面倒な情報入力をすることなく1クリックで再依頼いただけます。
+                  </p>
+                </div>
               </div>
             </div>
 

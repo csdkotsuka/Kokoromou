@@ -47,6 +47,12 @@ export default function Navbar() {
               よくある質問
             </Link>
             <Link
+              href="/mypage"
+              className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors flex items-center gap-1"
+            >
+              マイページ
+            </Link>
+            <Link
               href="/order"
               className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-900 px-4 py-2 rounded-lg shadow-sm transition-all hover:shadow-md"
             >

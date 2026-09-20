@@ -62,6 +62,8 @@ export interface GraveInfo {
   plotSize: PlotSizeCategory; // 区画の広さ (標準, 広め, 大区画)
   googleMapsUrl?: string; // Googleマップ共有URL・位置情報
   landmarksDescription?: string; // 周辺の目印 (例: 階段上がってすぐ右、大きな楠の木の隣)
+  frontInscriptionPhotoUrl?: string; // 正面文字の写真URL
+  builderNamePhotoUrl?: string; // 側面建立者名の写真URL
   specialRequests?: string; // 特記事項・ご要望 (例: しきみをお供えしてほしい、落ち葉を多めに掃いてほしい)
 }
 

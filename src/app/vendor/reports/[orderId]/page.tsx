@@ -190,17 +190,35 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200">
           <div>
             <span className="text-[11px] text-emerald-800 font-bold block mb-0.5">墓石の正面刻印文字</span>
-            <span className="font-extrabold text-stone-900 text-sm">
+            <span className="font-extrabold text-stone-900 text-sm block">
               {order?.graveInfo?.frontInscription || order?.graveInfo?.deceasedName || '山田家先祖代々之墓'}
             </span>
+            {order?.graveInfo?.frontInscriptionPhotoUrl && (
+              <div className="mt-2">
+                <img
+                  src={order.graveInfo.frontInscriptionPhotoUrl}
+                  alt="正面写真"
+                  className="w-full h-24 object-cover rounded-lg border border-stone-200 shadow-xs"
+                />
+              </div>
+            )}
           </div>
           <div>
             <span className="text-[11px] text-rose-700 font-bold block mb-0.5">
               側面・裏面の建立者名（特定必須）
             </span>
-            <span className="font-extrabold text-stone-900 text-sm bg-white px-2.5 py-1 rounded border border-emerald-300 inline-block">
+            <span className="font-extrabold text-stone-900 text-sm bg-white px-2.5 py-1 rounded border border-emerald-300 inline-block mb-1">
               {order?.graveInfo?.builderName || '昭和五十年八月 山田太郎建之'}
             </span>
+            {order?.graveInfo?.builderNamePhotoUrl && (
+              <div className="mt-1">
+                <img
+                  src={order.graveInfo.builderNamePhotoUrl}
+                  alt="側面建立者名写真"
+                  className="w-full h-24 object-cover rounded-lg border border-stone-200 shadow-xs"
+                />
+              </div>
+            )}
           </div>
         </div>
 

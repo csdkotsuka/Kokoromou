@@ -14,6 +14,8 @@ interface CheckoutRequestBody {
   sectionPlotNumber: string;
   frontInscription: string;
   builderName: string;
+  frontInscriptionPhotoUrl?: string;
+  builderNamePhotoUrl?: string;
   deceasedName?: string;
   graveCount?: number;
   plotSize?: 'standard' | 'large' | 'extra_large';
@@ -37,6 +39,8 @@ export async function POST(req: NextRequest) {
       sectionPlotNumber,
       frontInscription,
       builderName,
+      frontInscriptionPhotoUrl,
+      builderNamePhotoUrl,
       deceasedName,
       graveCount = 1,
       plotSize = 'standard',
@@ -146,6 +150,8 @@ export async function POST(req: NextRequest) {
         sectionPlotNumber,
         frontInscription: frontInscription.trim(),
         builderName: builderName.trim(),
+        frontInscriptionPhotoUrl: frontInscriptionPhotoUrl || '',
+        builderNamePhotoUrl: builderNamePhotoUrl || '',
         deceasedName: deceasedName || frontInscription.trim(),
         graveCount: count,
         plotSize,

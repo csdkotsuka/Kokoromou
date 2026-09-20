@@ -113,8 +113,40 @@ function SuccessContent() {
           </div>
         </div>
 
+        {/* 登録されたお墓の特定写真（正面 & 側面建立者名） */}
+        <div className="mt-6 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-200 text-left">
+          <h3 className="text-xs font-bold text-stone-900 mb-3 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+            <span>登録された墓石の特定用写真</span>
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white p-2.5 rounded-xl border border-stone-200 text-center">
+              <span className="text-[10px] font-bold text-stone-700 block mb-1.5">① 正面の刻印文字</span>
+              <img
+                src={order?.graveInfo?.frontInscriptionPhotoUrl || '/images/grave_front_example.jpg'}
+                alt="正面刻印写真"
+                className="w-full h-28 object-cover rounded-lg border border-stone-100"
+              />
+              <span className="text-[10px] text-stone-500 mt-1 block truncate">
+                {order?.graveInfo?.frontInscription || '山田家先祖代々之墓'}
+              </span>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-stone-200 text-center">
+              <span className="text-[10px] font-bold text-stone-700 block mb-1.5">② 側面の建立者名（必須）</span>
+              <img
+                src={order?.graveInfo?.builderNamePhotoUrl || '/images/grave_side_builder_example.jpg'}
+                alt="側面建立者名写真"
+                className="w-full h-28 object-cover rounded-lg border border-stone-100"
+              />
+              <span className="text-[10px] text-stone-500 mt-1 block truncate">
+                {order?.graveInfo?.builderName || '昭和五十年八月 山田太郎建之'}
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* 今後の流れ */}
-        <div className="mt-10 text-left">
+        <div className="mt-8 text-left">
           <h2 className="text-sm font-bold text-stone-900 mb-4 flex items-center gap-2">
             <Clock className="w-4 h-4 text-emerald-700" />
             <span>作業完了までの今後の流れ</span>
@@ -139,12 +171,13 @@ function SuccessContent() {
         </div>
 
         {/* アクションボタン */}
-        <div className="mt-10 pt-6 border-t border-stone-100 flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div className="mt-10 pt-6 border-t border-stone-100 flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Link
-            href="/"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
+            href="/mypage"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-bold px-6 py-3 rounded-xl shadow-sm transition-all text-sm"
           >
-            トップページへ戻る
+            <span>施主マイページで確認する</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
 
           {/* 提携業者向け動作確認用リンク */}
@@ -154,7 +187,6 @@ function SuccessContent() {
           >
             <UserCheck className="w-4 h-4" />
             <span>【業者側確認】作業報告レポート作成へ</span>
-            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
