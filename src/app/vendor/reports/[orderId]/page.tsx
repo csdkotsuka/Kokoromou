@@ -14,7 +14,8 @@ import {
   Loader2, 
   PlusCircle, 
   Calendar,
-  CloudSun
+  CloudSun,
+  MapPin
 } from 'lucide-react';
 import { SAMPLE_REPORTS } from '@/mocks/sample-data';
 
@@ -166,32 +167,73 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
       </div>
 
       {/* 注文・お墓の基本情報サマリー */}
-      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm mb-8">
-        <h2 className="text-sm font-bold text-stone-900 mb-4 flex items-center gap-2">
-          <Info className="w-4 h-4 text-emerald-700" />
-          <span>対象のお墓・ご依頼情報</span>
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5">霊園・寺院名</span>
-            <span className="font-bold text-stone-800">{order?.graveInfo?.cemeteryName || '宝塔寺 旭ヶ丘霊園（モデル霊園）'}</span>
+      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm mb-8 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+            <Info className="w-4 h-4 text-emerald-700" />
+            <span>対象のお墓・ご依頼情報（現場特定用）</span>
+          </h2>
+          {order?.graveInfo?.googleMapsUrl && (
+            <a
+              href={order.graveInfo.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-all self-start sm:self-auto"
+            >
+              <MapPin className="w-4 h-4 text-emerald-200" />
+              <span>Googleマップで現地を開く (ナビ)</span>
+            </a>
+          )}
+        </div>
+
+        {/* 特定のための最重要項目（正面文字 & 建立者名） */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200">
+          <div>
+            <span className="text-[11px] text-emerald-800 font-bold block mb-0.5">墓石の正面刻印文字</span>
+            <span className="font-extrabold text-stone-900 text-sm">
+              {order?.graveInfo?.frontInscription || order?.graveInfo?.deceasedName || '山田家先祖代々之墓'}
+            </span>
           </div>
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5">区画・墓石番号</span>
-            <span className="font-bold text-stone-800">{order?.graveInfo?.sectionPlotNumber || '東区 5列 12番'}</span>
-          </div>
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5">施主様お名前</span>
-            <span className="font-bold text-stone-800">{order?.clientName || '山田 太郎 様'}</span>
-          </div>
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5">依頼プラン</span>
-            <span className="font-bold text-emerald-700">{order?.servicePlanName || '標準お参り・徹底お掃除プラン'}</span>
+          <div>
+            <span className="text-[11px] text-rose-700 font-bold block mb-0.5">
+              側面・裏面の建立者名（特定必須）
+            </span>
+            <span className="font-extrabold text-stone-900 text-sm bg-white px-2.5 py-1 rounded border border-emerald-300 inline-block">
+              {order?.graveInfo?.builderName || '昭和五十年八月 山田太郎建之'}
+            </span>
           </div>
         </div>
 
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="bg-stone-50 p-3 rounded-xl">
+            <span className="text-stone-500 block mb-0.5 text-[11px]">霊園・寺院名</span>
+            <span className="font-bold text-stone-800">{order?.graveInfo?.cemeteryName || '宝塔寺 旭ヶ丘霊園'}</span>
+          </div>
+          <div className="bg-stone-50 p-3 rounded-xl">
+            <span className="text-stone-500 block mb-0.5 text-[11px]">区画・墓石番号</span>
+            <span className="font-bold text-stone-800">{order?.graveInfo?.sectionPlotNumber || '東区 5列 12番'}</span>
+          </div>
+          <div className="bg-stone-50 p-3 rounded-xl">
+            <span className="text-stone-500 block mb-0.5 text-[11px]">お墓の基数・広さ</span>
+            <span className="font-bold text-stone-800">
+              {order?.graveInfo?.graveCount || 1}基 / {order?.graveInfo?.plotSize === 'extra_large' ? '特大(2坪超)' : order?.graveInfo?.plotSize === 'large' ? '広め(1〜2坪)' : '標準(~1坪)'}
+            </span>
+          </div>
+          <div className="bg-stone-50 p-3 rounded-xl">
+            <span className="text-stone-500 block mb-0.5 text-[11px]">依頼プラン</span>
+            <span className="font-bold text-emerald-700">{order?.servicePlanName || '通常プラン'}</span>
+          </div>
+        </div>
+
+        {order?.graveInfo?.landmarksDescription && (
+          <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900">
+            <span className="font-bold mr-1">📍 周辺の目印・隣接情報:</span>
+            {order.graveInfo.landmarksDescription}
+          </div>
+        )}
+
         {order?.graveInfo?.specialRequests && (
-          <div className="mt-4 p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900">
+          <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900">
             <span className="font-bold mr-1">施主様からのご要望:</span>
             {order.graveInfo.specialRequests}
           </div>

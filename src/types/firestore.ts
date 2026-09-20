@@ -49,11 +49,19 @@ export interface ServicePlan {
 // -------------------------------------------------------------
 // 3. お墓情報 (Grave Information)
 // -------------------------------------------------------------
+export type PlotSizeCategory = 'standard' | 'large' | 'extra_large';
+
 export interface GraveInfo {
   cemeteryName: string; // 霊園・寺院名 (例: ○○霊園)
   locationAddress: string; // 所在地・住所
   sectionPlotNumber: string; // 区画番号・墓石番号 (例: 3区 12番)
-  deceasedName?: string; // 故人名 / 家名 (例: 佐藤家)
+  frontInscription: string; // 正面文字 (例: 山田家之墓、南無阿弥陀仏)
+  builderName: string; // 側面の建立者名 (例: 昭和50年 吉田太郎建之) ※同姓誤認防止のため必須
+  deceasedName?: string; // 故人名 / 家名 (互換性用)
+  graveCount: number; // 敷地内のお墓の基数 (1, 2, 3...)
+  plotSize: PlotSizeCategory; // 区画の広さ (標準, 広め, 大区画)
+  googleMapsUrl?: string; // Googleマップ共有URL・位置情報
+  landmarksDescription?: string; // 周辺の目印 (例: 階段上がってすぐ右、大きな楠の木の隣)
   specialRequests?: string; // 特記事項・ご要望 (例: しきみをお供えしてほしい、落ち葉を多めに掃いてほしい)
 }
 
@@ -84,6 +92,9 @@ export interface Order {
   servicePlanName: string;
 
   // 金額計算 (JPY)
+  basePlanFee?: number; // 基本プラン料金
+  extraGraveFee?: number; // 基数追加料金
+  extraPlotFee?: number; // 区画広さ追加料金
   totalAmount: number; // 施主支払総額 (例: 12,000)
   platformFeeAmount: number; // プラットフォーム手数料 (例: 2,400)
   vendorPayoutAmount: number; // 提携業者への送金予定額 (例: 9,600)

@@ -83,9 +83,28 @@ function SuccessContent() {
             </span>
           </div>
           <div className="flex justify-between border-b border-stone-200 pb-2">
-            <span className="text-stone-500">対象霊園</span>
+            <span className="text-stone-500">ご依頼プラン</span>
+            <span className="font-semibold text-emerald-800">
+              {order?.servicePlanName || '通常プラン（水洗い・墓石点検・シキミ）'}
+            </span>
+          </div>
+          <div className="flex justify-between border-b border-stone-200 pb-2">
+            <span className="text-stone-500">対象霊園 / 区画</span>
             <span className="font-medium text-stone-800">
-              {order?.graveInfo?.cemeteryName || '宝塔寺 旭ヶ丘霊園（モデル霊園）'} ({order?.graveInfo?.sectionPlotNumber || '東区 5列 12番'})
+              {order?.graveInfo?.cemeteryName || '宝塔寺 旭ヶ丘霊園'} ({order?.graveInfo?.sectionPlotNumber || '東区 5列 12番'})
+            </span>
+          </div>
+          <div className="flex justify-between border-b border-stone-200 pb-2">
+            <span className="text-stone-500">正面文字 / 側面の建立者名</span>
+            <span className="font-medium text-stone-800 text-right">
+              {order?.graveInfo?.frontInscription || order?.graveInfo?.deceasedName || '山田家先祖代々之墓'} /{' '}
+              <span className="text-emerald-800 font-semibold">{order?.graveInfo?.builderName || '昭和五十年八月 山田太郎建之'}</span>
+            </span>
+          </div>
+          <div className="flex justify-between border-b border-stone-200 pb-2">
+            <span className="text-stone-500">お墓の基数 / 広さ</span>
+            <span className="font-medium text-stone-800">
+              {order?.graveInfo?.graveCount || 1}基 / {order?.graveInfo?.plotSize === 'extra_large' ? '特大区画(2坪超)' : order?.graveInfo?.plotSize === 'large' ? '広め区画(約1〜2坪)' : '標準区画(~1坪)'}
             </span>
           </div>
           <div className="flex justify-between">

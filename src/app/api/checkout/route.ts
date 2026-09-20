@@ -12,7 +12,13 @@ interface CheckoutRequestBody {
   cemeteryName: string;
   locationAddress: string;
   sectionPlotNumber: string;
+  frontInscription: string;
+  builderName: string;
   deceasedName?: string;
+  graveCount?: number;
+  plotSize?: 'standard' | 'large' | 'extra_large';
+  googleMapsUrl?: string;
+  landmarksDescription?: string;
   specialRequests?: string;
   preferredDate?: string;
 }
@@ -29,15 +35,35 @@ export async function POST(req: NextRequest) {
       cemeteryName,
       locationAddress,
       sectionPlotNumber,
+      frontInscription,
+      builderName,
       deceasedName,
+      graveCount = 1,
+      plotSize = 'standard',
+      googleMapsUrl,
+      landmarksDescription,
       specialRequests,
       preferredDate,
     } = body;
 
-    // 必須入力のバリデーション
-    if (!planId || !vendorId || !clientName || !clientEmail || !cemeteryName) {
+    // 必須入力のバリデーション（建立者名 builderName も必須！）
+    if (!planId || !vendorId || !clientName || !clientEmail || !cemeteryName || !sectionPlotNumber) {
       return NextResponse.json(
-        { error: '必須項目が不足しています。（プラン、担当業者、施主名、メールアドレス、霊園名）' },
+        { error: '必須項目が不足しています。（プラン、担当業者、施主名、メールアドレス、霊園名、区画番号）' },
+        { status: 400 }
+      );
+    }
+
+    if (!builderName || !builderName.trim()) {
+      return NextResponse.json(
+        { error: '同姓のお墓との誤認を防ぐため、「側面の建立者名」の入力は必須です。' },
+        { status: 400 }
+      );
+    }
+
+    if (!frontInscription || !frontInscription.trim()) {
+      return NextResponse.json(
+        { error: 'お墓の特定のため、「正面の刻印文字（家名等）」の入力は必須です。' },
         { status: 400 }
       );
     }
@@ -62,10 +88,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // オプション料金計算
+    const basePlanFee = plan.price;
+    // 基数追加: 1基目無料、2基目以降 1基あたり +3,000円
+    const count = Math.max(1, Number(graveCount) || 1);
+    const extraGraveFee = (count - 1) * 3000;
+
+    // 広さ追加: standard 0円, large 3,000円, extra_large 6,000円
+    let extraPlotFee = 0;
+    if (plotSize === 'large') {
+      extraPlotFee = 3000;
+    } else if (plotSize === 'extra_large') {
+      extraPlotFee = 6000;
+    }
+
     // 手数料計算 (Destination Charges)
     // 施主が支払う総額
-    const totalAmount = plan.price;
-    // プラットフォーム手数料 (例: 20%)
+    const totalAmount = basePlanFee + extraGraveFee + extraPlotFee;
+    // プラットフォーム手数料 (20%)
     const platformFeeAmount = Math.round(totalAmount * (plan.platformFeePercent / 100));
     // 提携業者への自動送金予定額
     const vendorPayoutAmount = totalAmount - platformFeeAmount;
@@ -92,6 +132,9 @@ export async function POST(req: NextRequest) {
       vendorStripeAccountId: connectAccountId,
       servicePlanId: plan.id,
       servicePlanName: plan.name,
+      basePlanFee,
+      extraGraveFee,
+      extraPlotFee,
       totalAmount,
       platformFeeAmount,
       vendorPayoutAmount,
@@ -99,9 +142,15 @@ export async function POST(req: NextRequest) {
       status: 'pending_payment' as OrderStatus,
       graveInfo: {
         cemeteryName,
-        locationAddress,
+        locationAddress: locationAddress || '',
         sectionPlotNumber,
-        deceasedName: deceasedName || '',
+        frontInscription: frontInscription.trim(),
+        builderName: builderName.trim(),
+        deceasedName: deceasedName || frontInscription.trim(),
+        graveCount: count,
+        plotSize,
+        googleMapsUrl: googleMapsUrl || '',
+        landmarksDescription: landmarksDescription || '',
         specialRequests: specialRequests || '',
       },
       preferredDate: preferredDate || '',
@@ -127,6 +176,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Stripe Checkout Session の生成 (Destination Charges)
+    const plotSizeLabel = plotSize === 'extra_large' ? '2坪以上' : plotSize === 'large' ? '約1〜2坪' : '標準(~1坪)';
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -135,7 +185,7 @@ export async function POST(req: NextRequest) {
             currency: 'jpy',
             product_data: {
               name: `ココロモウ: ${plan.name}`,
-              description: `担当業者: ${vendor.displayName} / 霊園: ${cemeteryName} (${sectionPlotNumber})`,
+              description: `担当: ${vendor.displayName} / 霊園: ${cemeteryName} (${sectionPlotNumber}) / 建立者: ${builderName.trim()} / ${count}基 / ${plotSizeLabel}`,
             },
             unit_amount: totalAmount,
           },
