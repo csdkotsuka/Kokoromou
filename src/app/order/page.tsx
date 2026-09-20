@@ -157,30 +157,48 @@ function OrderFormContent() {
         </p>
       </div>
 
-      {/* ステップフロー案内バー（全体の流れが一目でわかるナビゲーション） */}
-      <div className="bg-white border border-stone-200 rounded-2xl p-4 mb-8 shadow-xs">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
-            <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0">1</span>
-            <span>① プラン選択</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold">
-            <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0">2</span>
-            <div className="leading-tight">
-              <span>② 墓石の基数・広さ</span>
-              <span className="block text-[9px] text-emerald-700 font-normal">複数基の料金自動連動</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-700 font-medium">
-            <span className="w-5 h-5 rounded-full bg-stone-300 text-stone-700 text-[11px] flex items-center justify-center shrink-0">3</span>
-            <span>③ 提携業者選択</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-700 font-medium">
-            <span className="w-5 h-5 rounded-full bg-stone-300 text-stone-700 text-[11px] flex items-center justify-center shrink-0">4</span>
-            <div className="leading-tight">
-              <span>④ 墓石登録・写真</span>
-              <span className="block text-[9px] text-stone-500 font-normal">正面・側面建立者名</span>
-            </div>
+      {/* スティッキーステップフロー案内バー（スクロール時にページトップに固定） */}
+      <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/95 backdrop-blur-md border-y border-stone-200 shadow-sm mb-8 transition-all">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => document.getElementById('step-plan')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 font-bold transition-all text-left group shadow-xs cursor-pointer"
+            >
+              <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0 group-hover:scale-105">1</span>
+              <span className="truncate">① プラン選択</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => document.getElementById('step-graves')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 font-bold transition-all text-left group shadow-xs cursor-pointer"
+            >
+              <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0 group-hover:scale-105">2</span>
+              <div className="leading-tight truncate">
+                <span className="block truncate">② 墓石の基数・広さ</span>
+                <span className="block text-[9px] text-emerald-700 font-normal">複数基の料金自動連動</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => document.getElementById('step-vendor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="flex items-center gap-2 p-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 hover:border-emerald-300 text-stone-800 font-semibold transition-all text-left group cursor-pointer"
+            >
+              <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-700 text-[11px] flex items-center justify-center shrink-0 group-hover:bg-emerald-700 group-hover:text-white transition-colors">3</span>
+              <span className="truncate">③ 提携業者選択</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => document.getElementById('step-info')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="flex items-center gap-2 p-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 hover:border-emerald-300 text-stone-800 font-semibold transition-all text-left group cursor-pointer"
+            >
+              <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-700 text-[11px] flex items-center justify-center shrink-0 group-hover:bg-emerald-700 group-hover:text-white transition-colors">4</span>
+              <div className="leading-tight truncate">
+                <span className="block truncate">④ 墓石登録・写真</span>
+                <span className="block text-[9px] text-stone-500 font-normal">正面・側面建立者名</span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -203,7 +221,7 @@ function OrderFormContent() {
         {/* 左カラム：設定・フォーム入力 */}
         <div className="lg:col-span-7 space-y-8">
           {/* 1. プラン選択 */}
-          <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+          <div id="step-plan" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">1</span>
               <span>サービスプランの選択</span>
@@ -260,7 +278,7 @@ function OrderFormContent() {
           </div>
 
           {/* 2. 基数・区画オプション */}
-          <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+          <div id="step-graves" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5 scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">2</span>
               <span>区画内のお墓の基数・広さオプション</span>
@@ -368,7 +386,7 @@ function OrderFormContent() {
           </div>
 
           {/* 3. 提携業者選択 */}
-          <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+          <div id="step-vendor" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">3</span>
               <span>担当提携業者の選択</span>
@@ -425,7 +443,7 @@ function OrderFormContent() {
           </div>
 
           {/* 4. お墓情報・施主情報 */}
-          <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+          <div id="step-info" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5 scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">4</span>
               <span>お墓の特定情報・施主情報のご入力</span>

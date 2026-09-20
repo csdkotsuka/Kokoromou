@@ -33,19 +33,27 @@ export default function RootLayout({
               </p>
               <div className="flex flex-wrap justify-center items-center gap-3">
                 <Link
-                  href="/partner-spec"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-emerald-300 hover:text-emerald-200 text-xs font-medium border border-stone-700/80 transition-colors shadow-xs group"
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-200 hover:text-white text-xs font-medium border border-stone-700/80 transition-colors shadow-xs group"
                 >
-                  <FileText className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-                  <span>提携業者様向け技術仕様書</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span>自社統括管理ポータル（本部）</span>
                 </Link>
 
                 <Link
-                  href="/vendor/reports/order_sample_001"
+                  href="/vendor"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-emerald-300 hover:text-emerald-200 text-xs font-medium border border-stone-700/80 transition-colors shadow-xs group"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <span>各管理会社ポータル（会社切替対応）</span>
+                </Link>
+
+                <Link
+                  href="/partner-spec"
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-medium border border-stone-700/80 transition-colors shadow-xs group"
                 >
-                  <UserCheck className="w-3.5 h-3.5 text-stone-400 group-hover:text-emerald-300 transition-colors" />
-                  <span>提携業者ポータル（作業報告デモ）</span>
+                  <FileText className="w-3.5 h-3.5 text-stone-400 group-hover:scale-110 transition-transform" />
+                  <span>提携業者様向け技術仕様書</span>
                 </Link>
 
                 <Link

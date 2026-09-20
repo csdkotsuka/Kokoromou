@@ -48,9 +48,21 @@ export default function Navbar() {
             </Link>
             <Link
               href="/mypage"
-              className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors flex items-center gap-1"
+              className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors"
             >
               マイページ
+            </Link>
+            <Link
+              href="/vendor"
+              className="text-xs sm:text-sm font-semibold text-emerald-800 hover:text-emerald-950 transition-colors hidden sm:inline"
+            >
+              管理会社
+            </Link>
+            <Link
+              href="/admin"
+              className="text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 transition-colors hidden lg:inline"
+            >
+              本部管理
             </Link>
             <Link
               href="/order"
