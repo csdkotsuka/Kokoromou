@@ -215,11 +215,20 @@ function VendorDashboardContent() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {/* 操作マニュアルリンク */}
+            <Link
+              href="/vendor/manual"
+              target="_blank"
+              className="px-4 py-2.5 bg-blue-700 hover:bg-blue-600 text-white text-base font-bold rounded-xl border border-blue-500 transition flex items-center gap-1.5 shadow-sm"
+            >
+              <span>📖</span> 業務マニュアル
+            </Link>
+
             {/* 上位画面からのプレビューでない場合はログアウトボタンを表示 */}
             {!fromSource && (
               <button
                 onClick={handleLogout}
-                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-base font-bold rounded-xl border border-slate-600 transition"
+                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-base font-bold rounded-xl border border-slate-600 transition cursor-pointer"
               >
                 ログアウト
               </button>

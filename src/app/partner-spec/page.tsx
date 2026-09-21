@@ -15,7 +15,9 @@ import {
   Clock, 
   AlertCircle,
   Building2,
-  Cpu
+  Cpu,
+  BookOpen,
+  Briefcase
 } from 'lucide-react';
 
 export const metadata = {
@@ -31,20 +33,20 @@ export default function PartnerSpecPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-3 tracking-wider uppercase">
             <Cpu className="w-4 h-4" />
-            <span>Technical Architecture & Security Whitepaper</span>
+            <span>Technical Architecture & Partner Portal</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            ココロモウ 提携業者様向け システム概要・技術仕様書
+            ココロモウ 提携パートナー様向け 総合ガイド・技術仕様書
           </h1>
           <p className="mt-4 text-stone-300 text-sm sm:text-base leading-relaxed max-w-3xl">
-            本ドキュメントは、ココロモウと提携される石材店・寺院霊園管理会社・清掃代行業者様に向けて、プラットフォームの安全性、決済・売上自動送金の仕組み、データ保護体制、および現場での利用手順を技術的観点から解説したものです。
+            本ポータルは、ココロモウと提携される寺院霊園管理会社様・石材店様・清掃作業代行業者様に向けて、各担当者別の操作マニュアルおよびシステムの安全性・Stripe決済送金・セキュリティ仕様書を提供する公式ドキュメントセンターです。
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-stone-400">
             <span className="bg-stone-800 px-3 py-1 rounded-full border border-stone-700">文書バージョン: 1.0 (2026年9月版)</span>
-            <span className="bg-stone-800 px-3 py-1 rounded-full border border-stone-700">対象: 提携業者様 / 技術担当者様 / 経営者様</span>
+            <span className="bg-stone-800 px-3 py-1 rounded-full border border-stone-700">対象: 墓地管理事務所様 / 作業代行業者様 / 技術担当者様</span>
             <span className="text-emerald-400 flex items-center gap-1 font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5" /> PCI-DSS & Google Cloud セキュリティ準拠
+              <CheckCircle2 className="w-3.5 h-3.5" /> 各種マニュアル印刷・PDF保存対応
             </span>
           </div>
         </div>
@@ -59,6 +61,92 @@ export default function PartnerSpecPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>サービスサイトへ戻る</span>
           </Link>
+        </div>
+
+        {/* 📚 提携パートナー向け 3つのドキュメント切り替えカード */}
+        <div className="mb-10">
+          <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">
+            提携パートナー様向け ドキュメント＆操作マニュアル一覧
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 1. 墓地管理会社様向けマニュアル */}
+            <Link
+              href="/cemetery/manual"
+              className="p-5 rounded-2xl bg-white hover:bg-emerald-50/50 border-2 border-emerald-600/30 hover:border-emerald-600 shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                    操作説明書
+                  </span>
+                  <span className="text-xs text-emerald-700 font-semibold group-hover:translate-x-0.5 transition-transform">
+                    開く →
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 font-extrabold text-stone-900 text-lg mb-2">
+                  <Building2 className="w-5 h-5 text-emerald-700 shrink-0" />
+                  <span>墓地管理会社様向け 操作説明書</span>
+                </div>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  霊園管理者様向け。代行業者の追加管理、作業契約書・誓約書の印刷・添付保管、施工完了写真の確認手順を大きな文字で解説。
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-stone-100 text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                <span>📄 A4印刷・PDF保存対応</span>
+              </div>
+            </Link>
+
+            {/* 2. 作業代行業者様向けマニュアル */}
+            <Link
+              href="/vendor/manual"
+              className="p-5 rounded-2xl bg-white hover:bg-blue-50/50 border-2 border-blue-600/30 hover:border-blue-600 shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-blue-800 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                    実務ガイド
+                  </span>
+                  <span className="text-xs text-blue-700 font-semibold group-hover:translate-x-0.5 transition-transform">
+                    開く →
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 font-extrabold text-stone-900 text-lg mb-2">
+                  <Briefcase className="w-5 h-5 text-blue-700 shrink-0" />
+                  <span>作業代行業者様向け 業務手順書</span>
+                </div>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  職人・便利屋様向け。現場での同姓誤認防止（正面文字・建立者名照合）、前後写真撮影、報告書提出、Stripe自動入金手順を解説。
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-stone-100 text-[11px] text-blue-700 font-bold flex items-center gap-1">
+                <span>📱 スマホ対応・写真撮影ガイド</span>
+              </div>
+            </Link>
+
+            {/* 3. 技術仕様書（現在地） */}
+            <div className="p-5 rounded-2xl bg-stone-900 text-white border-2 border-stone-800 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-emerald-400 bg-stone-800 px-2.5 py-0.5 rounded-full border border-stone-700">
+                    現在のページ
+                  </span>
+                  <span className="text-xs text-emerald-400 font-semibold">
+                    閲覧中 ●
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 font-extrabold text-white text-lg mb-2">
+                  <Cpu className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <span>システム概要・技術仕様書</span>
+                </div>
+                <p className="text-xs text-stone-300 leading-relaxed">
+                  技術・経営担当者様向け。Stripe Connect決済送金アーキテクチャ、PCI-DSS準拠セキュリティ、クラウド基盤仕様の完全解説。
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-stone-800 text-[11px] text-stone-400 flex items-center gap-1">
+                <span>🔒 セキュリティ＆アーキテクチャ</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 要約サマリーカード */}

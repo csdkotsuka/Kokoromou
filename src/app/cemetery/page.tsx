@@ -489,11 +489,20 @@ function CemeteryDashboard() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {/* 操作説明書リンク */}
+            <Link
+              href="/cemetery/manual"
+              target="_blank"
+              className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-base font-bold rounded-xl border border-emerald-500 transition flex items-center gap-1.5 shadow-sm"
+            >
+              <span>📖</span> 操作説明書
+            </Link>
+
             {/* 本部からのプレビューでない場合は、ログアウトボタンを表示 */}
             {fromSource !== 'admin' && (
               <button
                 onClick={handleLogout}
-                className="px-5 py-2.5 bg-stone-700 hover:bg-stone-600 text-white text-base font-bold rounded-xl border border-stone-500 transition"
+                className="px-5 py-2.5 bg-stone-700 hover:bg-stone-600 text-white text-base font-bold rounded-xl border border-stone-500 transition cursor-pointer"
               >
                 ログアウト
               </button>
