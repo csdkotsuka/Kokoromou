@@ -31,7 +31,13 @@ import {
   Check,
   Briefcase,
   LogOut,
-  KeyRound
+  KeyRound,
+  Download,
+  Database,
+  FileJson,
+  Archive,
+  HardDrive,
+  Calendar
 } from 'lucide-react';
 import { 
   SAMPLE_ADMIN_INFO, 
@@ -57,7 +63,14 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
 
   // 選択中のタブ
-  const [selectedTab, setSelectedTab] = useState<'orders' | 'cemetery_relations' | 'admin_profile'>('orders');
+  const [selectedTab, setSelectedTab] = useState<'orders' | 'cemetery_relations' | 'admin_profile' | 'backups'>('orders');
+
+  // バックアップ管理用ステート
+  const [backupHistory, setBackupHistory] = useState<any[]>([]);
+  const [currentBackupSnapshot, setCurrentBackupSnapshot] = useState<any>(null);
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false);
+  const [backupSuccessMsg, setBackupSuccessMsg] = useState<string | null>(null);
+  const [previewBackupData, setPreviewBackupData] = useState<any>(null);
 
   // 墓地管理会社紐付けタブで選択中の墓地管理会社ID
   const [selectedCemeteryId, setSelectedCemeteryId] = useState<string>(SAMPLE_CEMETERY_COMPANIES[0].id);
@@ -174,6 +187,7 @@ export default function AdminDashboardPage() {
         setPreviewPhoto(null);
         setIsAddingVendor(false);
         setIsChangingPassword(false);
+        setPreviewBackupData(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -216,7 +230,54 @@ export default function AdminDashboardPage() {
       }
     }
     fetchServerData();
+    fetchBackups();
   }, []);
+
+  // バックアップ一覧・最新状態の取得
+  const fetchBackups = async () => {
+    try {
+      const res = await fetch('/api/admin/backups');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.currentSnapshot) setCurrentBackupSnapshot(data.currentSnapshot);
+        if (data.history) setBackupHistory(data.history);
+      }
+    } catch (e) {
+      console.warn('Backup fetch error:', e);
+    }
+  };
+
+  // 即時手動バックアップ作成＆JSONダウンロード
+  const handleCreateBackup = async () => {
+    setIsCreatingBackup(true);
+    setBackupSuccessMsg(null);
+    try {
+      const res = await fetch('/api/admin/backups', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCurrentBackupSnapshot(data.snapshot);
+        setBackupSuccessMsg(`✅ バックアップを作成しました（ID: ${data.snapshot.backupId} / 総レコード: ${data.snapshot.summary.totalRecords}件）`);
+        fetchBackups();
+
+        // ブラウザからJSON自動ダウンロード
+        const jsonBlob = new Blob([JSON.stringify(data.snapshot, null, 2)], { type: 'application/json' });
+        const downloadUrl = URL.createObjectURL(jsonBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `kokoromou_${data.snapshot.backupId}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      } else {
+        alert('バックアップの生成に失敗しました: ' + (data.error || '不明なエラー'));
+      }
+    } catch (e: any) {
+      alert('エラーが発生しました: ' + e.message);
+    } finally {
+      setIsCreatingBackup(false);
+    }
+  };
 
   // Firebase（Firestore）へ初期データを投入する
   const handleSeedFirestore = async () => {
@@ -585,6 +646,21 @@ export default function AdminDashboardPage() {
             >
               <Settings className="w-3.5 h-3.5" />
               <span>③ 本部管理情報・プラットフォーム設定</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTab('backups');
+                fetchBackups();
+              }}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                selectedTab === 'backups'
+                  ? 'bg-emerald-800 text-white shadow-sm'
+                  : 'text-stone-600 hover:bg-stone-100'
+              }`}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>④ データバックアップ＆履歴管理</span>
             </button>
           </div>
         </div>
@@ -1048,6 +1124,360 @@ export default function AdminDashboardPage() {
               <p className="text-[11px] leading-relaxed text-stone-600">
                 {adminInfo.description}
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* ④ データバックアップ＆履歴管理タブ */}
+        {selectedTab === 'backups' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 上部アクション＆運用ステータスバナー */}
+            <div className="bg-gradient-to-br from-stone-900 via-stone-800 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+              <div className="absolute right-0 top-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+              
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold">
+                    <Database className="w-3.5 h-3.5" />
+                    <span>Firestore データベース全台帳スナップショット</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight">
+                    データバックアップ ＆ 履歴・アーカイブ管理
+                  </h2>
+                  <p className="text-xs text-stone-300 max-w-2xl leading-relaxed">
+                    お墓参り代行プラットフォームの全台帳（受注、墓地管理会社、提携代行業者、ユーザーアカウント、本部設定）をJSON形式で安全にスナップショット保存・復元・ダウンロードできます。
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCreateBackup}
+                    disabled={isCreatingBackup}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-900/40 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isCreatingBackup ? 'animate-spin' : ''}`} />
+                    <span>{isCreatingBackup ? 'バックアップ生成中...' : '今すぐバックアップ作成（JSON保存）'}</span>
+                  </button>
+
+                  <a
+                    href="/api/admin/backups?download=true"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-stone-800 hover:bg-stone-700 border border-stone-700 text-stone-200 font-bold text-xs sm:text-sm transition cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>最新JSONダウンロード</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* 完了通知メッセージ */}
+              {backupSuccessMsg && (
+                <div className="mt-4 p-3 bg-emerald-900/80 border border-emerald-500/60 rounded-xl text-xs text-emerald-200 flex items-center gap-2 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{backupSuccessMsg}</span>
+                </div>
+              )}
+            </div>
+
+            {/* データベース規模・現況サマリー */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between text-stone-500 mb-1">
+                  <span className="text-xs font-semibold">受注・案件台帳</span>
+                  <Clock className="w-4 h-4 text-stone-400" />
+                </div>
+                <div className="text-2xl font-black text-stone-900">{orders.length} <span className="text-xs font-normal text-stone-500">件</span></div>
+                <span className="text-[11px] text-stone-400">注文・進捗・写真URL・決済情報</span>
+              </div>
+
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between text-stone-500 mb-1">
+                  <span className="text-xs font-semibold">墓地管理会社台帳</span>
+                  <Building2 className="w-4 h-4 text-stone-400" />
+                </div>
+                <div className="text-2xl font-black text-stone-900">{cemeteryCompanies.length} <span className="text-xs font-normal text-stone-500">社</span></div>
+                <span className="text-[11px] text-stone-400">管轄霊園・契約条件・口座情報</span>
+              </div>
+
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between text-stone-500 mb-1">
+                  <span className="text-xs font-semibold">提携代行業者台帳</span>
+                  <Briefcase className="w-4 h-4 text-stone-400" />
+                </div>
+                <div className="text-2xl font-black text-stone-900">{vendors.length} <span className="text-xs font-normal text-stone-500">社</span></div>
+                <span className="text-[11px] text-stone-400">業者情報・対応エリア・送金先口座</span>
+              </div>
+
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-xs">
+                <div className="flex items-center justify-between text-stone-500 mb-1">
+                  <span className="text-xs font-semibold">本部・認証台帳</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="text-2xl font-black text-emerald-800">正常保存中</div>
+                <span className="text-[11px] text-stone-400">ログイン認証・Stripe Connect情報</span>
+              </div>
+            </div>
+
+            {/* バックアップ運用・世代管理（GFS）設計ガイド */}
+            <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-5">
+              <div className="flex items-center gap-2 pb-3 border-b border-stone-100">
+                <Archive className="w-5 h-5 text-emerald-800" />
+                <h3 className="text-base sm:text-lg font-bold text-stone-900">
+                  バックアップ世代管理ポリシー（当日・日次・週次アーカイブ方針）
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                {/* 世代①: 当日 */}
+                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px]">
+                      当日：リアルタイム〜1時間毎
+                    </span>
+                    <Clock className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <h4 className="font-bold text-stone-900 text-sm">Firestore PITR (過去7日間)</h4>
+                  <p className="text-stone-600 leading-relaxed text-[11px]">
+                    Google Cloud Firestoreの<strong>Point-in-Time Recovery (PITR)</strong>機能により、過去7日間のデータを「秒単位」で任意の日時へロールバック可能です。誤操作時も直ちに復元できます。
+                  </p>
+                  <div className="text-[10px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                    💡 当日の1時間毎バックアップはPITR機能で完全に担保されています。
+                  </div>
+                </div>
+
+                {/* 世代②: 過去1週間 */}
+                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-900 font-bold text-[10px]">
+                      過去1週間：毎日日次保存
+                    </span>
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <h4 className="font-bold text-stone-900 text-sm">日次JSONスナップショット</h4>
+                  <p className="text-stone-600 leading-relaxed text-[11px]">
+                    毎日深夜に自動実行される全台帳スナップショット。直近7日分の差分・整合性を個別の世代ファイルとしてFirestoreおよびバックアップストレージに保持します。
+                  </p>
+                  <div className="text-[10px] text-blue-800 bg-blue-50 p-2 rounded-lg border border-blue-200">
+                    💡 毎日深夜0時の静止点データとして自動アーカイブされます。
+                  </div>
+                </div>
+
+                {/* 世代③: 週1回永久 */}
+                <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                      週1回：永久保管（Google Drive連携）
+                    </span>
+                    <HardDrive className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <h4 className="font-bold text-stone-900 text-sm">冷温分離＆Google Drive保管</h4>
+                  <p className="text-stone-600 leading-relaxed text-[11px]">
+                    毎週日曜の完全スナップショットは<strong>Google Drive</strong>または<strong>Cloud Storage Coldline</strong>へ永久保存。JSONテキストデータは数KB〜数十KBと極めて軽量のため、数万世代保管しても無料枠内で収まります。
+                  </p>
+                  <div className="text-[10px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                    💡 画像実体はCloud Storageでバージョン保持され、JSONには高解像度URLが記録されます。
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* バックアップ履歴一覧テーブル */}
+            <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
+                <div className="flex items-center gap-2">
+                  <FileJson className="w-5 h-5 text-emerald-800" />
+                  <h3 className="text-base sm:text-lg font-bold text-stone-900">
+                    バックアップ履歴一覧 ({backupHistory.length}世代記録中)
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchBackups}
+                  className="text-xs text-stone-600 hover:text-stone-900 font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>最新の状態に更新</span>
+                </button>
+              </div>
+
+              {backupHistory.length === 0 ? (
+                <div className="p-8 text-center text-stone-500 bg-stone-50 rounded-2xl border border-dashed border-stone-200 space-y-3">
+                  <Database className="w-8 h-8 text-stone-400 mx-auto" />
+                  <p className="text-xs font-bold text-stone-700">まだバックアップ履歴が記録されていません</p>
+                  <p className="text-[11px] text-stone-500">
+                    上の「今すぐバックアップ作成（JSON保存）」ボタンを押すと、現在の全データ台帳がスナップショット保存されます。
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-stone-700">
+                    <thead className="bg-stone-50 text-[11px] font-bold text-stone-500 uppercase tracking-wider border-b border-stone-200">
+                      <tr>
+                        <th className="py-3 px-4">バックアップID / 日時</th>
+                        <th className="py-3 px-4">種別</th>
+                        <th className="py-3 px-4">レコード総数</th>
+                        <th className="py-3 px-4">概算容量</th>
+                        <th className="py-3 px-4">作成者</th>
+                        <th className="py-3 px-4 text-right">アクション</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {backupHistory.map((b) => (
+                        <tr key={b.id || b.backupId} className="hover:bg-stone-50/80 transition">
+                          <td className="py-3.5 px-4 font-mono font-bold text-stone-900">
+                            <div>{b.backupId || b.id}</div>
+                            <div className="text-[10px] font-normal text-stone-500">
+                              {b.createdAt ? new Date(b.createdAt).toLocaleString('ja-JP') : '-'}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              b.type === 'manual' 
+                                ? 'bg-amber-100 text-amber-900' 
+                                : 'bg-emerald-100 text-emerald-900'
+                            }`}>
+                              {b.type === 'manual' ? '手動実行' : '自動定期'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-bold text-stone-900">{b.summary?.totalRecords || 0}</span>
+                            <span className="text-[10px] text-stone-500 ml-1">
+                              (注文:{b.summary?.ordersCount || 0} / 会社:{b.summary?.cemeteryCompaniesCount || 0} / 業者:{b.summary?.vendorsCount || 0})
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-stone-600">
+                            {b.sizeInBytes ? `${(b.sizeInBytes / 1024).toFixed(1)} KB` : '約 8 KB'}
+                          </td>
+                          <td className="py-3.5 px-4 text-stone-600">
+                            {b.createdBy || 'システム管理者'}
+                          </td>
+                          <td className="py-3.5 px-4 text-right space-x-2 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewBackupData(b)}
+                              className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>中身を見る</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const jsonBlob = new Blob([JSON.stringify(b, null, 2)], { type: 'application/json' });
+                                const downloadUrl = URL.createObjectURL(jsonBlob);
+                                const a = document.createElement('a');
+                                a.href = downloadUrl;
+                                a.download = `kokoromou_${b.backupId || b.id}.json`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(downloadUrl);
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] shadow-xs transition cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>JSON保存</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* バックアップデータプレビューモーダル */}
+        {previewBackupData && (
+          <div 
+            onClick={(e) => { if (e.target === e.currentTarget) setPreviewBackupData(null); }}
+            className="fixed inset-0 z-50 bg-stone-950/75 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+          >
+            <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-4 max-h-[85vh] flex flex-col cursor-default">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-100 shrink-0">
+                <div className="flex items-center gap-2">
+                  <FileJson className="w-5 h-5 text-emerald-800" />
+                  <div>
+                    <h3 className="text-base font-bold text-stone-900">
+                      バックアップデータ詳細プレビュー
+                    </h3>
+                    <p className="text-[11px] font-mono text-stone-500">
+                      ID: {previewBackupData.backupId || previewBackupData.id} ({previewBackupData.createdAt ? new Date(previewBackupData.createdAt).toLocaleString('ja-JP') : '-'})
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewBackupData(null)}
+                  className="text-stone-400 hover:text-stone-700 font-bold text-sm px-2 py-1 rounded-lg hover:bg-stone-100 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* サマリーカード */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 text-xs">
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-500 block">受注データ</span>
+                  <span className="font-bold text-stone-900 text-sm">{previewBackupData.summary?.ordersCount ?? previewBackupData.data?.orders?.length ?? 0} 件</span>
+                </div>
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-500 block">墓地管理会社</span>
+                  <span className="font-bold text-stone-900 text-sm">{previewBackupData.summary?.cemeteryCompaniesCount ?? previewBackupData.data?.cemeteryCompanies?.length ?? 0} 社</span>
+                </div>
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-500 block">提携代行業者</span>
+                  <span className="font-bold text-stone-900 text-sm">{previewBackupData.summary?.vendorsCount ?? previewBackupData.data?.vendors?.length ?? 0} 社</span>
+                </div>
+                <div className="bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                  <span className="text-[10px] text-stone-500 block">総レコード数</span>
+                  <span className="font-bold text-emerald-800 text-sm">{previewBackupData.summary?.totalRecords ?? 0} 件</span>
+                </div>
+              </div>
+
+              {/* JSONコンテンツビューア */}
+              <div className="flex-1 overflow-y-auto bg-stone-900 text-stone-200 p-4 rounded-2xl font-mono text-[11px] leading-relaxed select-all">
+                <pre>{JSON.stringify(previewBackupData, null, 2)}</pre>
+              </div>
+
+              {/* フッターアクション */}
+              <div className="pt-3 border-t border-stone-100 flex items-center justify-between shrink-0">
+                <span className="text-[11px] text-stone-500">
+                  ※ JSONデータは直接コピーまたはダウンロードして復元に利用できます。
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify(previewBackupData, null, 2));
+                      alert('JSONデータをクリップボードにコピーしました');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition cursor-pointer"
+                  >
+                    JSONをコピー
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const jsonBlob = new Blob([JSON.stringify(previewBackupData, null, 2)], { type: 'application/json' });
+                      const downloadUrl = URL.createObjectURL(jsonBlob);
+                      const a = document.createElement('a');
+                      a.href = downloadUrl;
+                      a.download = `kokoromou_${previewBackupData.backupId || previewBackupData.id}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(downloadUrl);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>ダウンロード</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

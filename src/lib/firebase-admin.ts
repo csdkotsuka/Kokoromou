@@ -551,5 +551,117 @@ export async function updateAccountPassword(email: string, newPassword: string) 
   return true;
 }
 
+/**
+ * プラットフォーム全データ バックアップ機能
+ */
+export interface BackupSnapshot {
+  backupId: string;
+  createdAt: string;
+  source: 'firestore' | 'in_memory';
+  summary: {
+    totalOrders: number;
+    totalCemeteryCompanies: number;
+    totalVendors: number;
+    totalInquiries: number;
+    totalAccounts: number;
+    totalRecords: number;
+    estimatedSizeBytes: number;
+  };
+  data: {
+    adminInfo: PlatformAdminInfo;
+    cemeteryCompanies: CemeteryCompany[];
+    vendors: User[];
+    orders: Order[];
+    inquiries: any[];
+    accounts: { id: string; email: string; role: string; name: string }[];
+  };
+}
+
+export async function createFullPlatformBackup(): Promise<BackupSnapshot> {
+  const adminInfo = await getPlatformAdminInfo();
+  const cemeteryCompanies = await getCemeteryCompanies();
+  const vendors = await getVendors();
+  const orders = await getAllOrders();
+  
+  let inquiries: any[] = [];
+  if (adminDb) {
+    try {
+      const snap = await adminDb.collection('inquiries').get();
+      inquiries = snap.docs.map((d) => d.data());
+    } catch (e) {
+      console.warn('[Firestore] Error fetching inquiries for backup:', e);
+    }
+  }
+
+  // アカウント（パスワード等の秘匿情報を除いた公開メタデータ）
+  const accounts = SAMPLE_ACCOUNTS.map((a) => ({
+    id: a.id,
+    email: a.email,
+    role: a.role,
+    name: a.name,
+  }));
+
+  const backupData = {
+    adminInfo,
+    cemeteryCompanies,
+    vendors,
+    orders,
+    inquiries,
+    accounts,
+  };
+
+  const jsonString = JSON.stringify(backupData);
+  const estimatedSizeBytes = Buffer.byteLength(jsonString, 'utf8');
+
+  const now = new Date();
+  const backupId = `backup_${now.toISOString().replace(/[:.]/g, '-').slice(0, 19)}`;
+
+  const snapshot: BackupSnapshot = {
+    backupId,
+    createdAt: now.toISOString(),
+    source: adminDb ? 'firestore' : 'in_memory',
+    summary: {
+      totalOrders: orders.length,
+      totalCemeteryCompanies: cemeteryCompanies.length,
+      totalVendors: vendors.length,
+      totalInquiries: inquiries.length,
+      totalAccounts: accounts.length,
+      totalRecords: orders.length + cemeteryCompanies.length + vendors.length + inquiries.length + accounts.length,
+      estimatedSizeBytes,
+    },
+    data: backupData,
+  };
+
+  if (adminDb) {
+    try {
+      await adminDb.collection('backups').doc(backupId).set({
+        backupId: snapshot.backupId,
+        createdAt: snapshot.createdAt,
+        source: snapshot.source,
+        summary: snapshot.summary,
+      });
+      console.log(`[Firestore] Backup record saved: ${backupId}`);
+    } catch (e) {
+      console.warn('[Firestore] Error saving backup history:', e);
+    }
+  }
+
+  return snapshot;
+}
+
+export async function getBackupHistory(): Promise<Omit<BackupSnapshot, 'data'>[]> {
+  if (adminDb) {
+    try {
+      const snap = await adminDb.collection('backups').orderBy('createdAt', 'desc').limit(20).get();
+      if (!snap.empty) {
+        return snap.docs.map((d) => d.data() as any);
+      }
+    } catch (e) {
+      console.warn('[Firestore] Error fetching backup history:', e);
+    }
+  }
+  return [];
+}
+
 export { adminDb };
 
