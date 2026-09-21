@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -13,14 +13,13 @@ import {
   Camera, 
   CheckCircle2, 
   Clock, 
-  AlertCircle, 
   ChevronRight, 
-  ExternalLink,
-  Layers,
-  ArrowRight,
-  ShieldCheck,
-  User,
-  Sparkles
+  ArrowRight, 
+  ShieldCheck, 
+  User, 
+  Sparkles,
+  Edit3,
+  X
 } from 'lucide-react';
 import { SAMPLE_VENDORS, SAMPLE_ORDERS, SAMPLE_CEMETERY_COMPANIES } from '@/mocks/sample-data';
 import { Order, User as UserType } from '@/types/firestore';
@@ -29,26 +28,134 @@ function VendorDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // 現在選択されている管理会社ID（デフォルトは vendor_001）
+  const fromSource = searchParams.get('from'); // 'admin' | 'cemetery' | null
+  const sourceCompanyId = searchParams.get('companyId'); // 呼び出し元の墓地管理会社ID
+
+  // 現在選択されている作業代行業者ID
   const currentVendorId = searchParams.get('vendorId') || SAMPLE_VENDORS[0].id;
   const [selectedVendorId, setSelectedVendorId] = useState<string>(currentVendorId);
+  const [vendors, setVendors] = useState<UserType[]>(SAMPLE_VENDORS);
+  const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [previewPhoto, setPreviewPhoto] = useState<{ title: string; url: string } | null>(null);
 
-  // 選択中の管理会社情報
-  const currentVendor = SAMPLE_VENDORS.find((v) => v.id === selectedVendorId) || SAMPLE_VENDORS[0];
+  // プロフィール編集モーダル状態
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    representativeName: '',
+    phoneNumber: '',
+    description: '',
+    serviceAreas: '',
+  });
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  // 最新データのフェッチ
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [venRes, ordRes] = await Promise.all([
+          fetch('/api/vendors'),
+          fetch('/api/orders'),
+        ]);
+        if (venRes.ok) {
+          const vData = await venRes.json();
+          if (vData.vendors?.length) setVendors(vData.vendors);
+        }
+        if (ordRes.ok) {
+          const oData = await ordRes.json();
+          if (oData.orders?.length) setOrders(oData.orders);
+        }
+      } catch (e) {
+        console.warn('API error, using local fallback:', e);
+      }
+    }
+    loadData();
+  }, []);
+
+  // 選択中の業者
+  const currentVendor = vendors.find((v) => v.id === selectedVendorId) || vendors[0];
 
   // 自社に割り当てられた注文一覧
-  const vendorOrders = SAMPLE_ORDERS.filter((o) => o.vendorId === selectedVendorId);
+  const vendorOrders = orders.filter((o) => o.vendorId === selectedVendorId);
 
   // 売上サマリー
-  const totalEarnings = vendorOrders.reduce((sum, o) => sum + o.vendorPayoutAmount, 0);
+  const totalEarnings = vendorOrders.reduce((sum, o) => sum + (o.vendorPayoutAmount || 0), 0);
   const completedCount = vendorOrders.filter((o) => o.status === 'completed' || o.status === 'report_submitted').length;
 
-  // 会社切り替えハンドラー
-  const handleSwitchVendor = (newId: string) => {
-    setSelectedVendorId(newId);
-    router.push(`/vendor?vendorId=${newId}`);
+  // 提携している墓地管理会社
+  const affiliatedCemeteries = SAMPLE_CEMETERY_COMPANIES.filter((cem) =>
+    currentVendor.vendorProfile?.affiliatedCemeteryCompanyIds?.includes(cem.id)
+  );
+
+  // プロフィール編集を開く
+  const handleOpenEdit = () => {
+    setEditFormData({
+      representativeName: currentVendor.vendorProfile?.representativeName || '',
+      phoneNumber: currentVendor.phoneNumber || '',
+      description: currentVendor.vendorProfile?.description || '',
+      serviceAreas: currentVendor.vendorProfile?.serviceAreas?.join(', ') || '',
+    });
+    setIsEditingProfile(true);
+  };
+
+  // プロフィール保存
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const updated: UserType = {
+        ...currentVendor,
+        phoneNumber: editFormData.phoneNumber,
+        vendorProfile: {
+          ...currentVendor.vendorProfile!,
+          representativeName: editFormData.representativeName,
+          description: editFormData.description,
+          serviceAreas: editFormData.serviceAreas.split(',').map((s) => s.trim()).filter(Boolean),
+        },
+      };
+
+      const res = await fetch('/api/vendors', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+
+      if (res.ok) {
+        setVendors((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
+        setIsEditingProfile(false);
+        setSaveSuccessMsg('会社情報を保存しました！');
+        setTimeout(() => setSaveSuccessMsg(null), 4000);
+      } else {
+        alert('保存に失敗しました');
+      }
+    } catch (err) {
+      alert('エラーが発生しました');
+    }
+  };
+
+  // 注文ステータスの変更
+  const handleUpdateStatus = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      });
+      if (res.ok) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+        );
+        setSaveSuccessMsg(`作業状態を更新しました！`);
+        setTimeout(() => setSaveSuccessMsg(null), 3000);
+      }
+    } catch (err) {
+      alert('ステータスの更新に失敗しました');
+    }
+  };
+
+  // ログアウト
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/vendor/login');
   };
 
   // フィルターされた注文
@@ -60,362 +167,449 @@ function VendorDashboardContent() {
   });
 
   return (
-    <div className="min-h-screen bg-stone-50/70 py-8 sm:py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* 会社切り替えスイッチャー（最上部） */}
-        <div className="bg-emerald-900 text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-800 flex items-center justify-center text-emerald-200 shrink-0">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">
-                提携墓地管理会社ポータル（各社専用ビュー）
+    <div className="min-h-screen bg-slate-100 text-slate-900 pb-24">
+      {/* ⚠️ 上位画面からの閲覧時のみ表示する戻りバー */}
+      {fromSource === 'admin' && (
+        <aside aria-label="管理者プレビュー案内" className="bg-amber-500 text-slate-950 font-bold px-6 py-3 shadow-md flex items-center justify-between">
+          <div className="flex items-center gap-3 text-lg">
+            <span className="text-2xl">⚠️</span>
+            <span>【本部管理者プレビュー】現在、本部権限で作業代行業者の画面を表示しています</span>
+          </div>
+          <Link
+            href="/admin"
+            className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-base rounded-xl font-bold transition shadow"
+          >
+            ← 本部統括画面に戻る
+          </Link>
+        </aside>
+      )}
+
+      {fromSource === 'cemetery' && (
+        <aside aria-label="墓地管理会社プレビュー案内" className="bg-blue-600 text-white font-bold px-6 py-3 shadow-md flex items-center justify-between">
+          <div className="flex items-center gap-3 text-lg">
+            <span className="text-2xl">🏛️</span>
+            <span>【墓地管理会社からの確認】提携代行業者の作業画面を確認しています</span>
+          </div>
+          <Link
+            href={`/cemetery?companyId=${sourceCompanyId || 'cem_comp_001'}`}
+            className="px-5 py-2 bg-white hover:bg-slate-100 text-blue-900 text-base rounded-xl font-bold transition shadow"
+          >
+            ← 墓地管理会社画面に戻る
+          </Link>
+        </aside>
+      )}
+
+      {/* ヘッダー（ご高齢者・現場職人向け特大フォント＆高コントラスト） */}
+      <header className="bg-slate-900 text-white shadow-lg sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="px-3 py-1 bg-emerald-500 text-slate-950 text-sm font-extrabold rounded-md">
+                作業代行業者 専用ポータル
               </span>
-              <span className="text-sm font-bold text-white">ログイン中の管理会社を切り替える：</span>
+              <span className="text-slate-400 text-sm">文字サイズ：特大</span>
             </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+              {currentVendor?.displayName}
+            </h1>
           </div>
 
-          <div className="w-full md:w-auto flex items-center gap-2">
-            <select
-              value={selectedVendorId}
-              onChange={(e) => handleSwitchVendor(e.target.value)}
-              className="w-full md:w-80 bg-emerald-950 border border-emerald-700 text-white font-bold text-xs rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-emerald-400 focus:outline-none cursor-pointer"
-            >
-              {SAMPLE_VENDORS.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.displayName}
-                </option>
-              ))}
-            </select>
-            <Link
-              href="/admin"
-              className="shrink-0 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-2.5 rounded-xl border border-white/20 transition"
-            >
-              自社統括画面へ
-            </Link>
-          </div>
-        </div>
-
-        {/* 選択中会社のプロフィール・サマリーカード */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-stone-100">
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                  認定提携パートナー
-                </span>
-                <span className="text-xs text-stone-500 font-mono">ID: {currentVendor.id}</span>
-                <span className="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  ★ {currentVendor.vendorProfile?.rating}
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900 leading-tight">
-                {currentVendor.displayName}
-              </h1>
-              <p className="text-xs text-stone-500 mt-1">
-                法人名: {currentVendor.vendorProfile?.companyName} • 代表: {currentVendor.vendorProfile?.representativeName} • 電話: {currentVendor.phoneNumber}
-              </p>
-            </div>
-
-            {/* Stripe Connect 口座ステータス */}
-            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 flex items-center gap-4 text-xs">
-              <CreditCard className="w-8 h-8 text-emerald-700 shrink-0" />
-              <div>
-                <span className="text-stone-500 block text-[11px]">Stripe Connect 受取連携口座</span>
-                <span className="font-bold text-stone-900 font-mono">
-                  {currentVendor.vendorProfile?.stripeConnectAccountId}
-                </span>
-                <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">
-                  ● 自動送金機能 有効 (Charges & Payouts Enabled)
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 会社KPI */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/60">
-              <span className="text-stone-500 block mb-1">受取予定報酬額 (総売上の80%)</span>
-              <span className="text-2xl font-black text-emerald-900">¥{totalEarnings.toLocaleString()}</span>
-              <span className="text-[10px] text-stone-400 block mt-1">手数料20%控除後の純振込額</span>
-            </div>
-            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/60">
-              <span className="text-stone-500 block mb-1">自社アサイン案件数</span>
-              <span className="text-2xl font-black text-stone-900">{vendorOrders.length} 件</span>
-              <span className="text-[10px] text-stone-400 block mt-1">うち完了・提出済: {completedCount}件</span>
-            </div>
-            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/60">
-              <span className="text-stone-500 block mb-1">担当施工対応エリア</span>
-              <span className="font-bold text-stone-800 block text-xs truncate">
-                {currentVendor.vendorProfile?.serviceAreas.join('、')}
-              </span>
-              <span className="text-[10px] text-stone-400 block mt-1">愛媛県中予エリア中心</span>
-            </div>
-          </div>
-
-          {/* 提携・出入り契約中の墓地管理会社（霊園） */}
-          <div className="pt-2 border-t border-stone-100 flex flex-wrap items-center gap-2 text-xs">
-            <span className="font-bold text-stone-700 flex items-center gap-1 shrink-0">
-              <Building2 className="w-3.5 h-3.5 text-emerald-700" />
-              <span>提携・出入り認定 墓地管理会社：</span>
-            </span>
-            {SAMPLE_CEMETERY_COMPANIES.filter((c) =>
-              c.affiliatedVendorIds.includes(currentVendor.id)
-            ).map((comp) => (
-              <span
-                key={comp.id}
-                className="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold text-[11px] flex items-center gap-1"
-              >
-                <span>{comp.name}</span>
-                <span className="text-[9px] text-emerald-700">（{comp.cemeteryNames[0]}）</span>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* 自社の担当作業案件一覧 */}
-        <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-stone-100 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-stone-900">自社担当の清掃・お参り代行 案件一覧</h2>
-              <p className="text-xs text-stone-500 mt-0.5">
-                現場でのお墓特定（正面文字・側面建立者名・写真）を確認し、作業完了レポートを作成・提出します。
-              </p>
-            </div>
-
-            {/* フィルター */}
-            <div className="flex gap-1.5 bg-stone-100 p-1 rounded-xl text-xs">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* 上位画面からのプレビューでない場合はログアウトボタンを表示 */}
+            {!fromSource && (
               <button
-                type="button"
+                onClick={handleLogout}
+                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-base font-bold rounded-xl border border-slate-600 transition"
+              >
+                ログアウト
+              </button>
+            )}
+
+            {/* 業者切り替え（テスト・デモ用） */}
+            <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-700">
+              <label htmlFor="vendor-select" className="text-sm text-slate-400 font-bold whitespace-nowrap">業者切替:</label>
+              <select
+                id="vendor-select"
+                value={selectedVendorId}
+                onChange={(e) => {
+                  setSelectedVendorId(e.target.value);
+                  router.push(`/vendor?vendorId=${e.target.value}${fromSource ? `&from=${fromSource}` : ''}${sourceCompanyId ? `&companyId=${sourceCompanyId}` : ''}`);
+                }}
+                aria-label="作業代行業者の切り替え"
+                className="bg-slate-800 text-white text-base font-bold px-3 py-1.5 rounded-lg border border-slate-600 outline-none"
+              >
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* 成功通知 */}
+      {saveSuccessMsg && (
+        <div className="max-w-6xl mx-auto px-4 mt-6">
+          <div className="p-4 bg-emerald-100 border-2 border-emerald-500 text-emerald-900 text-xl font-bold rounded-2xl shadow">
+            ✅ {saveSuccessMsg}
+          </div>
+        </div>
+      )}
+
+      {/* メインエリア */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        {/* 1. 自社情報 ＆ 実績サマリー */}
+        <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-200">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+                  自社プロフィール
+                </span>
+                <span className="text-amber-700 font-extrabold text-base bg-amber-50 px-3 py-1 rounded-full border border-amber-300">
+                  ★ お客様評価: {currentVendor.vendorProfile?.rating} 点
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                {currentVendor.vendorProfile?.companyName || currentVendor.displayName}
+              </h2>
+            </div>
+            <button
+              onClick={handleOpenEdit}
+              className="px-6 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xl font-bold rounded-2xl shadow-md transition active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Edit3 className="w-5 h-5" /> 自社情報を変更する（編集）
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 text-lg">
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <span className="block text-slate-500 text-base font-bold">現場責任者</span>
+              <span className="font-extrabold text-slate-900 text-xl">{currentVendor.vendorProfile?.representativeName}</span>
+            </div>
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <span className="block text-slate-500 text-base font-bold">電話番号</span>
+              <a href={`tel:${currentVendor.phoneNumber}`} className="font-extrabold text-emerald-800 hover:underline text-2xl">
+                📞 {currentVendor.phoneNumber}
+              </a>
+            </div>
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <span className="block text-slate-500 text-base font-bold">施工完了実績</span>
+              <span className="font-extrabold text-slate-900 text-2xl">{currentVendor.vendorProfile?.completedJobsCount} 件 完了</span>
+            </div>
+            <div className="md:col-span-3 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <span className="block text-slate-500 text-base font-bold mb-2">提携している墓地管理会社（霊園）</span>
+              <div className="flex flex-wrap gap-2">
+                {affiliatedCemeteries.map((cem) => (
+                  <span key={cem.id} className="bg-amber-100 text-amber-900 border border-amber-300 px-4 py-2 rounded-xl text-lg font-bold">
+                    🏛️ {cem.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. 担当する作業案件一覧（現場用・高齢者向け大画面） */}
+        <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-base font-bold text-blue-800 bg-blue-100 px-3 py-1 rounded-full">
+                現場のお仕事
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
+                担当案件一覧（{vendorOrders.length}件）
+              </h2>
+            </div>
+
+            {/* 状態フィルターボタン */}
+            <div className="flex gap-2 flex-wrap">
+              <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                  statusFilter === 'all' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                className={`px-4 py-2 text-base font-bold rounded-xl transition ${
+                  statusFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                すべて ({vendorOrders.length})
+                すべて
               </button>
               <button
-                type="button"
                 onClick={() => setStatusFilter('pending')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                  statusFilter === 'pending' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                className={`px-4 py-2 text-base font-bold rounded-xl transition ${
+                  statusFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
                 }`}
               >
-                作業待ち
+                準備中
               </button>
               <button
-                type="button"
                 onClick={() => setStatusFilter('in_progress')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                  statusFilter === 'in_progress' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                className={`px-4 py-2 text-base font-bold rounded-xl transition ${
+                  statusFilter === 'in_progress' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-800 hover:bg-blue-100'
                 }`}
               >
                 作業中
               </button>
               <button
-                type="button"
                 onClick={() => setStatusFilter('completed')}
-                className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                  statusFilter === 'completed' ? 'bg-white text-stone-900 shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                className={`px-4 py-2 text-base font-bold rounded-xl transition ${
+                  statusFilter === 'completed' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                 }`}
               >
-                完了済
+                完了済み
               </button>
             </div>
           </div>
 
-          {filteredOrders.length === 0 ? (
-            <div className="p-12 text-center text-stone-400 text-xs">
-              該当する作業案件はありません。
-            </div>
-          ) : (
-            <div className="divide-y divide-stone-100">
-              {filteredOrders.map((ord) => (
-                <div key={ord.id} className="p-6 hover:bg-stone-50/70 transition-colors space-y-4">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="space-y-1">
+          <div className="space-y-6">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12 text-slate-500 text-xl font-bold">
+                該当する作業案件はありません
+              </div>
+            ) : (
+              filteredOrders.map((order) => {
+                const statusBadge =
+                  order.status === 'completed'
+                    ? { label: '作業完了（報告済）', bg: 'bg-emerald-600' }
+                    : order.status === 'in_progress'
+                    ? { label: '現場作業中', bg: 'bg-blue-600' }
+                    : order.status === 'paid'
+                    ? { label: '作業前（準備中）', bg: 'bg-amber-600' }
+                    : { label: '確認中', bg: 'bg-slate-500' };
+
+                return (
+                  <div
+                    key={order.id}
+                    className="bg-slate-50 border-2 border-slate-300 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className={`text-white text-base font-bold px-4 py-1.5 rounded-full ${statusBadge.bg}`}>
+                          {statusBadge.label}
+                        </span>
+                        <span className="text-slate-500 text-base font-bold">
+                          注文番号: {order.orderNumber}
+                        </span>
+                      </div>
+                      <div className="text-xl font-bold text-slate-800">
+                        受取報酬: <span className="text-emerald-700 text-2xl font-extrabold">{order.vendorPayoutAmount?.toLocaleString()} 円</span>
+                      </div>
+                    </div>
+
+                    {/* 墓石の特定情報（最重要） */}
+                    <div className="bg-white p-6 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-stone-900 text-sm font-mono">{ord.orderNumber}</span>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            ord.status === 'completed'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : ord.status === 'in_progress'
-                              ? 'bg-blue-100 text-blue-800'
-                              : ord.status === 'report_submitted'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {ord.status === 'completed'
-                            ? '完了・確認済'
-                            : ord.status === 'in_progress'
-                            ? '現地作業中'
-                            : ord.status === 'report_submitted'
-                            ? '写真レポート提出済'
-                            : '日程確定・作業待ち'}
+                        <span className="bg-blue-600 text-white text-base font-bold px-3 py-1 rounded-md">
+                          特定情報（同姓誤認防止）
                         </span>
-                        <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
-                          {ord.servicePlanName}
-                        </span>
+                        <span className="text-lg font-bold text-blue-950">現場で墓石を確認してください</span>
                       </div>
-                      <p className="text-xs text-stone-500">
-                        施主様: <strong className="text-stone-800">{ord.clientName} 様</strong>（{ord.clientEmail}） • 希望作業日: <strong className="text-emerald-900">{ord.preferredDate}</strong>
-                      </p>
-                    </div>
 
-                    <div className="text-right">
-                      <span className="text-[11px] text-stone-400 block">提携先受取報酬（80%）</span>
-                      <span className="text-base font-black text-emerald-800">
-                        ¥{ord.vendorPayoutAmount.toLocaleString()}
-                      </span>
-                      <span className="text-[10px] text-stone-400 block">注文総額: ¥{ord.totalAmount.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* お墓の特定情報カード（現場確認用） */}
-                  <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200/80 space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                      <div>
-                        <span className="text-stone-500 text-[10px] block">対象霊園・寺院</span>
-                        <span className="font-bold text-stone-800">{ord.graveInfo.cemeteryName}</span>
-                      </div>
-                      <div>
-                        <span className="text-stone-500 text-[10px] block">区画・墓石番号</span>
-                        <span className="font-bold text-stone-800">{ord.graveInfo.sectionPlotNumber}</span>
-                      </div>
-                      <div>
-                        <span className="text-stone-500 text-[10px] block">お墓の基数・広さ</span>
-                        <span className="font-bold text-stone-800">
-                          {ord.graveInfo.graveCount || 1}基 / {ord.graveInfo.plotSize === 'extra_large' ? '特大(2坪超)' : ord.graveInfo.plotSize === 'large' ? '広め(1〜2坪)' : '標準(~1坪)'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-stone-500 text-[10px] block">霊園所在地</span>
-                        <span className="font-semibold text-stone-700 truncate block">
-                          {ord.graveInfo.locationAddress || '愛媛県松山市'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 正面文字 & 側面建立者名（重要！） ＋ 写真 */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-200/60">
-                      <div className="bg-white p-3 rounded-xl border border-stone-200 flex items-center gap-3">
-                        {ord.graveInfo.frontInscriptionPhotoUrl ? (
-                          <img
-                            src={ord.graveInfo.frontInscriptionPhotoUrl}
-                            alt="正面写真"
-                            className="w-14 h-14 object-cover rounded-lg border border-stone-200 shrink-0 cursor-pointer hover:opacity-80"
-                            onClick={() =>
-                              setPreviewPhoto({
-                                title: `正面文字写真 - ${ord.graveInfo.frontInscription}`,
-                                url: ord.graveInfo.frontInscriptionPhotoUrl!,
-                              })
-                            }
-                          />
-                        ) : (
-                          <div className="w-14 h-14 bg-stone-100 rounded-lg flex items-center justify-center text-stone-400 shrink-0">
-                            <Camera className="w-5 h-5" />
-                          </div>
-                        )}
-                        <div className="text-xs truncate">
-                          <span className="text-[10px] font-bold text-emerald-800 block">① 正面の刻印文字</span>
-                          <span className="font-extrabold text-stone-900 text-sm block">
-                            {ord.graveInfo.frontInscription}
-                          </span>
-                          <span className="text-[10px] text-stone-400">墓石正面の家名・題目</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                          <span className="block text-slate-500 text-base font-bold">正面文字（墓石の刻字）</span>
+                          <span className="font-extrabold text-slate-900 text-2xl">「{order.graveInfo.frontInscription}」</span>
+                        </div>
+                        <div className="p-4 bg-amber-50 rounded-xl border-2 border-amber-300">
+                          <span className="block text-amber-900 text-base font-extrabold">側面建立者名（必須照合）</span>
+                          <span className="font-extrabold text-amber-950 text-2xl">「{order.graveInfo.builderName}」</span>
                         </div>
                       </div>
 
-                      <div className="bg-white p-3 rounded-xl border border-emerald-300 flex items-center gap-3">
-                        {ord.graveInfo.builderNamePhotoUrl ? (
-                          <img
-                            src={ord.graveInfo.builderNamePhotoUrl}
-                            alt="側面写真"
-                            className="w-14 h-14 object-cover rounded-lg border border-stone-200 shrink-0 cursor-pointer hover:opacity-80"
-                            onClick={() =>
-                              setPreviewPhoto({
-                                title: `側面建立者名写真 - ${ord.graveInfo.builderName}`,
-                                url: ord.graveInfo.builderNamePhotoUrl!,
-                              })
-                            }
-                          />
-                        ) : (
-                          <div className="w-14 h-14 bg-stone-100 rounded-lg flex items-center justify-center text-stone-400 shrink-0">
-                            <Camera className="w-5 h-5" />
-                          </div>
+                      {/* 写真プレビューボタン */}
+                      <div className="flex flex-wrap gap-4 pt-2">
+                        {order.graveInfo.frontInscriptionPhotoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setPreviewPhoto({ title: '正面文字の写真', url: order.graveInfo.frontInscriptionPhotoUrl! })}
+                            className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-900 text-base font-bold rounded-xl border border-blue-300 flex items-center gap-2"
+                          >
+                            <Camera className="w-5 h-5" /> 正面文字の写真を見る
+                          </button>
                         )}
-                        <div className="text-xs truncate">
-                          <span className="text-[10px] font-bold text-rose-700 block">② 側面の建立者名（特定必須）</span>
-                          <span className="font-extrabold text-stone-900 text-sm block">
-                            {ord.graveInfo.builderName}
-                          </span>
-                          <span className="text-[10px] text-emerald-800 font-medium">※同姓誤認防止のため現地で照合</span>
-                        </div>
+                        {order.graveInfo.builderNamePhotoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setPreviewPhoto({ title: '側面建立者の写真', url: order.graveInfo.builderNamePhotoUrl! })}
+                            className="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-base font-bold rounded-xl border border-amber-300 flex items-center gap-2"
+                          >
+                            <Camera className="w-5 h-5" /> 側面建立者の写真を見る
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    {ord.graveInfo.landmarksDescription && (
-                      <p className="text-[11px] text-stone-600 bg-white p-2.5 rounded-lg border border-stone-100">
-                        📍 <strong>周辺目印:</strong> {ord.graveInfo.landmarksDescription}
-                      </p>
+                    {/* 霊園・区画・プラン内容 */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-slate-800 bg-white p-5 rounded-2xl border border-slate-200">
+                      <div>
+                        <span className="block text-slate-500 font-bold">霊園・寺院名</span>
+                        <span className="font-extrabold text-slate-900 text-lg">{order.graveInfo.cemeteryName}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-500 font-bold">区画・墓石番号</span>
+                        <span className="font-extrabold text-slate-900 text-lg">{order.graveInfo.sectionPlotNumber}</span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-500 font-bold">お申込プラン</span>
+                        <span className="font-extrabold text-slate-900 text-lg">{order.servicePlanName}</span>
+                      </div>
+                    </div>
+
+                    {order.graveInfo.specialRequests && (
+                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-lg text-amber-950 font-medium">
+                        <strong>施主様からのご要望:</strong> {order.graveInfo.specialRequests}
+                      </div>
                     )}
-                  </div>
 
-                  {/* アクション */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                    <span className="text-[11px] text-stone-500">
-                      特記事項: {ord.graveInfo.specialRequests || '特になし'}
-                    </span>
-                    <Link
-                      href={`/vendor/reports/${ord.id}`}
-                      className="inline-flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition"
-                    >
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>作業報告レポートを作成・編集する</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {/* 現場操作用の特大ボタングループ */}
+                    <div className="pt-2 flex flex-wrap gap-4">
+                      {order.status === 'paid' && (
+                        <button
+                          onClick={() => handleUpdateStatus(order.id, 'in_progress')}
+                          className="flex-1 py-4 px-6 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-3"
+                        >
+                          <span>▶️</span> 「作業開始」にする
+                        </button>
+                      )}
+
+                      {order.status === 'in_progress' && (
+                        <button
+                          onClick={() => handleUpdateStatus(order.id, 'completed')}
+                          className="flex-1 py-4 px-6 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-3"
+                        >
+                          <CheckCircle2 className="w-6 h-6" /> 「作業完了・報告提出」にする
+                        </button>
+                      )}
+
+                      {order.status === 'completed' && (
+                        <div className="flex-1 py-4 px-6 bg-emerald-100 border-2 border-emerald-500 text-emerald-900 text-lg font-bold rounded-2xl text-center">
+                          ✅ この案件は作業完了済みです（報告書送付済み）
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })
+            )}
+          </div>
+        </section>
+      </main>
+
+      {/* 写真プレビューモーダル */}
+      {previewPhoto && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-2xl font-extrabold text-slate-900">{previewPhoto.title}</h4>
+              <button
+                onClick={() => setPreviewPhoto(null)}
+                className="p-2 hover:bg-slate-100 rounded-full text-slate-600"
+              >
+                <X className="w-8 h-8" />
+              </button>
             </div>
-          )}
+            <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border-2 border-slate-300">
+              <img src={previewPhoto.url} alt={previewPhoto.title} className="w-full h-full object-cover" />
+            </div>
+            <button
+              onClick={() => setPreviewPhoto(null)}
+              className="w-full py-3.5 bg-slate-900 text-white text-lg font-bold rounded-xl"
+            >
+              閉じる
+            </button>
+          </div>
         </div>
+      )}
 
-        {/* 写真拡大モーダル */}
-        {previewPhoto && (
-          <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-stone-900">{previewPhoto.title}</h3>
+      {/* プロフィール編集モーダル */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
+              自社情報の変更・編集
+            </h3>
+            <p className="text-slate-600 text-base mb-6 font-medium">
+              入力内容を修正して「更新を保存する」ボタンを押してください。
+            </p>
+
+            <form onSubmit={handleSaveProfile} className="space-y-5">
+              <div>
+                <label className="block text-lg font-bold text-slate-800 mb-1">
+                  現場責任者名
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.representativeName}
+                  onChange={(e) => setEditFormData({ ...editFormData, representativeName: e.target.value })}
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-lg font-bold text-slate-800 mb-1">
+                  連絡先お電話番号
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.phoneNumber}
+                  onChange={(e) => setEditFormData({ ...editFormData, phoneNumber: e.target.value })}
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-lg font-bold text-slate-800 mb-1">
+                  対応可能エリア（カンマ区切り）
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.serviceAreas}
+                  onChange={(e) => setEditFormData({ ...editFormData, serviceAreas: e.target.value })}
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-lg font-bold text-slate-800 mb-1">
+                  会社・店舗の自己紹介
+                </label>
+                <textarea
+                  rows={3}
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t-2 border-slate-200 flex gap-4">
                 <button
                   type="button"
-                  onClick={() => setPreviewPhoto(null)}
-                  className="text-stone-400 hover:text-stone-700 text-xs font-bold"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="flex-1 py-4 px-6 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xl font-bold rounded-2xl transition"
                 >
-                  ✕ 閉じる
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-4 px-6 bg-emerald-700 hover:bg-emerald-800 text-white text-xl font-bold rounded-2xl shadow-lg transition"
+                >
+                  更新を保存する
                 </button>
               </div>
-              <img src={previewPhoto.url} alt="拡大写真" className="w-full h-80 object-cover rounded-xl border" />
-              <button
-                type="button"
-                onClick={() => setPreviewPhoto(null)}
-                className="w-full bg-stone-900 text-white text-xs font-bold py-2 rounded-xl"
-              >
-                閉じる
-              </button>
-            </div>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function VendorDashboardPage() {
+export default function VendorPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-stone-500">読み込み中...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-xl font-bold text-slate-600">読み込み中...</div>}>
       <VendorDashboardContent />
     </Suspense>
   );

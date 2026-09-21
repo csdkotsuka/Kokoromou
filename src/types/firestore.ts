@@ -37,10 +37,23 @@ export interface CemeteryCompany {
 // 3. ユーザー情報 (users コレクション)
 // -------------------------------------------------------------
 export type UserRole = 'client' | 'vendor' | 'admin';
+export type AccountRole = 'admin' | 'cemetery' | 'vendor';
+
+export interface UserAccount {
+  id: string;
+  email: string;
+  password?: string; // 簡易認証・シード用パスワード
+  role: AccountRole;
+  name: string;
+  targetId?: string; // cemeteryCompanyId (cem_comp_xxx) または vendorId (vendor_xxx)
+  createdAt: string;
+}
 
 export interface VendorProfile {
   companyName: string;
   representativeName: string;
+  phoneNumber?: string; // 電話番号
+  email?: string; // メールアドレス
   serviceAreas: string[]; // 例: ["愛媛県松山市", "愛媛県伊予市"]
   stripeConnectAccountId?: string; // Stripe Connect Custom/Express Account ID (acct_xxx)
   stripeChargesEnabled: boolean;

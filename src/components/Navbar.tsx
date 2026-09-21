@@ -53,16 +53,22 @@ export default function Navbar() {
               マイページ
             </Link>
             <Link
-              href="/vendor"
-              className="text-xs sm:text-sm font-semibold text-emerald-800 hover:text-emerald-950 transition-colors hidden sm:inline"
+              href="/cemetery/login"
+              className="text-xs sm:text-sm font-semibold text-amber-900 hover:text-amber-950 transition-colors hidden sm:inline"
             >
-              管理会社
+              墓地管理会社
+            </Link>
+            <Link
+              href="/vendor/login"
+              className="text-xs sm:text-sm font-semibold text-blue-900 hover:text-blue-950 transition-colors hidden sm:inline"
+            >
+              作業代行業者
             </Link>
             <Link
               href="/admin"
               className="text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 transition-colors hidden lg:inline"
             >
-              本部管理
+              本部統括
             </Link>
             <Link
               href="/order"

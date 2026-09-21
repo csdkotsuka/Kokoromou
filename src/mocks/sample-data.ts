@@ -403,3 +403,102 @@ export const SAMPLE_REPORTS: Report[] = [
     updatedAt: '2026-09-25T15:30:00Z',
   },
 ];
+
+/**
+ * ログイン用アカウントサンプル（メールアドレス＆パスワード）
+ */
+export const SAMPLE_ACCOUNTS = [
+  // 本部統括
+  {
+    id: 'acc_admin_001',
+    email: 'admin@kokoromou.example.com',
+    password: 'admin1234',
+    role: 'admin' as const,
+    name: 'ココロモウ本部統括',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  // 墓地管理会社（3社）
+  {
+    id: 'acc_cem_001',
+    email: 'info@houtouji-reien-dummy.jp',
+    password: 'cem1234',
+    role: 'cemetery' as const,
+    name: '宝塔寺 旭ヶ丘霊園管理事務所',
+    targetId: 'cem_comp_001',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_cem_002',
+    email: 'reien@matsuyama-shiei-dummy.jp',
+    password: 'cem1234',
+    role: 'cemetery' as const,
+    name: '松山市営霊園 指定管理共同体',
+    targetId: 'cem_comp_002',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_cem_003',
+    email: 'dogo-yasuragi@dummy.example.com',
+    password: 'cem1234',
+    role: 'cemetery' as const,
+    name: '道後やすらぎ墓苑 運営会',
+    targetId: 'cem_comp_003',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  // 作業代行業者（6社）
+  {
+    id: 'acc_ven_001',
+    email: 'info@iyo-memorial-dummy.example.com',
+    password: 'vendor1234',
+    role: 'vendor' as const,
+    name: '松山まごころ墓苑サポート',
+    targetId: 'vendor_001',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_ven_002',
+    email: 'support@jonan-kankyo-dummy.example.com',
+    password: 'vendor1234',
+    role: 'vendor' as const,
+    name: '城南みちお墓クリーン',
+    targetId: 'vendor_002',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_ven_003',
+    email: 'contact@iyotakumi-dummy.example.com',
+    password: 'vendor1234',
+    role: 'vendor' as const,
+    name: '伊予匠・石材メンテナンス工房',
+    targetId: 'vendor_003',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_ven_004',
+    email: 'info@dogo-komorebi-dummy.example.com',
+    password: 'vendor1234',
+    role: 'vendor' as const,
+    name: '道後こもれび墓苑ケア',
+    targetId: 'vendor_004',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_ven_005',
+    email: 'info@ryokufu-grave-dummy.example.com',
+    password: 'vendor1234',
+    role: 'vendor' as const,
+    name: '中予山間部・緑風墓苑管理',
+    targetId: 'vendor_005',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_ven_006',
+    email: 'contact@katsuyama-bisou-dummy.example.com',
+    password: 'vendor1234',
+    role: 'vendor' as const,
+    name: '勝山美装・墓所プロテクト',
+    targetId: 'vendor_006',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+];
+

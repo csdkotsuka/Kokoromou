@@ -63,6 +63,67 @@ export default function AdminDashboardPage() {
   // 写真プレビューモーダル
   const [previewPhoto, setPreviewPhoto] = useState<{ title: string; url: string } | null>(null);
 
+  // シード処理中フラグ＆メッセージ
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedResultMsg, setSeedResultMsg] = useState<{ text: string; isError?: boolean } | null>(null);
+
+  // サーバーAPIから最新データを読み込み
+  React.useEffect(() => {
+    async function fetchServerData() {
+      try {
+        const [cemRes, venRes, ordRes, admRes] = await Promise.all([
+          fetch('/api/cemetery-companies'),
+          fetch('/api/vendors'),
+          fetch('/api/orders'),
+          fetch('/api/admin-info'),
+        ]);
+        if (cemRes.ok) {
+          const data = await cemRes.json();
+          if (data.companies?.length) setCemeteryCompanies(data.companies);
+        }
+        if (venRes.ok) {
+          const data = await venRes.json();
+          if (data.vendors?.length) setVendors(data.vendors);
+        }
+        if (ordRes.ok) {
+          const data = await ordRes.json();
+          if (data.orders?.length) setOrders(data.orders);
+        }
+        if (admRes.ok) {
+          const data = await admRes.json();
+          if (data.adminInfo) setAdminInfo(data.adminInfo);
+        }
+      } catch (e) {
+        console.warn('API fetch error, using local fallback:', e);
+      }
+    }
+    fetchServerData();
+  }, []);
+
+  // Firebase（Firestore）へ初期データを投入する
+  const handleSeedFirestore = async () => {
+    if (!confirm('Firebase（Firestore）に現在設定されている初期マスターデータ（本部情報・墓地管理会社・代行業者・注文・ログインアカウント）を投入します。よろしいですか？')) {
+      return;
+    }
+    setIsSeeding(true);
+    setSeedResultMsg(null);
+    try {
+      const res = await fetch('/api/admin/seed', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSeedResultMsg({
+          text: `✅ Firebase（Firestore）へデータを投入しました！ [墓地管理会社: ${data.details.cemeteryCompaniesCount}件 / 代行業者: ${data.details.vendorsCount}件 / 注文: ${data.details.ordersCount}件 / アカウント: ${data.details.accountsCount}件] モード: ${data.details.mode}`,
+        });
+      } else {
+        setSeedResultMsg({ text: `❌ 投入失敗: ${data.error}`, isError: true });
+      }
+    } catch (err: any) {
+      setSeedResultMsg({ text: `❌ エラー: ${err.message}`, isError: true });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   // 売上・手数料の集計
   const totalVolume = orders.reduce((sum, o) => sum + o.totalAmount, 0);
   const totalPlatformFee = orders.reduce((sum, o) => sum + o.platformFeeAmount, 0);
@@ -72,19 +133,21 @@ export default function AdminDashboardPage() {
   const activeCemeteryCompany = cemeteryCompanies.find((c) => c.id === selectedCemeteryId) || cemeteryCompanies[0];
 
   // 墓地管理会社への代行業者紐付け（トグル切り替え）
-  const handleToggleVendorAffiliation = (cemeteryCompId: string, vendorId: string) => {
-    setCemeteryCompanies((prev) =>
-      prev.map((comp) => {
-        if (comp.id === cemeteryCompId) {
-          const isAffiliated = comp.affiliatedVendorIds.includes(vendorId);
-          const newIds = isAffiliated
-            ? comp.affiliatedVendorIds.filter((id) => id !== vendorId)
-            : [...comp.affiliatedVendorIds, vendorId];
-          return { ...comp, affiliatedVendorIds: newIds };
-        }
-        return comp;
-      })
-    );
+  const handleToggleVendorAffiliation = async (cemeteryCompId: string, vendorId: string) => {
+    let updatedCompany: CemeteryCompany | null = null;
+    const newCemList = cemeteryCompanies.map((comp) => {
+      if (comp.id === cemeteryCompId) {
+        const isAffiliated = comp.affiliatedVendorIds.includes(vendorId);
+        const newIds = isAffiliated
+          ? comp.affiliatedVendorIds.filter((id) => id !== vendorId)
+          : [...comp.affiliatedVendorIds, vendorId];
+        updatedCompany = { ...comp, affiliatedVendorIds: newIds };
+        return updatedCompany;
+      }
+      return comp;
+    });
+
+    setCemeteryCompanies(newCemList);
 
     setVendors((prev) =>
       prev.map((v) => {
@@ -102,10 +165,23 @@ export default function AdminDashboardPage() {
         return v;
       })
     );
+
+    // サーバーにも保存
+    if (updatedCompany) {
+      try {
+        await fetch('/api/cemetery-companies', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedCompany),
+        });
+      } catch (e) {
+        console.warn('API update error:', e);
+      }
+    }
   };
 
   // 注文に対する代行業者アサイン切り替えハンドラー
-  const handleAssignVendor = (orderId: string, newVendorId: string) => {
+  const handleAssignVendor = async (orderId: string, newVendorId: string) => {
     const targetVendor = vendors.find((v) => v.id === newVendorId);
     if (!targetVendor) return;
 
@@ -122,13 +198,37 @@ export default function AdminDashboardPage() {
         return ord;
       })
     );
+
+    try {
+      await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          vendorId: targetVendor.id,
+          vendorName: targetVendor.displayName,
+        }),
+      });
+    } catch (e) {
+      console.warn('API update order error:', e);
+    }
   };
 
   // 注文ステータスの変更
-  const handleStatusChange = (orderId: string, newStatus: any) => {
+  const handleStatusChange = async (orderId: string, newStatus: any) => {
     setOrders((prev) =>
       prev.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord))
     );
+
+    try {
+      await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      });
+    } catch (e) {
+      console.warn('API update order status error:', e);
+    }
   };
 
   return (
@@ -147,23 +247,51 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Firebaseへデータ投入ボタン */}
+            <button
+              onClick={handleSeedFirestore}
+              disabled={isSeeding}
+              className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition cursor-pointer"
+            >
+              <span>🔥</span>
+              <span>{isSeeding ? 'Firestoreへ投入中...' : 'Firebaseに初期データを投入'}</span>
+            </button>
+
+            {/* 墓地管理会社プレビュー */}
             <Link
-              href="/vendor"
+              href={`/cemetery?companyId=${selectedCemeteryId}&from=admin`}
+              className="inline-flex items-center gap-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold px-4 py-2.5 rounded-xl border border-stone-600 shadow transition"
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>墓地管理会社画面を閲覧</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+
+            {/* 代行業者プレビュー */}
+            <Link
+              href="/vendor?from=admin"
               className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition"
             >
               <Briefcase className="w-4 h-4" />
-              <span>各代行業者専用ポータルへ</span>
+              <span>代行業者画面を閲覧</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-            <Link
-              href="/order"
-              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 transition"
-            >
-              <span>一般申込画面を確認</span>
             </Link>
           </div>
         </div>
+
+        {/* シード処理結果バナー */}
+        {seedResultMsg && (
+          <div
+            className={`p-4 rounded-2xl border text-sm font-bold shadow-sm ${
+              seedResultMsg.isError
+                ? 'bg-red-50 border-red-300 text-red-800'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+            }`}
+          >
+            {seedResultMsg.text}
+          </div>
+        )}
 
         {/* 経営指標KPIカード */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -409,6 +537,12 @@ export default function AdminDashboardPage() {
                           <span className="text-[10px] text-stone-400 block mt-1">
                             送金先: {ord.vendorStripeAccountId || 'Stripe未設定'}
                           </span>
+                          <Link
+                            href={`/vendor?vendorId=${ord.vendorId}&from=admin`}
+                            className="inline-flex items-center gap-1 text-[10px] text-emerald-800 hover:text-emerald-950 font-bold mt-1.5 underline"
+                          >
+                            <span>この業者の現場画面を見る →</span>
+                          </Link>
                         </td>
 
                         {/* ステータス */}
@@ -494,9 +628,18 @@ export default function AdminDashboardPage() {
                         <p className="text-xs text-stone-500 mt-1">
                           責任者: {comp.representativeName} • 電話: {comp.phoneNumber}
                         </p>
-                        <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-600">
-                          <span className="font-semibold text-emerald-900">管轄霊園: </span>
-                          <span>{comp.cemeteryNames.join('、')}</span>
+                        <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-600 flex items-center justify-between gap-2">
+                          <div>
+                            <span className="font-semibold text-emerald-900">管轄霊園: </span>
+                            <span>{comp.cemeteryNames.join('、')}</span>
+                          </div>
+                          <Link
+                            href={`/cemetery?companyId=${comp.id}&from=admin`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="shrink-0 text-[11px] bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2.5 py-1 rounded-lg border border-amber-300 transition"
+                          >
+                            画面を開く →
+                          </Link>
                         </div>
                       </div>
                     );
@@ -508,20 +651,29 @@ export default function AdminDashboardPage() {
             {/* 右カラム：選択した墓地管理会社に紐付く「作業代行業者」の整理・編集パネル */}
             <div className="lg:col-span-7 space-y-4">
               <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200 shadow-sm space-y-6">
-                <div className="pb-4 border-b border-stone-100">
-                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    選択中の墓地管理会社
-                  </span>
-                  <h3 className="text-lg font-bold text-stone-900 mt-2">
-                    {activeCemeteryCompany.name}
-                  </h3>
-                  <p className="text-xs text-stone-500 mt-1">
-                    所在地: {activeCemeteryCompany.locationAddress} • メール: {activeCemeteryCompany.email}
-                  </p>
-                  <p className="text-xs text-stone-600 mt-2 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
-                    {activeCemeteryCompany.description}
-                  </p>
+                <div className="pb-4 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      選択中の墓地管理会社
+                    </span>
+                    <h3 className="text-lg font-bold text-stone-900 mt-1">
+                      {activeCemeteryCompany.name}
+                    </h3>
+                  </div>
+                  <Link
+                    href={`/cemetery?companyId=${activeCemeteryCompany.id}&from=admin`}
+                    className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition"
+                  >
+                    <span>🏛️ この管理会社の画面をプレビュー</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
+                <div className="text-xs text-stone-500 -mt-2">
+                  所在地: {activeCemeteryCompany.locationAddress} • メール: {activeCemeteryCompany.email}
+                </div>
+                <p className="text-xs text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
+                  {activeCemeteryCompany.description}
+                </p>
 
                 {/* 提携代行業者の一覧 ＆ チェックボックスで紐付け・重複整理 */}
                 <div className="space-y-3">
@@ -582,7 +734,7 @@ export default function AdminDashboardPage() {
                           </div>
 
                           <Link
-                            href={`/vendor?vendorId=${vendor.id}`}
+                            href={`/vendor?vendorId=${vendor.id}&from=admin`}
                             className="shrink-0 inline-flex items-center gap-1 text-[11px] text-emerald-800 hover:text-emerald-950 font-bold bg-white hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-stone-200 transition"
                           >
                             <span>代行業者画面</span>
