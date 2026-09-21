@@ -149,7 +149,10 @@ export default function AdminDashboardPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setPasswordSuccessMsg('管理者パスワードを正常に更新しました！');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('kokoromou_admin_custom_pwd', newAdminPassword);
+        }
+        setPasswordSuccessMsg('管理者パスワードを正常に更新しました！次回ログイン時からこのパスワードが有効です。');
         setIsChangingPassword(false);
         setNewAdminPassword('');
         setConfirmAdminPassword('');

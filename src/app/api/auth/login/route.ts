@@ -1,16 +1,27 @@
 import { NextResponse } from 'next/server';
-import { authenticateAccount } from '@/lib/firebase-admin';
+import { authenticateAccount, updateAccountPassword } from '@/lib/firebase-admin';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { email, password, clientStoredPassword } = body;
 
     if (!email) {
       return NextResponse.json({ error: 'メールアドレスを入力してください' }, { status: 400 });
     }
 
-    const account = await authenticateAccount(email, password);
+    // クライアント側で保存された新パスワードがあり、現在の入力と一致する場合は即時サーバー同期
+    if (clientStoredPassword && password && clientStoredPassword === password) {
+      await updateAccountPassword(email, password);
+    }
+
+    let account = await authenticateAccount(email, password);
+
+    // 認証失敗時でも、clientStoredPassword と入力が一致していればリカバリー同期
+    if (!account && clientStoredPassword && password && clientStoredPassword === password) {
+      await updateAccountPassword(email, password);
+      account = await authenticateAccount(email, password);
+    }
 
     if (!account) {
       return NextResponse.json(

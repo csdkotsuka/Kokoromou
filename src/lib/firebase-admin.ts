@@ -432,23 +432,81 @@ export async function getOrderFromFirestore(orderId: string) {
  * 認証アカウント確認
  */
 export async function authenticateAccount(email: string, password?: string) {
+  const sampleMatch = SAMPLE_ACCOUNTS.find((a) => a.email === email);
+
+  // /tmp に保存されたパスワード上書きがあれば確認（Vercelサーバーレス一時ファイル永続化）
+  let tmpOverriddenPassword: string | null = null;
+  try {
+    const fs = require('fs');
+    const path = '/tmp/accounts_override.json';
+    if (fs.existsSync(path)) {
+      const overrides = JSON.parse(fs.readFileSync(path, 'utf8'));
+      if (overrides[email]) {
+        tmpOverriddenPassword = overrides[email];
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 1. Firestore チェック
   if (adminDb) {
     try {
       const doc = await adminDb.collection('accounts').doc(email).get();
       if (doc.exists) {
         const data = doc.data();
-        if (!password || data?.password === password) {
-          return data;
+        const effectivePassword = tmpOverriddenPassword || data?.password || sampleMatch?.password;
+        if (!password || effectivePassword === password) {
+          return {
+            id: data?.id || sampleMatch?.id || `acc_${email}`,
+            email,
+            role: data?.role || sampleMatch?.role || (email === 'kotsuka@creativesd.net' ? 'admin' : 'cemetery'),
+            name: data?.name || sampleMatch?.name || (email === 'kotsuka@creativesd.net' ? 'Creative System Design（本部統括）' : '管理者'),
+            targetId: data?.targetId || sampleMatch?.targetId,
+          };
+        } else {
+          // Firestoreにレコードが存在しパスワードが不一致の場合、古い初期パスワード等へはフォールバックしない
+          return null;
         }
       }
     } catch (e) {
       console.warn('[Firestore] Error fetching account:', e);
     }
   }
-  const mockAcc = inMemoryMockDb.accounts.get(email);
-  if (mockAcc && (!password || mockAcc.password === password)) {
-    return mockAcc;
+
+  // 2. /tmp に記録されたパスワードがある場合（Firestore未接続またはドキュメント未作成時）
+  if (tmpOverriddenPassword) {
+    if (!password || tmpOverriddenPassword === password) {
+      return {
+        id: sampleMatch?.id || `acc_${email}`,
+        email,
+        role: sampleMatch?.role || (email === 'kotsuka@creativesd.net' ? 'admin' : 'cemetery'),
+        name: sampleMatch?.name || (email === 'kotsuka@creativesd.net' ? 'Creative System Design（本部統括）' : '管理者'),
+        targetId: sampleMatch?.targetId,
+      };
+    } else {
+      // パスワードが上書きされているのに一致しない場合は失敗
+      return null;
+    }
   }
+
+  // 3. インメモリ (inMemoryMockDb)
+  const mockAcc = inMemoryMockDb.accounts.get(email);
+  if (mockAcc) {
+    if (!password || mockAcc.password === password) {
+      return mockAcc;
+    } else {
+      return null;
+    }
+  }
+
+  // 4. 初期サンプル（初期パスワード admin1234 等）
+  if (sampleMatch) {
+    if (!password || sampleMatch.password === password) {
+      return sampleMatch;
+    }
+  }
+
   return null;
 }
 
@@ -456,19 +514,44 @@ export async function authenticateAccount(email: string, password?: string) {
  * パスワード更新
  */
 export async function updateAccountPassword(email: string, newPassword: string) {
+  const sampleMatch = SAMPLE_ACCOUNTS.find((a) => a.email === email);
+  const accountData = {
+    id: sampleMatch?.id || `acc_${Date.now()}`,
+    email,
+    password: newPassword,
+    role: sampleMatch?.role || (email === 'kotsuka@creativesd.net' ? 'admin' : 'cemetery'),
+    name: sampleMatch?.name || (email === 'kotsuka@creativesd.net' ? 'Creative System Design（本部統括）' : '管理者'),
+    targetId: sampleMatch?.targetId,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 1. /tmp へ永続化（Vercelサーバーレス用）
+  try {
+    const fs = require('fs');
+    const path = '/tmp/accounts_override.json';
+    let overrides: Record<string, string> = {};
+    if (fs.existsSync(path)) {
+      overrides = JSON.parse(fs.readFileSync(path, 'utf8'));
+    }
+    overrides[email] = newPassword;
+    fs.writeFileSync(path, JSON.stringify(overrides));
+  } catch (e) {
+    // ignore
+  }
+
+  // 2. Firestore へ書き込み
   if (adminDb) {
     try {
-      await adminDb.collection('accounts').doc(email).set({ password: newPassword }, { merge: true });
-      console.log(`[Firestore] Password updated for account: ${email}`);
+      await adminDb.collection('accounts').doc(email).set(accountData, { merge: true });
+      console.log(`[Firestore] Full account & password updated for: ${email}`);
     } catch (e) {
       console.warn('[Firestore] Error updating account password:', e);
     }
   }
-  const mockAcc = inMemoryMockDb.accounts.get(email);
-  if (mockAcc) {
-    mockAcc.password = newPassword;
-    inMemoryMockDb.accounts.set(email, mockAcc);
-  }
+
+  // 3. インメモリへ書き込み
+  inMemoryMockDb.accounts.set(email, accountData);
+
   return true;
 }
 
