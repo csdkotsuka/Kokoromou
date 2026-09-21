@@ -30,6 +30,7 @@ export default function CustomerMyPage() {
   const router = useRouter();
   const [authUser, setAuthUser] = useState<{ name?: string; email?: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     // Cookie から認証情報を確認
@@ -119,7 +120,6 @@ export default function CustomerMyPage() {
     },
   ];
 
-  const [copied, setCopied] = useState(false);
   const handleShare = () => {
     navigator.clipboard?.writeText(window.location.href);
     setCopied(true);
