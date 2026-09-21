@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { SAMPLE_ADMIN_INFO } from '@/mocks/sample-data';
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
       );
     }
 
+    const isAreaRequest = type === 'area_request';
     const inquiryData = {
       id: `inq_${Date.now()}`,
       type: type || 'general',
@@ -22,11 +24,13 @@ export async function POST(req: Request) {
       email,
       phone: phone || '',
       message,
+      notifyTo: SAMPLE_ADMIN_INFO.email,
+      notifyRepresentative: SAMPLE_ADMIN_INFO.representative,
       createdAt: new Date().toISOString(),
       status: 'unread',
     };
 
-    console.log('📩 [New Inquiry Received]:', inquiryData);
+    console.log(`📩 [New Inquiry/Request Received]: type=${inquiryData.type}, notifyTo=${SAMPLE_ADMIN_INFO.email}`, inquiryData);
 
     if (adminDb) {
       try {
@@ -42,7 +46,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'お問い合わせを受け付けました。担当者より折り返しご連絡いたします。',
+      message: isAreaRequest
+        ? '霊園・墓地のリクエストを受け付けました。運営本部より現地管理事務所や提携候補業者へ確認の上、ご連絡いたします。'
+        : 'お問い合わせを受け付けました。担当者より折り返しご連絡いたします。',
       inquiryId: inquiryData.id,
     });
   } catch (error: any) {

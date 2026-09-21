@@ -16,7 +16,20 @@ export const SAMPLE_ADMIN_INFO: PlatformAdminInfo = {
 };
 
 /**
- * 墓地管理会社・霊園管理事務所サンプル（3社）
+ * 都道府県一覧（全国47都道府県）
+ */
+export const PREFECTURES = [
+  '北海道', '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
+  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県', '岐阜県',
+  '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
+  '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
+  '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
+  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
+];
+
+/**
+ * 墓地管理会社・霊園管理事務所サンプル
  */
 export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
   {
@@ -26,6 +39,7 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     representativeName: '宝塔寺 住職 / 霊園管理長 佐伯 泰山',
     phoneNumber: '089-925-8822',
     email: 'info@houtouji-reien-dummy.jp',
+    prefecture: '愛媛県',
     locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
     description: '松山城を望む閑静な旭ヶ丘の高台に位置する歴史ある寺院霊園。同姓の多い共同区画の適正管理と指定業者認定制度を導入。',
     affiliatedVendorIds: ['vendor_001', 'vendor_003', 'vendor_006'], // 松山まごころ、伊予匠、勝山美装
@@ -132,6 +146,7 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     representativeName: '所長 門田 喜一郎',
     phoneNumber: '089-947-6611',
     email: 'reien@matsuyama-shiei-dummy.jp',
+    prefecture: '愛媛県',
     locationAddress: '愛媛県松山市溝辺町',
     description: '松山市営の大規模公営霊園群。広大な敷地の手入れと水回り環境を維持するため、複数の地域清掃代行パートナーと連携。',
     affiliatedVendorIds: ['vendor_001', 'vendor_002', 'vendor_003', 'vendor_004'], // 複数業者と提携
@@ -143,6 +158,7 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     representativeName: '代表幹事 水野 兼昭',
     phoneNumber: '089-977-3300',
     email: 'dogo-yasuragi@dummy.example.com',
+    prefecture: '愛媛県',
     locationAddress: '愛媛県松山市末町',
     description: '道後温泉奥座敷の豊かな緑に囲まれた共同霊園。傾斜地や階段のある難所区画が多いため、専門技能を持つ業者を指定。',
     affiliatedVendorIds: ['vendor_002', 'vendor_004', 'vendor_005'], // 城南みち、道後こもれび、緑風墓苑
@@ -154,6 +170,7 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     representativeName: '代表窓口 / 霊園総合管理者',
     phoneNumber: '089-997-7466',
     email: 'info@totalagent.net',
+    prefecture: '愛媛県',
     locationAddress: '愛媛県松山市土居田町455-16',
     description: '愛媛県松山・中予エリアを中心に、宝塔寺霊園や善福寺など中核霊園の管理受託・墓石建立・墓じまい・お参り代行相談をワンストップで手掛ける有力エージェント。',
     affiliatedVendorIds: ['vendor_001', 'vendor_002', 'vendor_003', 'vendor_004', 'vendor_005', 'vendor_006'],
@@ -170,6 +187,30 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     },
     contractTemplateFileName: 'お墓のトータルエージェント_提携作業代行基本契約書.pdf',
     contractTemplateUpdatedAt: '2026-09-10T09:00:00.000Z',
+  },
+  {
+    id: 'cem_comp_005',
+    name: '讃岐五色台霊苑 管理事務所',
+    cemeteryNames: ['讃岐五色台みどり霊苑', '坂出やすらぎ苑'],
+    representativeName: '管理責任者 真鍋 弘樹',
+    phoneNumber: '087-881-XXXX',
+    email: 'info@sanuki-goshiki-dummy.jp',
+    prefecture: '香川県',
+    locationAddress: '香川県高松市中山町',
+    description: '瀬戸内海を一望する眺望豊かな大型公園墓地。四国各エリアの提携パートナーと連携して安心のお手入れを実施。',
+    affiliatedVendorIds: ['vendor_001'],
+  },
+  {
+    id: 'cem_comp_006',
+    name: '土佐平和墓園 管理会',
+    cemeteryNames: ['土佐平和墓園', '高知桂浜メモリアル苑'],
+    representativeName: '代表 岡村 竜治',
+    phoneNumber: '088-831-XXXX',
+    email: 'info@tosa-heiwa-dummy.jp',
+    prefecture: '高知県',
+    locationAddress: '高知県高知市吸江',
+    description: '南国の明るい陽光に包まれた静穏な霊園。地域密着の認定石材店と連携してお墓参りとお掃除を真心を込めて代行。',
+    affiliatedVendorIds: ['vendor_003'],
   },
 ];
 

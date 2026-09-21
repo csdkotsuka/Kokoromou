@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { saveOrderToFirestore } from '@/lib/firebase-admin';
-import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS } from '@/mocks/sample-data';
+import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_ADMIN_INFO } from '@/mocks/sample-data';
 import { Order, OrderStatus } from '@/types/firestore';
 
 interface CheckoutRequestBody {
   planId: string;
   vendorId: string;
+  cemeteryCompanyId?: string;
   clientName: string;
   clientEmail: string;
   cemeteryName: string;
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
     const {
       planId,
       vendorId,
+      cemeteryCompanyId,
       clientName,
       clientEmail,
       cemeteryName,
@@ -144,6 +146,7 @@ export async function POST(req: NextRequest) {
       vendorPayoutAmount,
       currency: 'jpy',
       status: 'pending_payment' as OrderStatus,
+      cemeteryCompanyId: cemeteryCompanyId || '',
       graveInfo: {
         cemeteryName,
         locationAddress: locationAddress || '',
@@ -165,6 +168,9 @@ export async function POST(req: NextRequest) {
     };
 
     await saveOrderToFirestore(newOrder);
+
+    // 本部（Creative System Design / kotsuka@creativesd.net）への注文通知ログ
+    console.log(`📢 [Admin Notification] New order created (#${orderNumber}). Platform CC notification target: ${SAMPLE_ADMIN_INFO.email} (Representative: ${SAMPLE_ADMIN_INFO.representative})`);
 
     // Stripe APIキーの確認（テスト環境・モック判定）
     const isMockStripe = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test_mock');

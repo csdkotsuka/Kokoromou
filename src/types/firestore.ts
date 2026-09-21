@@ -38,6 +38,7 @@ export interface CemeteryCompany {
   phoneNumber: string;
   email: string;
   locationAddress: string;
+  prefecture?: string; // 都道府県 (例: "愛媛県")
   description: string;
   // この墓地管理会社と提携・出入り可能な作業代行業者IDリスト
   affiliatedVendorIds: string[];

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_CEMETERY_COMPANIES } from '@/mocks/sample-data';
+import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_CEMETERY_COMPANIES, PREFECTURES } from '@/mocks/sample-data';
 import { 
   ShieldCheck, 
   CreditCard, 
@@ -29,25 +29,55 @@ import {
   Phone,
   Send,
   MessageCircle,
-  ArrowRight
+  ArrowRight,
+  Building2,
+  Compass,
+  FileQuestion
 } from 'lucide-react';
 
 function OrderFormContent() {
   const searchParams = useSearchParams();
   const defaultPlanId = searchParams.get('planId') || SAMPLE_SERVICE_PLANS[1].id;
   const initialMode = searchParams.get('mode') === 'inquiry' ? 'inquiry' : 'order';
+  const paramCemeteryId = searchParams.get('cemeteryId') || '';
 
   // 注文モード（'order': 正式本申し込み / 'inquiry': 無料事前相談・見積り）
   const [orderMode, setOrderMode] = useState<'order' | 'inquiry'>(initialMode);
 
+  // 都道府県 & 墓地管理会社ステート
+  // パラメータで指定された管理会社があればその都道府県を初期値に、なければ「愛媛県」
+  const targetInitialCemetery = SAMPLE_CEMETERY_COMPANIES.find(c => c.id === paramCemeteryId);
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string>(
+    targetInitialCemetery?.prefecture || '愛媛県'
+  );
+  const [selectedCemeteryId, setSelectedCemeteryId] = useState<string>(
+    targetInitialCemetery?.id || 'cem_comp_001'
+  );
+
   const [selectedPlanId, setSelectedPlanId] = useState<string>(defaultPlanId);
   const [selectedVendorId, setSelectedVendorId] = useState<string>(SAMPLE_VENDORS[0].id);
+
+  // 未登録霊園・エリアのリクエストモーダルステート
+  const [showAreaRequestModal, setShowAreaRequestModal] = useState<boolean>(false);
+  const [areaRequestData, setAreaRequestData] = useState({
+    prefecture: '愛媛県',
+    cemeteryName: '',
+    locationAddress: '',
+    name: '',
+    email: '',
+    phone: '',
+    notes: '',
+  });
+  const [areaRequestSubmitting, setAreaRequestSubmitting] = useState(false);
+  const [areaRequestSuccess, setAreaRequestSuccess] = useState(false);
+  const [areaRequestError, setAreaRequestError] = useState<string | null>(null);
 
   // 事前相談用ステート
   const [inquiryData, setInquiryData] = useState({
     name: '',
     email: '',
     phone: '',
+    prefecture: '愛媛県',
     cemeteryName: '',
     preferredDate: '',
     message: '',
@@ -69,6 +99,7 @@ function OrderFormContent() {
   const [formData, setFormData] = useState({
     clientName: '',
     clientEmail: '',
+    cemeteryCompanyId: 'cem_comp_001',
     cemeteryName: '宝塔寺 旭ヶ丘霊園（モデル霊園）',
     locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
     sectionPlotNumber: '',
@@ -83,8 +114,86 @@ function OrderFormContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 現在スクロール表示中のステップ (1 | 2 | 3 | 4)
+  // 現在スクロール表示中のステップ (1: 霊園 | 2: プラン | 3: 基数広さ | 4: 提携業者 | 5: 墓石施主情報)
   const [activeStep, setActiveStep] = useState<number>(1);
+
+  // 現在の都道府県に該当する管理会社リスト
+  const availableCemeteries = SAMPLE_CEMETERY_COMPANIES.filter(
+    (c) => c.prefecture === selectedPrefecture
+  );
+
+  // 現在選択中の管理会社
+  const currentCemetery = SAMPLE_CEMETERY_COMPANIES.find((c) => c.id === selectedCemeteryId);
+
+  // 管理会社に紐付いている認定業者リスト
+  const affiliatedVendors = currentCemetery?.affiliatedVendorIds && currentCemetery.affiliatedVendorIds.length > 0
+    ? SAMPLE_VENDORS.filter((v) => currentCemetery.affiliatedVendorIds.includes(v.id))
+    : SAMPLE_VENDORS;
+
+  // 管理会社が変更された時、紐付き業者や霊園名を同期
+  const handleCemeterySelect = (cemetery: typeof SAMPLE_CEMETERY_COMPANIES[0]) => {
+    setSelectedCemeteryId(cemetery.id);
+    const defaultCemeteryName = cemetery.cemeteryNames[0] || cemetery.name;
+    setFormData((prev) => ({
+      ...prev,
+      cemeteryCompanyId: cemetery.id,
+      cemeteryName: defaultCemeteryName,
+      locationAddress: cemetery.locationAddress || prev.locationAddress,
+    }));
+
+    // 提携業者リストに現在の選択業者が含まれていなければ先頭に切り替え
+    if (cemetery.affiliatedVendorIds && cemetery.affiliatedVendorIds.length > 0) {
+      if (!cemetery.affiliatedVendorIds.includes(selectedVendorId)) {
+        setSelectedVendorId(cemetery.affiliatedVendorIds[0]);
+      }
+    }
+  };
+
+  // 都道府県が変更された時の処理
+  const handlePrefectureChange = (pref: string) => {
+    setSelectedPrefecture(pref);
+    setAreaRequestData((prev) => ({ ...prev, prefecture: pref }));
+    const cemeteriesInPref = SAMPLE_CEMETERY_COMPANIES.filter((c) => c.prefecture === pref);
+    if (cemeteriesInPref.length > 0) {
+      handleCemeterySelect(cemeteriesInPref[0]);
+    } else {
+      setSelectedCemeteryId('');
+      setFormData((prev) => ({
+        ...prev,
+        cemeteryCompanyId: '',
+        cemeteryName: '',
+        locationAddress: '',
+      }));
+    }
+  };
+
+  // 未登録霊園・エリアリクエスト送信
+  const handleAreaRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAreaRequestSubmitting(true);
+    setAreaRequestError(null);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'area_request',
+          name: areaRequestData.name,
+          email: areaRequestData.email,
+          phone: areaRequestData.phone,
+          companyName: `【未登録エリアリクエスト】${areaRequestData.prefecture} / ${areaRequestData.cemeteryName}`,
+          message: `【希望都道府県】: ${areaRequestData.prefecture}\n【希望霊園・墓地名】: ${areaRequestData.cemeteryName}\n【所在地・市町村】: ${areaRequestData.locationAddress || '未記入'}\n【ご要望・相談】: ${areaRequestData.notes || 'なし'}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'リクエスト送信に失敗しました');
+      setAreaRequestSuccess(true);
+    } catch (err: any) {
+      setAreaRequestError(err.message || '送信中にエラーが発生しました');
+    } finally {
+      setAreaRequestSubmitting(false);
+    }
+  };
 
   // 事前相談送信処理
   const handleInquirySubmit = async (e: React.FormEvent) => {
@@ -100,8 +209,8 @@ function OrderFormContent() {
           name: inquiryData.name,
           email: inquiryData.email,
           phone: inquiryData.phone,
-          companyName: inquiryData.cemeteryName ? `対象墓地・霊園: ${inquiryData.cemeteryName}` : '',
-          message: `${inquiryData.cemeteryName ? `【対象霊園・墓地】: ${inquiryData.cemeteryName}\n` : ''}${inquiryData.preferredDate ? `【希望時期】: ${inquiryData.preferredDate}\n` : ''}${inquiryData.message}`,
+          companyName: inquiryData.cemeteryName ? `対象墓地・霊園: ${inquiryData.cemeteryName} (${inquiryData.prefecture})` : '',
+          message: `【希望都道府県】: ${inquiryData.prefecture}\n${inquiryData.cemeteryName ? `【対象霊園・墓地】: ${inquiryData.cemeteryName}\n` : ''}${inquiryData.preferredDate ? `【希望時期】: ${inquiryData.preferredDate}\n` : ''}${inquiryData.message}`,
         }),
       });
       const data = await res.json();
@@ -114,11 +223,12 @@ function OrderFormContent() {
     }
   };
 
-  // 各ステップの入力完了判定
-  const isStep1Completed = Boolean(selectedPlanId);
-  const isStep2Completed = Boolean(graveCount >= 1 && plotSize);
-  const isStep3Completed = Boolean(selectedVendorId);
-  const isStep4Completed = Boolean(
+  // 各ステップの入力完了判定（5ステップ）
+  const isStep1Completed = Boolean(selectedCemeteryId && formData.cemeteryName.trim());
+  const isStep2Completed = Boolean(selectedPlanId);
+  const isStep3Completed = Boolean(graveCount >= 1 && plotSize);
+  const isStep4Completed = Boolean(selectedVendorId);
+  const isStep5Completed = Boolean(
     formData.frontInscription.trim() &&
     formData.builderName.trim() &&
     formData.clientName.trim() &&
@@ -126,12 +236,12 @@ function OrderFormContent() {
   );
 
   // 全ステップ完了判定（決済ボタンの活性化条件）
-  const isAllCompleted = isStep1Completed && isStep2Completed && isStep3Completed && isStep4Completed;
+  const isAllCompleted = isStep1Completed && isStep2Completed && isStep3Completed && isStep4Completed && isStep5Completed;
 
   // スクロール位置の検知（今画面に表示されている項目をハイライト）
   useEffect(() => {
     const handleScroll = () => {
-      const stepIds = ['step-plan', 'step-graves', 'step-vendor', 'step-info'];
+      const stepIds = ['step-cemetery', 'step-plan', 'step-graves', 'step-vendor', 'step-info'];
       const scrollPos = window.scrollY + 260; // ヘッダーオフセット
 
       for (let i = stepIds.length - 1; i >= 0; i--) {
@@ -364,8 +474,12 @@ function OrderFormContent() {
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-5 h-5 text-amber-400 shrink-0" />
                   <div>
-                    <span className="text-stone-300 block text-[11px]">{SAMPLE_CEMETERY_COMPANIES[0].name} へのお電話でのご相談も歓迎しております</span>
-                    <strong className="text-lg text-amber-300 font-black">{SAMPLE_CEMETERY_COMPANIES[0].phoneNumber}</strong>
+                    <span className="text-stone-300 block text-[11px]">
+                      {currentCemetery ? currentCemetery.name : '提携霊園管理事務所'} へのお電話でのご相談も歓迎しております
+                    </span>
+                    <strong className="text-lg text-amber-300 font-black">
+                      {currentCemetery ? currentCemetery.phoneNumber : '089-925-8822'}
+                    </strong>
                   </div>
                 </div>
                 <span className="text-[10px] text-stone-400 bg-white/10 px-2.5 py-1 rounded">
@@ -380,18 +494,35 @@ function OrderFormContent() {
               )}
 
               <form onSubmit={handleInquirySubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-stone-900 mb-1">
-                    お名前 <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={inquiryData.name}
-                    onChange={(e) => setInquiryData({ ...inquiryData, name: e.target.value })}
-                    placeholder="例：山田 太郎"
-                    className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      都道府県 <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={inquiryData.prefecture}
+                      onChange={(e) => setInquiryData({ ...inquiryData, prefecture: e.target.value })}
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                    >
+                      {PREFECTURES.map((pref) => (
+                        <option key={pref} value={pref}>{pref}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      お名前 <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={inquiryData.name}
+                      onChange={(e) => setInquiryData({ ...inquiryData, name: e.target.value })}
+                      placeholder="例：山田 太郎"
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -485,77 +616,94 @@ function OrderFormContent() {
           {/* スティッキーステップフロー案内バー（スクロール時にページトップに固定） */}
           <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/95 backdrop-blur-md border-y border-stone-200 shadow-sm mb-8 transition-all">
             <div className="max-w-5xl mx-auto">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-            {/* ① プラン選択 */}
-            <button
-              type="button"
-              onClick={() => document.getElementById('step-plan')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(1, isStep1Completed)}`}
-            >
-              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(1, isStep1Completed)} text-[11px] flex items-center justify-center shrink-0`}>
-                {isStep1Completed && activeStep !== 1 ? <Check className="w-3 h-3 stroke-[3]" /> : '1'}
-              </span>
-              <div className="leading-tight truncate">
-                <span className="block truncate font-bold">① プラン選択</span>
-                <span className={`block text-[9px] font-normal ${activeStep === 1 ? 'text-blue-700 font-semibold' : isStep1Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
-                  {activeStep === 1 ? '● 選択中' : isStep1Completed ? '✓ 選択済み' : '未選択'}
-                </span>
-              </div>
-            </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
+                {/* ① 霊園・管理会社 */}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('step-cemetery')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(1, isStep1Completed)}`}
+                >
+                  <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(1, isStep1Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                    {isStep1Completed && activeStep !== 1 ? <Check className="w-3 h-3 stroke-[3]" /> : '1'}
+                  </span>
+                  <div className="leading-tight truncate">
+                    <span className="block truncate font-bold">① 霊園・会社</span>
+                    <span className={`block text-[9px] font-normal ${activeStep === 1 ? 'text-blue-700 font-semibold' : isStep1Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                      {activeStep === 1 ? '● 選択中' : isStep1Completed ? '✓ 選択済み' : '未選択'}
+                    </span>
+                  </div>
+                </button>
 
-            {/* ② 墓石の基数・広さ */}
-            <button
-              type="button"
-              onClick={() => document.getElementById('step-graves')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(2, isStep2Completed)}`}
-            >
-              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(2, isStep2Completed)} text-[11px] flex items-center justify-center shrink-0`}>
-                {isStep2Completed && activeStep !== 2 ? <Check className="w-3 h-3 stroke-[3]" /> : '2'}
-              </span>
-              <div className="leading-tight truncate">
-                <span className="block truncate font-bold">② 基数・広さ</span>
-                <span className={`block text-[9px] font-normal ${activeStep === 2 ? 'text-blue-700 font-semibold' : isStep2Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
-                  {activeStep === 2 ? '● 設定中' : isStep2Completed ? `✓ ${graveCount}基 / 設定済` : '未設定'}
-                </span>
-              </div>
-            </button>
+                {/* ② プラン選択 */}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('step-plan')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(2, isStep2Completed)}`}
+                >
+                  <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(2, isStep2Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                    {isStep2Completed && activeStep !== 2 ? <Check className="w-3 h-3 stroke-[3]" /> : '2'}
+                  </span>
+                  <div className="leading-tight truncate">
+                    <span className="block truncate font-bold">② プラン選択</span>
+                    <span className={`block text-[9px] font-normal ${activeStep === 2 ? 'text-blue-700 font-semibold' : isStep2Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                      {activeStep === 2 ? '● 選択中' : isStep2Completed ? '✓ 選択済み' : '未選択'}
+                    </span>
+                  </div>
+                </button>
 
-            {/* ③ 提携業者選択 */}
-            <button
-              type="button"
-              onClick={() => document.getElementById('step-vendor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(3, isStep3Completed)}`}
-            >
-              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(3, isStep3Completed)} text-[11px] flex items-center justify-center shrink-0`}>
-                {isStep3Completed && activeStep !== 3 ? <Check className="w-3 h-3 stroke-[3]" /> : '3'}
-              </span>
-              <div className="leading-tight truncate">
-                <span className="block truncate font-bold">③ 提携業者</span>
-                <span className={`block text-[9px] font-normal ${activeStep === 3 ? 'text-blue-700 font-semibold' : isStep3Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
-                  {activeStep === 3 ? '● 選択中' : isStep3Completed ? '✓ 選択済み' : '未選択'}
-                </span>
-              </div>
-            </button>
+                {/* ③ 墓石の基数・広さ */}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('step-graves')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(3, isStep3Completed)}`}
+                >
+                  <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(3, isStep3Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                    {isStep3Completed && activeStep !== 3 ? <Check className="w-3 h-3 stroke-[3]" /> : '3'}
+                  </span>
+                  <div className="leading-tight truncate">
+                    <span className="block truncate font-bold">③ 基数・広さ</span>
+                    <span className={`block text-[9px] font-normal ${activeStep === 3 ? 'text-blue-700 font-semibold' : isStep3Completed ? `✓ ${graveCount}基` : '未設定'}`}>
+                      {activeStep === 3 ? '● 設定中' : isStep3Completed ? `✓ ${graveCount}基` : '未設定'}
+                    </span>
+                  </div>
+                </button>
 
-            {/* ④ 墓石登録・写真 */}
-            <button
-              type="button"
-              onClick={() => document.getElementById('step-info')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(4, isStep4Completed)}`}
-            >
-              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(4, isStep4Completed)} text-[11px] flex items-center justify-center shrink-0`}>
-                {isStep4Completed && activeStep !== 4 ? <Check className="w-3 h-3 stroke-[3]" /> : '4'}
-              </span>
-              <div className="leading-tight truncate">
-                <span className="block truncate font-bold">④ 墓石・施主情報</span>
-                <span className={`block text-[9px] font-normal ${activeStep === 4 ? 'text-blue-700 font-semibold' : isStep4Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
-                  {activeStep === 4 ? '● 入力中' : isStep4Completed ? '✓ 入力完了' : '未入力'}
-                </span>
+                {/* ④ 提携業者選択 */}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('step-vendor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(4, isStep4Completed)}`}
+                >
+                  <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(4, isStep4Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                    {isStep4Completed && activeStep !== 4 ? <Check className="w-3 h-3 stroke-[3]" /> : '4'}
+                  </span>
+                  <div className="leading-tight truncate">
+                    <span className="block truncate font-bold">④ 提携業者</span>
+                    <span className={`block text-[9px] font-normal ${activeStep === 4 ? 'text-blue-700 font-semibold' : isStep4Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                      {activeStep === 4 ? '● 選択中' : isStep4Completed ? '✓ 選択済み' : '未選択'}
+                    </span>
+                  </div>
+                </button>
+
+                {/* ⑤ 墓石登録・写真 */}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('step-info')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(5, isStep5Completed)}`}
+                >
+                  <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(5, isStep5Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                    {isStep5Completed && activeStep !== 5 ? <Check className="w-3 h-3 stroke-[3]" /> : '5'}
+                  </span>
+                  <div className="leading-tight truncate">
+                    <span className="block truncate font-bold">⑤ 墓石・施主</span>
+                    <span className={`block text-[9px] font-normal ${activeStep === 5 ? 'text-blue-700 font-semibold' : isStep5Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                      {activeStep === 5 ? '● 入力中' : isStep5Completed ? '✓ 入力完了' : '未入力'}
+                    </span>
+                  </div>
+                </button>
               </div>
-            </button>
+            </div>
           </div>
-        </div>
-      </div>
 
       {searchParams.get('canceled') && (
         <div className="mb-8 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-center gap-3">
@@ -574,10 +722,171 @@ function OrderFormContent() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* 左カラム：設定・フォーム入力 */}
         <div className="lg:col-span-7 space-y-8">
-          {/* 1. プラン選択 */}
+          {/* 1. 霊園・墓地（都道府県 ＆ 管理会社）の選択 */}
+          <div id="step-cemetery" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
+              <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">1</span>
+                <span>霊園・墓地・管理会社の選択</span>
+              </h2>
+              <span className="text-xs text-stone-500 flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>公認提携パートナーが施工</span>
+              </span>
+            </div>
+
+            {/* 都道府県セレクター */}
+            <div>
+              <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-700" />
+                  <span>対象のお墓がある「都道府県」を選択</span>
+                </span>
+                <span className="text-[11px] text-stone-400">全国47都道府県対応</span>
+              </label>
+              <select
+                value={selectedPrefecture}
+                onChange={(e) => handlePrefectureChange(e.target.value)}
+                className="w-full p-3.5 rounded-xl border border-stone-300 bg-stone-50 text-sm font-bold text-stone-800 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none transition"
+              >
+                {PREFECTURES.map((pref) => (
+                  <option key={pref} value={pref}>{pref}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 選択中の都道府県の管理会社一覧 */}
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-stone-800">
+                {selectedPrefecture}内の墓地管理会社・霊園管理事務所
+              </label>
+
+              {availableCemeteries.length > 0 ? (
+                <div className="space-y-3">
+                  {availableCemeteries.map((cemetery) => {
+                    const isSelected = cemetery.id === selectedCemeteryId;
+                    return (
+                      <div
+                        key={cemetery.id}
+                        onClick={() => handleCemeterySelect(cemetery)}
+                        className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/20'
+                            : 'border-stone-200 hover:border-stone-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name="cemetery"
+                            checked={isSelected}
+                            onChange={() => handleCemeterySelect(cemetery)}
+                            className="mt-1 text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold text-stone-900 text-sm">{cemetery.name}</span>
+                              <span className="text-[10px] text-emerald-800 bg-emerald-100 font-semibold px-2 py-0.5 rounded">
+                                提携業者 {cemetery.affiliatedVendorIds?.length || 0}社
+                              </span>
+                            </div>
+                            <p className="text-xs text-stone-500 mt-1 flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                              <span>所在地: {cemetery.locationAddress}</span>
+                            </p>
+                            <p className="text-xs text-stone-600 mt-1 leading-relaxed">
+                              {cemetery.description}
+                            </p>
+
+                            {/* 管轄霊園の選択ボタン */}
+                            <div className="mt-3 pt-2 border-t border-stone-100">
+                              <span className="text-[11px] font-bold text-stone-700 block mb-1.5">
+                                管轄霊園・墓苑（該当する霊園をお選びください）：
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {cemetery.cemeteryNames.map((cemName) => {
+                                  const isCemSelected = isSelected && formData.cemeteryName === cemName;
+                                  return (
+                                    <button
+                                      type="button"
+                                      key={cemName}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCemeterySelect(cemetery);
+                                        setFormData((prev) => ({ ...prev, cemeteryName: cemName }));
+                                      }}
+                                      className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition cursor-pointer flex items-center gap-1 ${
+                                        isCemSelected
+                                          ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                                          : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
+                                      }`}
+                                    >
+                                      {isCemSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                                      <span>{cemName}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* 登録霊園がある場合でも「見当たらない場合のリクエスト」案内 */}
+                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-600 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>お探しの霊園・墓地が一覧に見当たりませんか？</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAreaRequestData((prev) => ({ ...prev, prefecture: selectedPrefecture }));
+                        setShowAreaRequestModal(true);
+                      }}
+                      className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline cursor-pointer shrink-0"
+                    >
+                      霊園・墓地をリクエストする（無料） →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* 該当都道府県に管理会社が未登録の場合のカード */
+                <div className="p-6 rounded-2xl bg-amber-50/80 border border-amber-200 text-center space-y-4">
+                  <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center mx-auto">
+                    <Compass className="w-6 h-6" />
+                  </div>
+                  <div className="max-w-md mx-auto">
+                    <h3 className="text-sm sm:text-base font-bold text-amber-950">
+                      {selectedPrefecture}は現在エリア開拓・提携準備中です
+                    </h3>
+                    <p className="text-xs text-amber-800 mt-1.5 leading-relaxed">
+                      現在、{selectedPrefecture}に公認登録されている霊園管理会社がございません。<br />
+                      ご希望の霊園・墓地名をリクエストいただければ、<strong>ココロモウ運営本部が現地管理事務所や提携候補業者と直接交渉・調整</strong>いたします。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAreaRequestData((prev) => ({ ...prev, prefecture: selectedPrefecture }));
+                      setShowAreaRequestModal(true);
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{selectedPrefecture}の霊園・墓地を無料リクエストする</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. プラン選択 */}
           <div id="step-plan" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">1</span>
+              <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">2</span>
               <span>サービスプランの選択</span>
             </h2>
             <div className="space-y-3">
@@ -631,10 +940,10 @@ function OrderFormContent() {
             </div>
           </div>
 
-          {/* 2. 基数・区画オプション */}
+          {/* 3. 基数・区画オプション */}
           <div id="step-graves" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5 scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">2</span>
+              <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">3</span>
               <span>区画内のお墓の基数・広さオプション</span>
             </h2>
             <p className="text-xs text-stone-500">
@@ -649,33 +958,25 @@ function OrderFormContent() {
                   <span>区画内のお墓の基数</span>
                 </label>
                 <span className="text-xs text-emerald-700 font-semibold">
-                  {graveCount === 1 ? '基本料金内 (追加なし)' : `+¥${((graveCount - 1) * 3000).toLocaleString()} (税込)`}
+                  {graveCount === 1 ? '基本料金内 (1基)' : `${graveCount}基 (+¥${((graveCount - 1) * 3000).toLocaleString()})`}
                 </span>
               </div>
               <p className="text-[11px] text-stone-500 mb-3">
-                先祖代々墓のほかに、個人墓・五輪塔・墓誌等がある場合は該当の基数をご選択ください（1基追加ごとに +¥3,000）。
+                同じ区画内に先祖代々の墓石や個人墓など複数ある場合は、基数を追加いただけます（2基目以降 1基あたり +¥3,000 税込）。
               </p>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { count: 1, label: '1基（標準）', extra: '+¥0' },
-                  { count: 2, label: '2基', extra: '+¥3,000' },
-                  { count: 3, label: '3基', extra: '+¥6,000' },
-                  { count: 4, label: '4基以上', extra: '+¥9,000' },
-                ].map((item) => (
+              <div className="flex items-center gap-3">
+                {[1, 2, 3, 4, 5].map((num) => (
                   <button
                     type="button"
-                    key={item.count}
-                    onClick={() => setGraveCount(item.count)}
-                    className={`py-2 px-2 text-center rounded-lg border text-xs font-semibold transition-all ${
-                      graveCount === item.count
-                        ? 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
-                        : 'border-stone-300 bg-white text-stone-700 hover:border-stone-400'
+                    key={num}
+                    onClick={() => setGraveCount(num)}
+                    className={`w-12 h-12 rounded-xl font-extrabold text-sm transition-all border ${
+                      graveCount === num
+                        ? 'border-emerald-600 bg-emerald-700 text-white shadow-md ring-2 ring-emerald-600/30'
+                        : 'border-stone-300 bg-white text-stone-700 hover:border-stone-400 hover:bg-stone-50'
                     }`}
                   >
-                    <div className="font-bold">{item.label}</div>
-                    <div className={`text-[10px] mt-0.5 ${graveCount === item.count ? 'text-emerald-100' : 'text-stone-400'}`}>
-                      {item.extra}
-                    </div>
+                    {num}基
                   </button>
                 ))}
               </div>
@@ -739,14 +1040,21 @@ function OrderFormContent() {
             </div>
           </div>
 
-          {/* 3. 提携業者選択 */}
+          {/* 4. 担当提携業者選択 */}
           <div id="step-vendor" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36">
-            <h2 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">3</span>
-              <span>担当提携業者の選択</span>
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-4 border-b border-stone-100 pb-3">
+              <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">4</span>
+                <span>担当提携業者の選択</span>
+              </h2>
+              {currentCemetery && (
+                <span className="text-[11px] text-emerald-800 bg-emerald-50 font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+                  {currentCemetery.name} 公認パートナー ({affiliatedVendors.length}社)
+                </span>
+              )}
+            </div>
             <div className="space-y-3">
-              {SAMPLE_VENDORS.map((vendor) => {
+              {affiliatedVendors.map((vendor) => {
                 const isSelected = vendor.id === selectedVendorId;
                 return (
                   <label
@@ -1176,6 +1484,17 @@ function OrderFormContent() {
 
             <div className="space-y-3 text-xs text-stone-600 pb-4 border-b border-stone-100">
               <div className="flex justify-between">
+                <span>対象霊園・墓地</span>
+                <span className="font-semibold text-stone-900 text-right">
+                  {formData.cemeteryName || '未選択'}
+                  {currentCemetery && (
+                    <span className="block text-[10px] text-stone-500 font-normal">
+                      ({currentCemetery.name})
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span>選択プラン</span>
                 <span className="font-semibold text-stone-900">{selectedPlan.name}</span>
               </div>
@@ -1271,8 +1590,10 @@ function OrderFormContent() {
                   <div className="space-y-0.5 leading-relaxed">
                     <span className="font-bold block">お申し込みに必要な未入力項目があります</span>
                     <p className="text-[11px] text-amber-800">
-                      {!isStep4Completed
-                        ? 'ステップ④の「正面の刻印文字」「側面の建立者名」「お名前」「メールアドレス」をご入力ください。'
+                      {!isStep1Completed
+                        ? 'ステップ①の「霊園・管理会社」を選択してください。'
+                        : !isStep5Completed
+                        ? 'ステップ⑤の「正面の刻印文字」「側面の建立者名」「お名前」「メールアドレス」をご入力ください。'
                         : '必須項目をすべてご入力いただくと決済ボタンが有効になります。'}
                     </p>
                   </div>
@@ -1296,6 +1617,177 @@ function OrderFormContent() {
         </div>
       </form>
       </>
+      )}
+
+      {/* 未登録霊園・エリアのリクエストモーダル */}
+      {showAreaRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-stone-100 pb-3">
+              <div>
+                <span className="inline-block px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold mb-1">
+                  無料リクエスト受付
+                </span>
+                <h3 className="text-base sm:text-lg font-black text-stone-900">
+                  未登録霊園・墓地のリクエスト
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  ご希望の霊園・墓地をお知らせください。ココロモウ運営本部が管理事務所や周辺パートナーと直接交渉いたします。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAreaRequestModal(false);
+                  setAreaRequestSuccess(false);
+                  setAreaRequestError(null);
+                }}
+                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {areaRequestSuccess ? (
+              <div className="py-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                  <Check className="w-6 h-6 stroke-[3]" />
+                </div>
+                <h4 className="text-base font-bold text-stone-900">リクエストを受け付けました</h4>
+                <p className="text-xs text-stone-600 leading-relaxed max-w-sm mx-auto">
+                  ご希望いただいた霊園・墓地について、ココロモウ運営本部にて現地管理事務所や提携候補業者へ確認・交渉の上、担当者より折り返しメールにてご案内いたします。
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAreaRequestModal(false);
+                    setAreaRequestSuccess(false);
+                  }}
+                  className="mt-4 px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow transition cursor-pointer"
+                >
+                  閉じる
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleAreaRequestSubmit} className="space-y-4">
+                {areaRequestError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+                    ⚠️ {areaRequestError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-800 mb-1">
+                      都道府県 <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={areaRequestData.prefecture}
+                      onChange={(e) => setAreaRequestData({ ...areaRequestData, prefecture: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                    >
+                      {PREFECTURES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-800 mb-1">
+                      霊園・墓地名 <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={areaRequestData.cemeteryName}
+                      onChange={(e) => setAreaRequestData({ ...areaRequestData, cemeteryName: e.target.value })}
+                      placeholder="例: 〇〇寺 境内墓地 / 〇〇霊園"
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-800 mb-1">
+                    霊園・墓地の所在地・市町村（分かる範囲で）
+                  </label>
+                  <input
+                    type="text"
+                    value={areaRequestData.locationAddress}
+                    onChange={(e) => setAreaRequestData({ ...areaRequestData, locationAddress: e.target.value })}
+                    placeholder="例: 愛媛県西条市 / 香川県高松市〇〇町"
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-800 mb-1">
+                      お名前 <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={areaRequestData.name}
+                      onChange={(e) => setAreaRequestData({ ...areaRequestData, name: e.target.value })}
+                      placeholder="例: 山田 太郎"
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-800 mb-1">
+                      メールアドレス <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={areaRequestData.email}
+                      onChange={(e) => setAreaRequestData({ ...areaRequestData, email: e.target.value })}
+                      placeholder="例: yamada@example.com"
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-800 mb-1">
+                    お電話番号（任意）
+                  </label>
+                  <input
+                    type="tel"
+                    value={areaRequestData.phone}
+                    onChange={(e) => setAreaRequestData({ ...areaRequestData, phone: e.target.value })}
+                    placeholder="例: 090-0000-0000"
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-800 mb-1">
+                    ご要望・お困りごと（任意）
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={areaRequestData.notes}
+                    onChange={(e) => setAreaRequestData({ ...areaRequestData, notes: e.target.value })}
+                    placeholder="例: 山奥の共同墓地で草が生い茂っており対応可能か知りたいです。"
+                    className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs focus:bg-white focus:border-emerald-600 outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={areaRequestSubmitting}
+                  className="w-full py-3 bg-emerald-800 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2 disabled:bg-stone-400"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{areaRequestSubmitting ? '送信中...' : '霊園リクエストを自社運営本部へ送信する'}</span>
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
