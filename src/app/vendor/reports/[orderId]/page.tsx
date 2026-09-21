@@ -15,7 +15,9 @@ import {
   PlusCircle, 
   Calendar,
   CloudSun,
-  MapPin
+  MapPin,
+  Eye,
+  Lock
 } from 'lucide-react';
 import { SAMPLE_REPORTS } from '@/mocks/sample-data';
 
@@ -29,6 +31,25 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
 
   const [order, setOrder] = useState<any>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
+
+  // ロール判定（vendor/admin のみ編集可）
+  const [isEditable, setIsEditable] = useState(false);
+  const [viewerRole, setViewerRole] = useState<string>('guest');
+
+  useEffect(() => {
+    try {
+      const cookieMatch = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('kokoromou_auth='));
+      if (cookieMatch) {
+        const userData = JSON.parse(decodeURIComponent(cookieMatch.split('=').slice(1).join('=')));
+        setViewerRole(userData.role || 'guest');
+        setIsEditable(userData.role === 'vendor' || userData.role === 'admin');
+      }
+    } catch {
+      // 未ログイン or パース失敗 → 閲覧のみ
+    }
+  }, []);
 
   // レポート入力状態
   const [workDate, setWorkDate] = useState<string>(new Date().toISOString().slice(0, 10));
@@ -133,6 +154,186 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
     }
   };
 
+  // ===== 共通：お墓情報サマリー =====
+  const GraveInfoSummary = () => (
+    <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm mb-8 space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+          <Info className="w-4 h-4 text-emerald-700" />
+          <span>対象のお墓・ご依頼情報（現場特定用）</span>
+        </h2>
+        {order?.graveInfo?.googleMapsUrl && (
+          <a
+            href={order.graveInfo.googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-all self-start sm:self-auto"
+          >
+            <MapPin className="w-4 h-4 text-emerald-200" />
+            <span>Googleマップで現地を開く (ナビ)</span>
+          </a>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200">
+        <div>
+          <span className="text-[11px] text-emerald-800 font-bold block mb-0.5">墓石の正面刻印文字</span>
+          <span className="font-extrabold text-stone-900 text-sm block">
+            {order?.graveInfo?.frontInscription || order?.graveInfo?.deceasedName || '山田家先祖代々之墓'}
+          </span>
+          {order?.graveInfo?.frontInscriptionPhotoUrl && (
+            <div className="mt-2">
+              <img
+                src={order.graveInfo.frontInscriptionPhotoUrl}
+                alt="正面写真"
+                className="w-full h-24 object-cover rounded-lg border border-stone-200 shadow-xs"
+              />
+            </div>
+          )}
+        </div>
+        <div>
+          <span className="text-[11px] text-rose-700 font-bold block mb-0.5">
+            側面・裏面の建立者名（特定必須）
+          </span>
+          <span className="font-extrabold text-stone-900 text-sm bg-white px-2.5 py-1 rounded border border-emerald-300 inline-block mb-1">
+            {order?.graveInfo?.builderName || '昭和五十年八月 山田太郎建之'}
+          </span>
+          {order?.graveInfo?.builderNamePhotoUrl && (
+            <div className="mt-1">
+              <img
+                src={order.graveInfo.builderNamePhotoUrl}
+                alt="側面建立者名写真"
+                className="w-full h-24 object-cover rounded-lg border border-stone-200 shadow-xs"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="bg-stone-50 p-3 rounded-xl">
+          <span className="text-stone-500 block mb-0.5 text-[11px]">霊園・寺院名</span>
+          <span className="font-bold text-stone-800">{order?.graveInfo?.cemeteryName || '宝塔寺 旭ヶ丘霊園'}</span>
+        </div>
+        <div className="bg-stone-50 p-3 rounded-xl">
+          <span className="text-stone-500 block mb-0.5 text-[11px]">区画・墓石番号</span>
+          <span className="font-bold text-stone-800">{order?.graveInfo?.sectionPlotNumber || '東区 5列 12番'}</span>
+        </div>
+        <div className="bg-stone-50 p-3 rounded-xl">
+          <span className="text-stone-500 block mb-0.5 text-[11px]">お墓の基数・広さ</span>
+          <span className="font-bold text-stone-800">
+            {order?.graveInfo?.graveCount || 1}基 / {order?.graveInfo?.plotSize === 'extra_large' ? '特大(2坪超)' : order?.graveInfo?.plotSize === 'large' ? '広め(1〜2坪)' : '標準(~1坪)'}
+          </span>
+        </div>
+        <div className="bg-stone-50 p-3 rounded-xl">
+          <span className="text-stone-500 block mb-0.5 text-[11px]">依頼プラン</span>
+          <span className="font-bold text-emerald-700">{order?.servicePlanName || '通常プラン'}</span>
+        </div>
+      </div>
+
+      {order?.graveInfo?.landmarksDescription && (
+        <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900">
+          <span className="font-bold mr-1">📍 周辺の目印・隣接情報:</span>
+          {order.graveInfo.landmarksDescription}
+        </div>
+      )}
+      {order?.graveInfo?.specialRequests && (
+        <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900">
+          <span className="font-bold mr-1">施主様からのご要望:</span>
+          {order.graveInfo.specialRequests}
+        </div>
+      )}
+    </div>
+  );
+
+  // ===== 閲覧専用ビュー（customer / cemetery / guest） =====
+  const ReadOnlyView = () => (
+    <div className="space-y-8">
+      {/* 閲覧専用バナー */}
+      <div className="flex items-center gap-3 p-4 bg-stone-100 border border-stone-300 rounded-xl text-sm text-stone-700">
+        <Eye className="w-5 h-5 text-stone-500 shrink-0" />
+        <div>
+          <span className="font-bold block">作業完了レポート（閲覧専用）</span>
+          <span className="text-xs text-stone-500">
+            {viewerRole === 'customer' ? '施主様向けの閲覧ビューです。' : '管理会社向けの閲覧ビューです。'}
+            レポートの編集・提出は担当の代行業者のみ可能です。
+          </span>
+        </div>
+      </div>
+
+      {/* 作業日・天候 */}
+      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-emerald-700" />
+          作業実施情報
+        </h3>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="bg-stone-50 p-3 rounded-xl">
+            <span className="text-[11px] text-stone-500 block mb-0.5">作業実施日</span>
+            <span className="font-bold text-stone-900">{workDate}</span>
+          </div>
+          <div className="bg-stone-50 p-3 rounded-xl">
+            <span className="text-[11px] text-stone-500 block mb-0.5">天候</span>
+            <span className="font-bold text-stone-900">{weather}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Before写真 */}
+      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm">
+        <h3 className="text-sm font-bold text-stone-900 mb-4 flex items-center gap-2">
+          <Camera className="w-4 h-4 text-rose-600" />
+          作業前の写真 (Before)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {beforePhotos.map((photo, index) => (
+            <div key={index} className="bg-stone-50 rounded-xl overflow-hidden border border-stone-200">
+              <img src={photo.url} alt={`Before ${index + 1}`} className="w-full h-40 object-cover" />
+              <p className="p-3 text-xs text-stone-600">{photo.caption}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* After写真 */}
+      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm">
+        <h3 className="text-sm font-bold text-stone-900 mb-4 flex items-center gap-2">
+          <Camera className="w-4 h-4 text-emerald-600" />
+          作業後の写真 (After)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {afterPhotos.map((photo, index) => (
+            <div key={index} className="bg-stone-50 rounded-xl overflow-hidden border border-emerald-200">
+              <img src={photo.url} alt={`After ${index + 1}`} className="w-full h-40 object-cover" />
+              <p className="p-3 text-xs text-stone-600">{photo.caption}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 作業報告コメント */}
+      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-stone-900">作業報告・点検メモ</h3>
+        <div className="bg-stone-50 p-4 rounded-xl border border-stone-200">
+          <span className="text-[11px] text-stone-500 font-bold block mb-1">作業実施報告</span>
+          <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-wrap">{workNotes}</p>
+        </div>
+        {graveConditionNotes && (
+          <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200">
+            <span className="text-[11px] text-amber-800 font-bold block mb-1">墓石コンディション・点検所見</span>
+            <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-wrap">{graveConditionNotes}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="text-center">
+        <Link href="/" className="text-xs text-stone-500 hover:text-stone-800 underline">
+          ← トップページへ戻る
+        </Link>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       {/* パンくず & 戻る */}
@@ -147,118 +348,39 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
       </div>
 
       {/* 画面ヘッダー */}
-      <div className="bg-emerald-900 text-white rounded-2xl p-6 sm:p-8 mb-8 shadow-sm">
+      <div className={`text-white rounded-2xl p-6 sm:p-8 mb-8 shadow-sm ${isEditable ? 'bg-emerald-900' : 'bg-stone-800'}`}>
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 bg-emerald-800/80 px-3 py-1 rounded-full text-xs font-medium text-emerald-200 mb-2">
-              <Camera className="w-3.5 h-3.5" />
-              <span>提携業者ポータル（作業完了報告）</span>
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 ${isEditable ? 'bg-emerald-800/80 text-emerald-200' : 'bg-stone-700 text-stone-300'}`}>
+              {isEditable ? (
+                <><Camera className="w-3.5 h-3.5" /><span>提携業者ポータル（作業完了報告）</span></>
+              ) : (
+                <><Eye className="w-3.5 h-3.5" /><span>作業完了レポート閲覧</span></>
+              )}
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold">作業完了写真レポートの提出</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">
+              {isEditable ? '作業完了写真レポートの提出' : '作業完了写真レポート'}
+            </h1>
             <p className="text-xs sm:text-sm text-stone-300 mt-1">
-              現地作業完了後、作業前後の写真をアップロードして施主様への報告書を作成します。
+              {isEditable
+                ? '現地作業完了後、作業前後の写真をアップロードして施主様への報告書を作成します。'
+                : '担当業者が提出した作業完了レポートをご確認いただけます。'}
             </p>
           </div>
-          <div className="bg-emerald-800/60 p-3 rounded-xl border border-emerald-700/50 text-right shrink-0">
-            <span className="text-[11px] text-emerald-200 block">対象注文番号</span>
+          <div className={`p-3 rounded-xl border text-right shrink-0 ${isEditable ? 'bg-emerald-800/60 border-emerald-700/50' : 'bg-stone-700/60 border-stone-600/50'}`}>
+            <span className="text-[11px] text-stone-300 block">対象注文番号</span>
             <span className="font-mono font-bold text-sm text-white">{order?.orderNumber || orderId}</span>
           </div>
         </div>
       </div>
 
-      {/* 注文・お墓の基本情報サマリー */}
-      <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm mb-8 space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-          <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
-            <Info className="w-4 h-4 text-emerald-700" />
-            <span>対象のお墓・ご依頼情報（現場特定用）</span>
-          </h2>
-          {order?.graveInfo?.googleMapsUrl && (
-            <a
-              href={order.graveInfo.googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition-all self-start sm:self-auto"
-            >
-              <MapPin className="w-4 h-4 text-emerald-200" />
-              <span>Googleマップで現地を開く (ナビ)</span>
-            </a>
-          )}
-        </div>
+      {/* お墓情報サマリー（共通） */}
+      <GraveInfoSummary />
 
-        {/* 特定のための最重要項目（正面文字 & 建立者名） */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200">
-          <div>
-            <span className="text-[11px] text-emerald-800 font-bold block mb-0.5">墓石の正面刻印文字</span>
-            <span className="font-extrabold text-stone-900 text-sm block">
-              {order?.graveInfo?.frontInscription || order?.graveInfo?.deceasedName || '山田家先祖代々之墓'}
-            </span>
-            {order?.graveInfo?.frontInscriptionPhotoUrl && (
-              <div className="mt-2">
-                <img
-                  src={order.graveInfo.frontInscriptionPhotoUrl}
-                  alt="正面写真"
-                  className="w-full h-24 object-cover rounded-lg border border-stone-200 shadow-xs"
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            <span className="text-[11px] text-rose-700 font-bold block mb-0.5">
-              側面・裏面の建立者名（特定必須）
-            </span>
-            <span className="font-extrabold text-stone-900 text-sm bg-white px-2.5 py-1 rounded border border-emerald-300 inline-block mb-1">
-              {order?.graveInfo?.builderName || '昭和五十年八月 山田太郎建之'}
-            </span>
-            {order?.graveInfo?.builderNamePhotoUrl && (
-              <div className="mt-1">
-                <img
-                  src={order.graveInfo.builderNamePhotoUrl}
-                  alt="側面建立者名写真"
-                  className="w-full h-24 object-cover rounded-lg border border-stone-200 shadow-xs"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5 text-[11px]">霊園・寺院名</span>
-            <span className="font-bold text-stone-800">{order?.graveInfo?.cemeteryName || '宝塔寺 旭ヶ丘霊園'}</span>
-          </div>
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5 text-[11px]">区画・墓石番号</span>
-            <span className="font-bold text-stone-800">{order?.graveInfo?.sectionPlotNumber || '東区 5列 12番'}</span>
-          </div>
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5 text-[11px]">お墓の基数・広さ</span>
-            <span className="font-bold text-stone-800">
-              {order?.graveInfo?.graveCount || 1}基 / {order?.graveInfo?.plotSize === 'extra_large' ? '特大(2坪超)' : order?.graveInfo?.plotSize === 'large' ? '広め(1〜2坪)' : '標準(~1坪)'}
-            </span>
-          </div>
-          <div className="bg-stone-50 p-3 rounded-xl">
-            <span className="text-stone-500 block mb-0.5 text-[11px]">依頼プラン</span>
-            <span className="font-bold text-emerald-700">{order?.servicePlanName || '通常プラン'}</span>
-          </div>
-        </div>
-
-        {order?.graveInfo?.landmarksDescription && (
-          <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900">
-            <span className="font-bold mr-1">📍 周辺の目印・隣接情報:</span>
-            {order.graveInfo.landmarksDescription}
-          </div>
-        )}
-
-        {order?.graveInfo?.specialRequests && (
-          <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200 text-xs text-amber-900">
-            <span className="font-bold mr-1">施主様からのご要望:</span>
-            {order.graveInfo.specialRequests}
-          </div>
-        )}
-      </div>
-
-      {isSuccess ? (
+      {/* ===== 編集不可の場合は閲覧ビューのみ ===== */}
+      {!isEditable ? (
+        <ReadOnlyView />
+      ) : isSuccess ? (
         <div className="bg-white rounded-2xl p-8 border border-emerald-200 shadow-md text-center space-y-4">
           <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
@@ -283,6 +405,7 @@ export default function VendorReportPage({ params }: { params: Promise<{ orderId
           </div>
         </div>
       ) : (
+        /* ===== 編集フォーム（vendor/admin のみ） ===== */
         <form onSubmit={handleSubmit} className="space-y-8">
           {errorMessage && (
             <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">

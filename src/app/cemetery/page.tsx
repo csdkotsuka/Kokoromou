@@ -1248,10 +1248,10 @@ function CemeteryDashboard() {
                   {/* 担当代行業者の画面へ飛ぶボタン */}
                   <div className="lg:w-60 flex flex-col gap-2">
                     <Link
-                      href={`/vendor?vendorId=${order.vendorId}&from=cemetery&companyId=${currentCompany.id}`}
+                      href={`/vendor/reports/${order.id}`}
                       className="w-full py-3.5 px-4 bg-stone-800 hover:bg-stone-900 text-white text-base font-bold rounded-2xl text-center shadow transition"
                     >
-                      担当業者の報告画面を見る →
+                      担当業者の作業レポートを見る →
                     </Link>
                   </div>
                 </div>
