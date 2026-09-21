@@ -38,6 +38,31 @@ function cleanEnvValue(val?: string): string | undefined {
   return cleaned;
 }
 
+function formatPrivateKey(key?: string): string | undefined {
+  if (!key) return undefined;
+  let cleaned = key.trim();
+  // 先頭・末尾のクォートを除去
+  while (
+    (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'"))
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+  // \n のエスケープ解除
+  cleaned = cleaned.replace(/\\n/g, '\n');
+
+  // ヘッダーとフッターの改行を保証
+  if (!cleaned.startsWith('-----BEGIN PRIVATE KEY-----')) {
+    // プレフィックスが崩れている場合の補正
+    const beginIndex = cleaned.indexOf('-----BEGIN PRIVATE KEY-----');
+    if (beginIndex !== -1) {
+      cleaned = cleaned.substring(beginIndex);
+    }
+  }
+
+  return cleaned;
+}
+
 function initAdmin() {
   if (adminDb) return;
 
@@ -52,18 +77,59 @@ function initAdmin() {
     return;
   }
 
+  // 1. JSON全体が渡されている場合（FIREBASE_SERVICE_ACCOUNT_KEY または FIREBASE_PRIVATE_KEY が JSON の場合）
+  const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (rawJson) {
+    try {
+      let cleanedJson = cleanEnvValue(rawJson) || rawJson;
+      const parsed = JSON.parse(cleanedJson);
+      if (parsed.project_id && parsed.private_key && parsed.client_email) {
+        adminApp = initializeApp({
+          credential: cert(parsed),
+        });
+        adminDb = getFirestore(adminApp);
+        console.log(`✅ Firebase Admin initialized via JSON key for project: ${parsed.project_id}`);
+        firebaseInitStatus = {
+          initialized: true,
+          message: `Firebase Admin 正常接続 (JSON経由: ${parsed.project_id})`,
+          envStatus: { hasServiceAccountJson: true },
+        };
+        return;
+      }
+    } catch (e: any) {
+      console.warn('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY as JSON:', e.message);
+    }
+  }
+
+  // 2. 個別環境変数の場合
   const rawProjectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const rawClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
 
+  // FIREBASE_PRIVATE_KEY が実は JSON 全体だった場合の救済
+  if (rawPrivateKey && rawPrivateKey.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(rawPrivateKey.trim());
+      if (parsed.project_id && parsed.private_key) {
+        adminApp = initializeApp({
+          credential: cert(parsed),
+        });
+        adminDb = getFirestore(adminApp);
+        firebaseInitStatus = {
+          initialized: true,
+          message: `Firebase Admin 正常接続 (JSON形式秘密鍵: ${parsed.project_id})`,
+          envStatus: { hasServiceAccountJson: true },
+        };
+        return;
+      }
+    } catch (e) {
+      // JSONではないので続行
+    }
+  }
+
   const projectId = cleanEnvValue(rawProjectId);
   const clientEmail = cleanEnvValue(rawClientEmail);
-  let privateKey = cleanEnvValue(rawPrivateKey);
-
-  if (privateKey) {
-    // 改行文字列（\n や \\n）を実際の改行コードに置換
-    privateKey = privateKey.replace(/\\n/g, '\n');
-  }
+  const privateKey = formatPrivateKey(rawPrivateKey);
 
   const envCheck = {
     hasProjectId: Boolean(projectId),
