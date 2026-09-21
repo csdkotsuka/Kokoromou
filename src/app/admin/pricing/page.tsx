@@ -24,7 +24,7 @@ export default function AdminPricingProposalPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
   useEffect(() => {
-    QRCode.toDataURL('https://kokoromou.inteve-cloud.com/', {
+    QRCode.toDataURL('https://kokoromou.inteve-cloud.com/contact?type=cemetery', {
       width: 200,
       margin: 1,
       color: {
@@ -447,10 +447,10 @@ export default function AdminPricingProposalPage() {
               </p>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-stone-700 font-bold text-[11px]">
                 <span>📞 お電話: <strong>090-4116-9476</strong></span>
-                <span>🌐 公式Web: <strong className="text-emerald-800">https://kokoromou.inteve-cloud.com/</strong></span>
+                <span>🌐 お問い合わせフォーム: <strong className="text-emerald-800">https://kokoromou.inteve-cloud.com/contact</strong></span>
               </div>
               <p className="text-[10px] text-stone-500 font-medium">
-                ※ご相談・デモ導入のお申し込みは、右記QRコードまたは公式Web内の専用問い合わせフォームより24時間承っております。
+                ※提携・導入相談、資料請求、一般的なご質問は、右記QRコードまたはWebフォームより24時間承っております。
               </p>
             </div>
 
@@ -472,10 +472,10 @@ export default function AdminPricingProposalPage() {
                   24時間受付
                 </span>
                 <span className="text-[11px] font-black text-stone-900 block">
-                  Web問い合わせ窓口
+                  総合お問い合わせ窓口
                 </span>
                 <span className="text-[9px] text-stone-500 block">
-                  スマホで簡単アクセス
+                  提携相談・一般質問受付
                 </span>
               </div>
             </div>

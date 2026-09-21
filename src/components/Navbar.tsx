@@ -54,6 +54,12 @@ export default function Navbar() {
               よくある質問
             </Link>
             <Link
+              href="/contact"
+              className="text-sm font-medium text-stone-600 hover:text-emerald-800 transition-colors hidden md:inline"
+            >
+              お問い合わせ
+            </Link>
+            <Link
               href="/mypage"
               className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors"
             >

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, UserCheck, ShieldCheck, Printer } from "lucide-react";
+import { FileText, UserCheck, ShieldCheck, Printer, Mail } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -34,6 +34,16 @@ export default function RootLayout({
             <p className="mt-2 text-xs text-stone-400">
               安心・安全の決済基盤：Stripe Connect (Destination Charges) / データ保護：Google Cloud (Firebase)
             </p>
+
+            {/* お問い合わせ・ご案内リンク */}
+            <div className="mt-5 flex justify-center items-center gap-4 text-xs">
+              <Link href="/contact" className="text-emerald-400 hover:text-emerald-300 font-bold underline flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5" />
+                <span>お問い合わせ・提携ご相談（24時間受付）</span>
+              </Link>
+              <span className="text-stone-700">|</span>
+              <span className="text-stone-400">お電話窓口: 090-4116-9476</span>
+            </div>
 
             {/* 提携パートナー・関係者向けリンクセクション（フッターに集約） */}
             <div className="mt-8 pt-6 border-t border-stone-800/80">
