@@ -67,15 +67,19 @@ export default function AdminDashboardPage() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedResultMsg, setSeedResultMsg] = useState<{ text: string; isError?: boolean } | null>(null);
 
+  // Firebase接続ステータス
+  const [firebaseStatus, setFirebaseStatus] = useState<{ initialized: boolean; message: string; envStatus?: Record<string, boolean> } | null>(null);
+
   // サーバーAPIから最新データを読み込み
   React.useEffect(() => {
     async function fetchServerData() {
       try {
-        const [cemRes, venRes, ordRes, admRes] = await Promise.all([
+        const [cemRes, venRes, ordRes, admRes, fbRes] = await Promise.all([
           fetch('/api/cemetery-companies'),
           fetch('/api/vendors'),
           fetch('/api/orders'),
           fetch('/api/admin-info'),
+          fetch('/api/admin/firebase-status'),
         ]);
         if (cemRes.ok) {
           const data = await cemRes.json();
@@ -92,6 +96,10 @@ export default function AdminDashboardPage() {
         if (admRes.ok) {
           const data = await admRes.json();
           if (data.adminInfo) setAdminInfo(data.adminInfo);
+        }
+        if (fbRes.ok) {
+          const fbData = await fbRes.json();
+          if (fbData.status) setFirebaseStatus(fbData.status);
         }
       } catch (e) {
         console.warn('API fetch error, using local fallback:', e);
@@ -112,8 +120,14 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setSeedResultMsg({
-          text: `✅ Firebase（Firestore）へデータを投入しました！ [墓地管理会社: ${data.details.cemeteryCompaniesCount}件 / 代行業者: ${data.details.vendorsCount}件 / 注文: ${data.details.ordersCount}件 / アカウント: ${data.details.accountsCount}件] モード: ${data.details.mode}`,
+          text: `✅ Firestoreへ書き込み成功！ [墓地管理会社: ${data.details.cemeteryCompaniesCount}件 / 代行業者: ${data.details.vendorsCount}件 / 注文: ${data.details.ordersCount}件 / 認証アカウント: ${data.details.accountsCount}件] (${data.details.statusMessage})`,
         });
+        // ステータス再取得
+        const fbRes = await fetch('/api/admin/firebase-status');
+        if (fbRes.ok) {
+          const fbData = await fbRes.json();
+          setFirebaseStatus(fbData.status);
+        }
       } else {
         setSeedResultMsg({ text: `❌ 投入失敗: ${data.error}`, isError: true });
       }
@@ -245,6 +259,21 @@ export default function AdminDashboardPage() {
             <p className="text-xs sm:text-sm text-stone-400 mt-1">
               墓地管理会社（霊園）と現場作業代行業者を紐付け・統括管理する本部向け管理画面
             </p>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {firebaseStatus ? (
+                <span
+                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                    firebaseStatus.initialized
+                      ? 'bg-emerald-950 text-emerald-300 border-emerald-700'
+                      : 'bg-amber-950 text-amber-300 border-amber-700'
+                  }`}
+                >
+                  🔥 Firebase状態: {firebaseStatus.message}
+                </span>
+              ) : (
+                <span className="text-[11px] text-stone-500">Firebase状態を確認中...</span>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">

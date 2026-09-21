@@ -22,38 +22,110 @@ export const inMemoryMockDb = {
 
 let adminApp: App | null = null;
 let adminDb: Firestore | null = null;
+let firebaseInitStatus: { initialized: boolean; message: string; envStatus: Record<string, boolean> } = {
+  initialized: false,
+  message: '未初期化',
+  envStatus: {},
+};
 
-if (!getApps().length) {
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-  if (projectId && clientEmail && privateKey) {
-    try {
-      adminApp = initializeApp({
-        credential: cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-      });
-      adminDb = getFirestore(adminApp);
-      console.log('✅ Firebase Admin initialized with service account.');
-    } catch (error) {
-      console.warn('⚠️ Failed to initialize Firebase Admin with credentials, falling back to mock mode:', error);
-    }
-  } else {
-    console.info('ℹ️ Firebase Admin service credentials not found. Running in Development Mock Store mode.');
+function cleanEnvValue(val?: string): string | undefined {
+  if (!val) return undefined;
+  let cleaned = val.trim();
+  // 先頭・末尾のシングルクォートまたはダブルクォートをすべて除去
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.slice(1, -1).trim();
   }
-} else {
-  adminApp = getApps()[0];
-  adminDb = getFirestore(adminApp);
+  return cleaned;
+}
+
+function initAdmin() {
+  if (adminDb) return;
+
+  if (getApps().length) {
+    adminApp = getApps()[0];
+    adminDb = getFirestore(adminApp);
+    firebaseInitStatus = {
+      initialized: true,
+      message: '既存のFirebase Adminインスタンスを使用しています',
+      envStatus: { existingApp: true },
+    };
+    return;
+  }
+
+  const rawProjectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const rawClientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+  const projectId = cleanEnvValue(rawProjectId);
+  const clientEmail = cleanEnvValue(rawClientEmail);
+  let privateKey = cleanEnvValue(rawPrivateKey);
+
+  if (privateKey) {
+    // 改行文字列（\n や \\n）を実際の改行コードに置換
+    privateKey = privateKey.replace(/\\n/g, '\n');
+  }
+
+  const envCheck = {
+    hasProjectId: Boolean(projectId),
+    hasClientEmail: Boolean(clientEmail),
+    hasPrivateKey: Boolean(privateKey),
+  };
+
+  if (!projectId || !clientEmail || !privateKey) {
+    const missing = [];
+    if (!projectId) missing.push('FIREBASE_PROJECT_ID');
+    if (!clientEmail) missing.push('FIREBASE_CLIENT_EMAIL');
+    if (!privateKey) missing.push('FIREBASE_PRIVATE_KEY');
+    const msg = `Firebase Admin credentials missing: ${missing.join(', ')}`;
+    console.info(`ℹ️ ${msg}. Running in Development Mock Store mode.`);
+    firebaseInitStatus = {
+      initialized: false,
+      message: msg,
+      envStatus: envCheck,
+    };
+    return;
+  }
+
+  try {
+    adminApp = initializeApp({
+      credential: cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      }),
+    });
+    adminDb = getFirestore(adminApp);
+    console.log(`✅ Firebase Admin initialized with service account for project: ${projectId}`);
+    firebaseInitStatus = {
+      initialized: true,
+      message: `Firebase Admin 正常接続 (Project: ${projectId})`,
+      envStatus: envCheck,
+    };
+  } catch (error: any) {
+    const errMsg = `Failed to initialize Firebase Admin: ${error.message || error}`;
+    console.warn(`⚠️ ${errMsg}`);
+    firebaseInitStatus = {
+      initialized: false,
+      message: errMsg,
+      envStatus: envCheck,
+    };
+  }
+}
+
+// 初期化実行
+initAdmin();
+
+export function getFirebaseAdminStatus() {
+  initAdmin();
+  return firebaseInitStatus;
 }
 
 /**
  * Firestore に初期データを投入（シード）する
  */
 export async function seedInitialDataToFirestore() {
+  initAdmin();
+
   const results = {
     adminInfo: false,
     cemeteryCompaniesCount: 0,
@@ -61,54 +133,59 @@ export async function seedInitialDataToFirestore() {
     ordersCount: 0,
     accountsCount: 0,
     mode: adminDb ? 'firestore' : 'in_memory',
+    statusMessage: firebaseInitStatus.message,
   };
 
-  // インメモリの更新
+  // インメモリの更新（開発時の動作担保）
   inMemoryMockDb.adminInfo = { ...SAMPLE_ADMIN_INFO };
   SAMPLE_CEMETERY_COMPANIES.forEach((c) => inMemoryMockDb.cemeteryCompanies.set(c.id, { ...c }));
   SAMPLE_VENDORS.forEach((v) => inMemoryMockDb.vendors.set(v.id, { ...v }));
   SAMPLE_ORDERS.forEach((o) => inMemoryMockDb.orders.set(o.id, { ...o }));
   SAMPLE_ACCOUNTS.forEach((a) => inMemoryMockDb.accounts.set(a.email, { ...a }));
 
-  if (adminDb) {
-    const batch = adminDb.batch();
-
-    // 1. 本部管理情報
-    const adminRef = adminDb.collection('platform_settings').doc('admin_info');
-    batch.set(adminRef, { ...SAMPLE_ADMIN_INFO, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    results.adminInfo = true;
-
-    // 2. 墓地管理会社（3社）
-    for (const company of SAMPLE_CEMETERY_COMPANIES) {
-      const docRef = adminDb.collection('cemetery_companies').doc(company.id);
-      batch.set(docRef, { ...company, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-      results.cemeteryCompaniesCount++;
-    }
-
-    // 3. 作業代行業者（6社）
-    for (const vendor of SAMPLE_VENDORS) {
-      const docRef = adminDb.collection('vendors').doc(vendor.id);
-      batch.set(docRef, { ...vendor, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-      results.vendorsCount++;
-    }
-
-    // 4. サンプル注文（3件）
-    for (const order of SAMPLE_ORDERS) {
-      const docRef = adminDb.collection('orders').doc(order.id);
-      batch.set(docRef, { ...order, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-      results.ordersCount++;
-    }
-
-    // 5. ログイン用アカウント（9アカウント）
-    for (const acc of SAMPLE_ACCOUNTS) {
-      const docRef = adminDb.collection('accounts').doc(acc.email);
-      batch.set(docRef, { ...acc, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-      results.accountsCount++;
-    }
-
-    await batch.commit();
-    console.log('✅ [Firestore Seed] All sample collections successfully seeded into Firestore.');
+  if (!adminDb) {
+    throw new Error(
+      `Firestore に接続できませんでした。Firebase サービスアカウントの設定を確認してください。\n理由: ${firebaseInitStatus.message}`
+    );
   }
+
+  const batch = adminDb.batch();
+
+  // 1. 本部管理情報
+  const adminRef = adminDb.collection('platform_settings').doc('admin_info');
+  batch.set(adminRef, { ...SAMPLE_ADMIN_INFO, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  results.adminInfo = true;
+
+  // 2. 墓地管理会社（3社）
+  for (const company of SAMPLE_CEMETERY_COMPANIES) {
+    const docRef = adminDb.collection('cemetery_companies').doc(company.id);
+    batch.set(docRef, { ...company, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    results.cemeteryCompaniesCount++;
+  }
+
+  // 3. 作業代行業者（6社）
+  for (const vendor of SAMPLE_VENDORS) {
+    const docRef = adminDb.collection('vendors').doc(vendor.id);
+    batch.set(docRef, { ...vendor, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    results.vendorsCount++;
+  }
+
+  // 4. サンプル注文（3件）
+  for (const order of SAMPLE_ORDERS) {
+    const docRef = adminDb.collection('orders').doc(order.id);
+    batch.set(docRef, { ...order, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    results.ordersCount++;
+  }
+
+  // 5. ログイン用アカウント（9アカウント）
+  for (const acc of SAMPLE_ACCOUNTS) {
+    const docRef = adminDb.collection('accounts').doc(acc.email);
+    batch.set(docRef, { ...acc, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    results.accountsCount++;
+  }
+
+  await batch.commit();
+  console.log('✅ [Firestore Seed] All sample collections successfully written to Firestore.');
 
   return results;
 }
