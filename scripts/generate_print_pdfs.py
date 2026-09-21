@@ -446,14 +446,14 @@ poster_html = f'''<!DOCTYPE html>
             <div class="hero-logo-sub">お墓参り・お掃除代行プラットフォーム</div>
           </div>
         </div>
-        <div class="hero-area-badge">愛媛・松山市内 霊園対応</div>
+        <div class="hero-area-badge">愛媛・松山 霊園公認連携</div>
       </div>
 
       <div style="margin-top: 8px;">
-        <div class="hero-lead-text">「忙しくて帰省できない」「高齢でお墓参りが大変」なあなたへ</div>
+        <div class="hero-lead-text">「忙しくて帰省できない」「高齢でお墓参りが大変」なご家族へ</div>
         <div class="hero-main-title">
           ふるさとのお墓を、真心を込めてピカピカに。<br>
-          <span>お墓参り・お掃除代行サービス</span>
+          <span>霊園公認パートナーによる 安心のお墓参り・代行清掃</span>
         </div>
       </div>
     </div>
@@ -477,23 +477,23 @@ poster_html = f'''<!DOCTYPE html>
               <img src="{grave_after_b64}" alt="作業完了後のお墓">
               <div class="photo-label-after">作業完了 (After) ✨</div>
             </div>
-            <div class="photo-caption after-caption">全面手作業除草・墓石専用水洗い・生花1対とお線香</div>
+            <div class="photo-caption after-caption">手作業除草・墓石専用水洗い・シキミ一対・線香合掌</div>
           </div>
         </div>
       </div>
 
       <div class="features-wrap">
         <div class="feature-card">
-          <div class="feature-head">📸 鮮明な写真レポート</div>
-          <div class="feature-desc">清掃前後の高画質写真をスマホにお届け。遠方からでも仕上がりをじっくり確認できます。</div>
+          <div class="feature-head">🏛️ 霊園公認・安心の認可制度</div>
+          <div class="feature-desc">寺院・霊園管理事務所が出入りを認可した安心の認定パートナーが施工。賠償責任保険完備。</div>
         </div>
         <div class="feature-card is-center">
-          <div class="feature-head">🏛️ 地元の確かなプロ施工</div>
-          <div class="feature-desc">松山まごころ墓苑サポート等の地元提携店が真心込めて合掌・丁寧にお掃除します。</div>
+          <div class="feature-head">📸 鮮明写真・Web完了報告</div>
+          <div class="feature-desc">清掃前後の高画質写真と職人の点検メモをスマホへ即日納品。遠方のご家族にも簡単共有。</div>
         </div>
         <div class="feature-card is-right">
           <div class="feature-head">💳 明朗会計・追加料金なし</div>
-          <div class="feature-desc">クレジットカード即時決済対応。お見積もり後の不明瞭な追加費用は一切ございません。</div>
+          <div class="feature-desc">定額3プラン（¥8,800〜）。安全なクレジットカード事前決済でお見積り後の追加請求は一切なし。</div>
         </div>
       </div>
 
@@ -505,27 +505,27 @@ poster_html = f'''<!DOCTYPE html>
         <div class="plans-table-grid">
           <div class="plan-box">
             <div>
-              <div class="plan-title">基本お参りプラン</div>
+              <div class="plan-title">簡易プラン</div>
               <div class="plan-amount">¥8,800</div>
             </div>
-            <div class="plan-details">落ち葉拾い・墓石水拭き・お線香合掌・完了写真報告</div>
+            <div class="plan-details">落ち葉拾い・草取り・シキミ一対・お線香合掌・Before/After写真報告</div>
           </div>
 
           <div class="plan-box is-popular">
             <div>
               <div class="plan-pop-badge">★ 一番人気</div>
-              <div class="plan-title">標準徹底お掃除プラン</div>
+              <div class="plan-title">通常プラン</div>
               <div class="plan-amount">¥14,800</div>
             </div>
-            <div class="plan-details">全面手作業除草・墓石水洗い・生花1対とお線香・詳細写真レポート</div>
+            <div class="plan-details">簡易全内容＋墓石全体専用水洗い＋プロの健全度点検＋詳細写真レポート</div>
           </div>
 
           <div class="plan-box">
             <div>
-              <div class="plan-title">プレミアム美装プラン</div>
-              <div class="plan-amount">¥29,800</div>
+              <div class="plan-title">プレミアムプラン</div>
+              <div class="plan-amount">¥22,800</div>
             </div>
-            <div class="plan-details">高圧洗浄・コケ除去・墓石撥水コーティング・防草施工・永代供養相談</div>
+            <div class="plan-details">通常全内容＋頑固な水垢コケ徹底除去＋香炉灰全量新品入替＋詳細写真</div>
           </div>
         </div>
       </div>
@@ -533,11 +533,11 @@ poster_html = f'''<!DOCTYPE html>
 
     <div class="footer-wrap">
       <div class="footer-info-col">
-        <div class="footer-vendor-title">提携窓口: 株式会社 伊予メモリアルパートナーズ（ダミー）</div>
-        <div class="footer-address">愛媛県松山市土居田町 / 宝塔寺旭ヶ丘霊園ほか松山市内霊園全域対応</div>
+        <div class="footer-vendor-title">運営本部: 株式会社ココロモウ / お墓参り代行事務局</div>
+        <div class="footer-address">愛媛県松山市大街道3丁目2-1 / 宝塔寺旭ヶ丘霊園ほか松山市内霊園全域対応</div>
         <div class="footer-phone-row">
-          <div class="footer-phone-btn">📞 089-997-XXXX</div>
-          <div class="footer-phone-note">お電話でのご相談・お申し込みも承っております</div>
+          <div class="footer-phone-btn">📞 089-911-8800</div>
+          <div class="footer-phone-note">お電話でのご相談・お申し込みも承っております（9:00〜18:00）</div>
         </div>
       </div>
 
@@ -1186,34 +1186,34 @@ leaflet_html = f'''<!DOCTYPE html>
           真心を込めて繋ぐ。
         </div>
         <div class="flap-intro">
-          「お墓参りに行けず申し訳ない」「お墓が荒れていないか心配」というご家族の想いに寄り添い、松山の地元石材パートナーとともに立ち上げました。
+          「お墓参りに行けず申し訳ない」「お墓が荒れていないか心配」というご家族の想いに寄り添い、松山の提携霊園・地元認定パートナーとともに立ち上げました。
         </div>
       </div>
 
       <div class="flap-reason-card">
         <div class="flap-reason-title">🌸 単なる作業ではない「供養の心」</div>
-        <div class="flap-reason-desc">雑草抜きや水洗いだけでなく、生花をお供えし線香を焚き、敬虔に合掌いたします。</div>
+        <div class="flap-reason-desc">雑草抜きや水洗いだけでなく、シキミや生花をお供えし線香を焚き、敬虔に合掌礼拝。</div>
       </div>
 
       <div class="flap-reason-card">
-        <div class="flap-reason-title">🏛️ 松山エリア専門の確かな技術</div>
-        <div class="flap-reason-desc">石材技能士の知識を持つ地元職人が、墓石を傷めない専用水洗いと手作業除草で施工。</div>
+        <div class="flap-reason-title">🏛️ 霊園・寺院公認の安心認可制度</div>
+        <div class="flap-reason-desc">出入り認可契約・遵守誓約書を締結した認定業者のみが施工。賠償責任保険完備。</div>
       </div>
 
       <div class="flap-reason-card">
-        <div class="flap-reason-title">📸 鮮明な高画質写真レポート</div>
-        <div class="flap-reason-desc">作業前後の比較写真をWebでお届け。遠方のご家族全員で安心を共有できます。</div>
+        <div class="flap-reason-title">📸 鮮明な写真照合＆Web完了報告</div>
+        <div class="flap-reason-desc">正面文字や建立者名の写真照合で間違い防止。施工後は高画質写真をスマホにお届け。</div>
       </div>
 
       <div class="flap-reason-card">
-        <div class="flap-reason-title">🤝 永代供養・墓じまいのご相談も</div>
-        <div class="flap-reason-desc">宝塔寺旭ヶ丘霊園での永代供養や、将来の墓じまい・改葬までワンストップ対応。</div>
+        <div class="flap-reason-title">💡 お墓の場所が曖昧でも安心特定</div>
+        <div class="flap-reason-desc">霊園名と施主名で管理事務所の台帳・図面と連携し、スタッフが確実に墓所を特定。</div>
       </div>
 
       <div class="staff-msg-box">
         <div class="staff-msg-title">💬 地元技術スタッフより</div>
         <div class="staff-msg-text">
-          「松山の気候風土とお墓を知り尽くした私たちが、ご家族の想いを大切にお墓へお届けします。」
+          「霊園の管理規則を遵守し、ご家族に代わって真心を込めて丁寧にお墓をお守りいたします。」
         </div>
       </div>
 
@@ -1234,21 +1234,21 @@ leaflet_html = f'''<!DOCTYPE html>
       </div>
 
       <div class="back-vendor-info">
-        <div style="font-size: 9px; font-weight: 800; color: #065f46; margin-bottom: 1px;">愛媛・松山エリア公認パートナー</div>
-        <div class="back-vendor-name">株式会社 伊予メモリアルパートナーズ（ダミー）</div>
+        <div style="font-size: 9px; font-weight: 800; color: #065f46; margin-bottom: 1px;">プラットフォーム運営本部</div>
+        <div class="back-vendor-name">株式会社ココロモウ / お墓参り代行事務局</div>
         <div class="back-vendor-addr">
-          〒790-0056 愛媛県松山市土居田町<br>
+          〒790-0004 愛媛県松山市大街道3丁目2-1 メモリアルスクエアビル 5F<br>
           営業時間：9:00〜18:00（年中無休）
         </div>
         <div class="back-tel-row">
-          📞 TEL: 089-997-XXXX
+          📞 TEL: 089-911-8800
         </div>
       </div>
 
       <div class="back-area-list">
         <div class="back-area-title">📍 主な対応エリア・霊園一覧</div>
         対応地域：松山市全域・東温市・伊予市・松前町・砥部町<br>
-        主な霊園：宝塔寺旭ヶ丘霊園、松山市営大明神霊園、客谷霊園、鷺谷霊園、市内各寺院・地域共同墓地
+        提携霊園：宝塔寺旭ヶ丘霊園、松山市営大明神霊園、客谷霊園、鷺谷霊園、市内寺院・共同墓苑全域
       </div>
 
       <div class="back-faq-sec">
@@ -1259,24 +1259,24 @@ leaflet_html = f'''<!DOCTYPE html>
             A. 一切不要です。作業前後の高画質写真をWebでお送りします。
           </div>
           <div class="back-faq-item">
+            <strong>Q. お墓の場所が曖昧でも大丈夫？</strong><br>
+            A. 霊園名と施主名で管理事務所と連携してお墓をお探しします。
+          </div>
+          <div class="back-faq-item">
+            <strong>Q. どんな人が作業しますか？</strong><br>
+            A. 霊園の出入り認可を受け、安全遵守誓約を結んだ認定業者です。
+          </div>
+          <div class="back-faq-item">
+            <strong>Q. 万が一の破損やトラブルは？</strong><br>
+            A. 賠償責任保険に加入し、専用中性洗剤と手作業水洗いを徹底します。
+          </div>
+          <div class="back-faq-item">
             <strong>Q. 追加料金はかかりますか？</strong><br>
-            A. かかりません。出張費・資材費込みの明朗会計です。
+            A. かかりません。出張費・資材費・税込みの明朗会計です。
           </div>
           <div class="back-faq-item">
             <strong>Q. 宗派や宗教の指定は？</strong><br>
-            A. 仏教各宗派、神道、キリスト教の作法に配慮いたします。
-          </div>
-          <div class="back-faq-item">
-            <strong>Q. 寺院や山間部の墓地でも可能？</strong><br>
-            A. はい。寺院・公営・民間・共同墓地に対応可能です。
-          </div>
-          <div class="back-faq-item">
-            <strong>Q. 雨天の場合は？</strong><br>
-            A. 丁寧な清掃のため、天候回復後に順延して実施します。
-          </div>
-          <div class="back-faq-item">
-            <strong>Q. 墓石の破損が見つかったら？</strong><br>
-            A. 写真付きで報告し、ご希望に応じて補修見積もりを案内します。
+            A. 仏教各宗派、神道、キリスト教の作法に配慮して拝礼します。
           </div>
         </div>
       </div>
@@ -1290,7 +1290,7 @@ leaflet_html = f'''<!DOCTYPE html>
         <div>
           <div style="font-size: 11px; font-weight: 900; color: #064e3b;">スマホで24時間受付</div>
           <div style="font-size: 9.5px; font-weight: 800; color: #d97706;">簡単3分Webお申し込み</div>
-          <div style="font-size: 8px; color: #64748b;">カメラをかざすだけで注文完了</div>
+          <div style="font-size: 8px; color: #64748b;">写真照合機能でお墓を安心特定</div>
         </div>
       </div>
     </div>
@@ -1302,7 +1302,7 @@ leaflet_html = f'''<!DOCTYPE html>
           <span>🌸</span>
           <span>ココロモウ</span>
         </div>
-        <div class="cover-area-pill">愛媛・松山版</div>
+        <div class="cover-area-pill">愛媛・松山 霊園公認</div>
       </div>
 
       <div class="cover-center">
@@ -1313,7 +1313,7 @@ leaflet_html = f'''<!DOCTYPE html>
           ピカピカに。
         </div>
         <div class="cover-desc">
-          松山の地元石材パートナーが、ご家族に代わって丁寧に清掃・合掌。鮮明な写真レポートをお届けします。
+          霊園公認パートナーがご家族に代わって丁寧に清掃・合掌。鮮明な高画質写真レポートをお届けします。
         </div>
       </div>
 
@@ -1327,7 +1327,7 @@ leaflet_html = f'''<!DOCTYPE html>
       <div class="cover-trust-row">
         <div class="cover-trust-item">① 明朗会計<br>追加費用なし</div>
         <div class="cover-trust-item">② 鮮明写真<br>Web完了報告</div>
-        <div class="cover-trust-item">③ 生花・線香<br>真心の合掌込</div>
+        <div class="cover-trust-item">③ 霊園公認<br>保険完備・合掌</div>
       </div>
 
       <div class="cover-photo-card">
@@ -1369,16 +1369,16 @@ leaflet_html = f'''<!DOCTYPE html>
       </div>
 
       <div class="trust-box">
-        <div class="trust-title">🌸 松山密着だからできる安心対応</div>
+        <div class="trust-title">🌸 霊園公認だからできる安心対応</div>
         <div class="trust-desc">
-          地元石材のプロが専用資材で墓石を傷めず手作業清掃。お花も松山市内の提携花店から新鮮な状態でお供えします。
+          霊園の認可パートナーが墓石を傷めない専用資材で手作業清掃。新鮮なシキミ一対とお線香をお供えします。
         </div>
       </div>
 
       <div class="find-grave-box">
         <div class="find-grave-title">💡 お墓の場所が曖昧でも大丈夫</div>
         <div class="find-grave-desc">
-          霊園名とお墓の特徴、施主名をお知らせいただければ、管理事務所と連携してスタッフがお墓をお探しします。
+          霊園名と施主名をお知らせいただければ、管理事務所と連携してスタッフが確実にお墓をお探しします。
         </div>
       </div>
 
@@ -1389,28 +1389,28 @@ leaflet_html = f'''<!DOCTYPE html>
             <div class="step-num">1</div>
             <div>
               <div class="step-text">Web・お電話で申込み</div>
-              <div class="step-sub">霊園名と希望日を選ぶだけ（所要3分）</div>
+              <div class="step-sub">写真照合で同姓のお墓も安心特定（所要3分）</div>
             </div>
           </div>
           <div class="step-row">
             <div class="step-num">2</div>
             <div>
               <div class="step-text">事前決済（明朗会計）</div>
-              <div class="step-sub">クレカ即時決済で追加費用なし</div>
+              <div class="step-sub">クレカ即時決済で追加費用は一切なし</div>
             </div>
           </div>
           <div class="step-row">
             <div class="step-num">3</div>
             <div>
               <div class="step-text">現地清掃・真心の合掌</div>
-              <div class="step-sub">職人が丁寧に施工・生花線香をお供え</div>
+              <div class="step-sub">認可職人が丁寧に水洗い・シキミ線香をお供え</div>
             </div>
           </div>
           <div class="step-row">
             <div class="step-num">4</div>
             <div>
               <div class="step-text">写真レポート納品</div>
-              <div class="step-sub">スマホで仕上がり確認・親族へ共有可能</div>
+              <div class="step-sub">スマホで仕上がり確認・親族へ簡単共有</div>
             </div>
           </div>
         </div>
@@ -1425,56 +1425,54 @@ leaflet_html = f'''<!DOCTYPE html>
     <div class="panel p-inside-center">
       <div class="sec-heading">選べる3つの代行プラン（税込）</div>
 
-      <!-- 基本プラン -->
+      <!-- 簡易プラン -->
       <div class="plan-card-in">
         <div class="plan-card-in-head">
-          <span class="plan-card-in-title">基本お参りプラン</span>
+          <span class="plan-card-in-title">簡易プラン</span>
           <span class="plan-card-in-price">¥8,800</span>
         </div>
         <div class="plan-list-items">
-          <div>✓ 敷地内の落ち葉・雑草・ゴミ清掃</div>
-          <div>✓ 墓石全体の水拭き清掃</div>
-          <div>✓ お線香献香・真心の合掌</div>
-          <div>✓ 完了写真レポート（メール納品）</div>
+          <div>✓ 敷地内の落ち葉・雑草・ゴミの簡易清掃</div>
+          <div>✓ 新鮮なシキミ（樒）一対のお供え</div>
+          <div>✓ お線香のお供え・心を込めた合掌礼拝</div>
+          <div>✓ 完了写真レポート（スマホ・Web納品）</div>
         </div>
       </div>
 
-      <!-- 標準プラン（一番人気） -->
+      <!-- 通常プラン（一番人気） -->
       <div class="plan-card-in is-pop">
         <div style="font-size: 8.5px; font-weight: 900; color: #d97706; margin-bottom: 1px;">★ 一番人気・おすすめ</div>
         <div class="plan-card-in-head">
-          <span class="plan-card-in-title" style="font-size: 12px;">標準徹底お掃除プラン</span>
+          <span class="plan-card-in-title" style="font-size: 12px;">通常プラン</span>
           <span class="plan-card-in-price">¥14,800</span>
         </div>
         <div class="plan-list-items">
-          <div>✓ <strong>手作業徹底除草（根から除去）</strong></div>
-          <div>✓ <strong>墓石・花立・香炉の専用水洗い</strong></div>
-          <div>✓ <strong>頑固なコケ・水垢・汚れ落とし</strong></div>
-          <div>✓ <strong>季節の生花1対（松山生花店直送）</strong></div>
-          <div>✓ お線香献香・真心の合掌</div>
-          <div>✓ 墓石健全度目地点検・詳細写真レポート</div>
+          <div>✓ 簡易プランの全作業内容（草取り・シキミ・線香）</div>
+          <div>✓ <strong>墓石全体・花立・香炉の専用水洗い</strong></div>
+          <div>✓ <strong>埃・汚れ落とし・丁寧な水拭き</strong></div>
+          <div>✓ <strong>プロの墓石点検（目地割れ・傾き・欠け）</strong></div>
+          <div>✓ 高解像度のBefore/After写真レポート</div>
         </div>
       </div>
 
       <!-- プレミアムプラン -->
       <div class="plan-card-in">
         <div class="plan-card-in-head">
-          <span class="plan-card-in-title">プレミアム美装プラン</span>
-          <span class="plan-card-in-price">¥29,800</span>
+          <span class="plan-card-in-title">プレミアムプラン</span>
+          <span class="plan-card-in-price">¥22,800</span>
         </div>
         <div class="plan-list-items">
-          <div>✓ 標準プランの全作業内容</div>
-          <div>✓ 外柵・敷石の高圧洗浄機クリーニング</div>
-          <div>✓ <strong>墓石撥水防汚コーティング施工</strong></div>
-          <div>✓ <strong>防草砂（固まる土）施工</strong></div>
-          <div>✓ 永代供養・改葬・墓じまい優先無料相談</div>
+          <div>✓ 通常プランの全作業内容（草取り・水洗い・点検）</div>
+          <div>✓ <strong>専用洗剤・ブラシによる頑固な水垢・コケ徹底除去</strong></div>
+          <div>✓ <strong>香炉灰の全量取り出し・清掃・新品香炉灰入替</strong></div>
+          <div>✓ 詳細点検コメント付き高解像度写真レポート</div>
         </div>
       </div>
 
       <div class="option-box-in">
-        <div class="option-box-title">🔧 個別オプション対応</div>
+        <div class="option-box-title">🔧 個別特別オプション対応</div>
         <div class="option-box-desc">
-          墓石文字の墨入れ（白・黒）／花立・線香皿のステンレス交換／樹木の剪定・伐採／墓じまい相談
+          区画広さ・基数追加／墓石撥水コーティング／防草施工／文字の墨入れ／墓じまい・永代供養相談
         </div>
       </div>
 
@@ -1504,7 +1502,7 @@ leaflet_html = f'''<!DOCTYPE html>
           <span style="color:#f59e0b;">★★★★★</span>
         </div>
         <div class="voice-bubble-text">
-          東京在住で帰省できず心配でしたが、ピカピカになり生花が供えられた写真を見て本当に安心しました。（50代女性・宝塔寺旭ヶ丘霊園）
+          東京在住で帰省できず心配でしたが、ピカピカになりシキミが供えられた写真を見て本当に安心しました。（50代女性・宝塔寺旭ヶ丘霊園）
         </div>
       </div>
 
@@ -1514,7 +1512,7 @@ leaflet_html = f'''<!DOCTYPE html>
           <span style="color:#f59e0b;">★★★★★</span>
         </div>
         <div class="voice-bubble-text">
-          高齢で坂道がつらかったのですが、目地の状態まで写真付きで報告していただき助かりました。（60代男性・松山市）
+          高齢で坂道がつらかったのですが、目地の状態まで写真付きで報告していただき助かりました。（60代男性・松山市営大明神霊園）
         </div>
       </div>
 
@@ -1524,13 +1522,13 @@ leaflet_html = f'''<!DOCTYPE html>
           <span style="color:#f59e0b;">★★★★★</span>
         </div>
         <div class="voice-bubble-text">
-          仕事でなかなか帰省できませんでしたが、親族からも大変喜ばれました。（40代男性・大明神霊園）
+          仕事でなかなか帰省できませんでしたが、親族からも大変喜ばれました。（40代男性・松山市）
         </div>
       </div>
 
       <div class="support-contact-box">
         <div class="support-contact-title">お電話でのご相談・お見積りもお気軽に</div>
-        <div class="support-contact-tel">📞 089-997-XXXX</div>
+        <div class="support-contact-tel">📞 089-911-8800</div>
         <div class="support-contact-time">受付時間: 9:00〜18:00（年中無休）</div>
       </div>
 

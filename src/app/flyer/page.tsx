@@ -145,15 +145,15 @@ export default function FlyerPage() {
                     </div>
                   </div>
                   <span className="bg-amber-400 text-stone-950 font-black text-xs px-3 py-1 rounded-md shadow-sm">
-                    愛媛・松山市内 霊園対応
+                    愛媛・松山 霊園公認連携
                   </span>
                 </div>
 
                 <div className="mt-4">
-                  <p className="text-amber-200 text-xs font-bold mb-1">「忙しくて帰省できない」「高齢でお墓参りが大変」なあなたへ</p>
+                  <p className="text-amber-200 text-xs font-bold mb-1">「忙しくて帰省できない」「高齢でお墓参りが大変」なご家族へ</p>
                   <h1 className="text-2xl sm:text-3xl font-black text-white leading-snug">
                     ふるさとのお墓を、真心を込めてピカピカに。<br />
-                    <span className="text-amber-300">お墓参り・お掃除代行サービス</span>
+                    <span className="text-amber-300">霊園公認パートナーによる 安心のお墓参り・代行清掃</span>
                   </h1>
                 </div>
               </div>
@@ -182,7 +182,7 @@ export default function FlyerPage() {
                           作業完了 (After) ✨
                         </span>
                       </div>
-                      <p className="p-2 text-[10px] text-emerald-950 font-bold bg-emerald-50/80">全面手作業除草・専用水洗い・生花1対とお線香</p>
+                      <p className="p-2 text-[10px] text-emerald-950 font-bold bg-emerald-50/80">手作業除草・墓石専用水洗い・シキミ一対・線香合掌</p>
                     </div>
                   </div>
                 </div>
@@ -190,32 +190,32 @@ export default function FlyerPage() {
                 {/* 3つの特徴 */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-stone-50 border-t-4 border-teal-600 p-3.5 rounded-b-lg">
-                    <div className="font-bold text-xs text-stone-900 mb-1">📸 鮮明な写真レポート</div>
-                    <p className="text-[10px] text-stone-600 leading-relaxed">清掃前後の高画質写真をスマホにお届け。遠方からでも安心です。</p>
+                    <div className="font-bold text-xs text-stone-900 mb-1">🏛️ 霊園公認・安心の認可制度</div>
+                    <p className="text-[10px] text-stone-600 leading-relaxed">寺院・霊園管理所の規約を遵守し、正式に出入り認可されたパートナーが施工。保険完備。</p>
                   </div>
                   <div className="bg-emerald-50/50 border-t-4 border-emerald-600 p-3.5 rounded-b-lg">
-                    <div className="font-bold text-xs text-stone-900 mb-1">🏛️ 地元の確かなプロ施工</div>
-                    <p className="text-[10px] text-stone-600 leading-relaxed">松山まごころ墓苑サポート等の地元提携店が真心施工。</p>
+                    <div className="font-bold text-xs text-stone-900 mb-1">📸 鮮明写真・Web完了報告</div>
+                    <p className="text-[10px] text-stone-600 leading-relaxed">清掃前後の高画質写真と職人の点検メモをスマホへ即日納品。遠方のご家族にも共有可能。</p>
                   </div>
                   <div className="bg-amber-50/50 border-t-4 border-amber-500 p-3.5 rounded-b-lg">
                     <div className="font-bold text-xs text-stone-900 mb-1">💳 明朗会計・追加料金なし</div>
-                    <p className="text-[10px] text-stone-600 leading-relaxed">カード即時決済。お見積もり後の追加料金は一切ありません。</p>
+                    <p className="text-[10px] text-stone-600 leading-relaxed">定額3プラン（¥8,800〜）。安全なクレカ事前決済でお見積り後の追加請求は一切なし。</p>
                   </div>
                 </div>
 
                 {/* 料金プラン */}
                 <div>
                   <div className="flex items-baseline justify-between border-b border-stone-200 pb-1.5 mb-3">
-                    <h3 className="text-sm font-black text-stone-900">選べる3つの代行プラン（税込・明朗会計）</h3>
+                    <h3 className="text-sm font-black text-stone-900">選べる3つの安心代行プラン（税込・明朗会計）</h3>
                     <span className="text-[10px] text-stone-500">お墓の状態に合わせて選べます</span>
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div className="bg-stone-50 border border-stone-200 p-3 rounded-lg flex flex-col justify-between">
                       <div>
-                        <span className="text-[11px] font-bold text-stone-800 block">基本お参りプラン</span>
+                        <span className="text-[11px] font-bold text-stone-800 block">簡易プラン</span>
                         <span className="text-lg font-black text-stone-900 block mt-0.5">¥8,800</span>
                       </div>
-                      <p className="text-[9px] text-stone-500 mt-2">落ち葉拾い・墓石水拭き・お線香・完了写真報告</p>
+                      <p className="text-[9px] text-stone-500 mt-2">落ち葉拾い・草取り・シキミ一対・お線香合掌・Before/After写真報告</p>
                     </div>
 
                     <div className="bg-amber-50/60 border-2 border-amber-400 p-3 rounded-lg shadow-sm flex flex-col justify-between relative">
@@ -223,18 +223,18 @@ export default function FlyerPage() {
                         ★ 一番人気
                       </span>
                       <div>
-                        <span className="text-[11px] font-bold text-amber-950 block mt-1">標準徹底お掃除プラン</span>
+                        <span className="text-[11px] font-bold text-amber-950 block mt-1">通常プラン</span>
                         <span className="text-xl font-black text-emerald-800 block mt-0.5">¥14,800</span>
                       </div>
-                      <p className="text-[9px] text-stone-700 font-bold mt-2">全面手作業除草・水洗い・生花1対とお線香・詳細写真</p>
+                      <p className="text-[9px] text-stone-700 font-bold mt-2">簡易全内容＋墓石全体専用水洗い＋プロの健全度点検＋詳細写真レポート</p>
                     </div>
 
                     <div className="bg-stone-50 border border-stone-200 p-3 rounded-lg flex flex-col justify-between">
                       <div>
-                        <span className="text-[11px] font-bold text-stone-800 block">プレミアム美装プラン</span>
-                        <span className="text-lg font-black text-stone-900 block mt-0.5">¥29,800</span>
+                        <span className="text-[11px] font-bold text-stone-800 block">プレミアムプラン</span>
+                        <span className="text-lg font-black text-stone-900 block mt-0.5">¥22,800</span>
                       </div>
-                      <p className="text-[9px] text-stone-500 mt-2">高圧洗浄・コケ除去・撥水コーティング・防草施工</p>
+                      <p className="text-[9px] text-stone-500 mt-2">通常全内容＋頑固な水垢コケ徹底除去＋香炉灰全量新品入替＋詳細写真</p>
                     </div>
                   </div>
                 </div>
@@ -243,13 +243,13 @@ export default function FlyerPage() {
               {/* フッターCTA */}
               <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 p-6 border-t-2 border-emerald-500 flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs font-black text-emerald-950 mb-0.5">提携窓口: 株式会社 伊予メモリアルパートナーズ（ダミー）</div>
-                  <p className="text-[10px] text-stone-600 mb-2">愛媛県松山市土居田町 / 宝塔寺旭ヶ丘霊園ほか市内霊園全域対応</p>
+                  <div className="text-xs font-black text-emerald-950 mb-0.5">運営本部: 株式会社ココロモウ / お墓参り代行事務局</div>
+                  <p className="text-[10px] text-stone-600 mb-2">愛媛県松山市大街道3丁目2-1 / 宝塔寺旭ヶ丘霊園ほか市内霊園全域対応</p>
                   <div className="inline-flex items-center gap-1 bg-white px-3 py-1 rounded border border-emerald-400 font-black text-emerald-800 text-sm">
                     <Phone className="w-3.5 h-3.5" />
-                    <span>089-997-XXXX</span>
+                    <span>089-911-8800</span>
                   </div>
-                  <span className="text-[10px] text-stone-500 ml-2">お電話でのご相談も承っております</span>
+                  <span className="text-[10px] text-stone-500 ml-2">お電話でのご相談・お申し込みも承っております（9:00〜18:00）</span>
                 </div>
 
                 <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border-2 border-emerald-500 shadow-xs shrink-0">
@@ -258,8 +258,8 @@ export default function FlyerPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-[11px] font-black text-emerald-950 block">スマホで24時間受付</span>
-                    <span className="text-[10px] font-bold text-amber-600 block">簡単Webお申し込み</span>
-                    <span className="text-[8px] text-stone-400">カメラで読み取るだけ</span>
+                    <span className="text-[10px] font-bold text-amber-600 block">簡単3分Webお申し込み</span>
+                    <span className="text-[8px] text-stone-400">写真照合でお墓を安心特定</span>
                   </div>
                 </div>
               </div>
@@ -281,30 +281,30 @@ export default function FlyerPage() {
                       遠く離れていても、<br />ふるさとへの感謝を<br />真心を込めて繋ぐ。
                     </h3>
                     <p className="text-[9px] text-stone-600 leading-relaxed mb-2 bg-white p-2 rounded border border-stone-200">
-                      「お墓参りに行けず申し訳ない」「お墓が荒れていないか心配」というご家族の想いに寄り添い、松山の地元石材パートナーとともに立ち上げました。
+                      「お墓参りに行けず申し訳ない」「お墓が荒れていないか心配」というご家族の想いに寄り添い、松山の提携霊園・地元認定パートナーとともに立ち上げました。
                     </p>
                   </div>
 
                   <div className="bg-white p-2 rounded border border-stone-100">
                     <div className="font-bold text-[10px] text-emerald-900">🌸 単なる作業ではない「供養の心」</div>
-                    <p className="text-[8.5px] text-stone-600 mt-0.5">雑草抜きや水洗いだけでなく、生花をお供えし線香を焚き、敬虔に合掌いたします。</p>
+                    <p className="text-[8.5px] text-stone-600 mt-0.5">雑草抜きや水洗いだけでなく、シキミや生花をお供えし線香を焚き、敬虔に合掌礼拝。</p>
                   </div>
                   <div className="bg-white p-2 rounded border border-stone-100">
-                    <div className="font-bold text-[10px] text-emerald-900">🏛️ 松山エリア専門の確かな技術</div>
-                    <p className="text-[8.5px] text-stone-600 mt-0.5">石材技能士の知識を持つ地元職人が、墓石を傷めない専用水洗いと手作業除草で施工。</p>
+                    <div className="font-bold text-[10px] text-emerald-900">🏛️ 霊園・寺院公認の安心認可制度</div>
+                    <p className="text-[8.5px] text-stone-600 mt-0.5">出入り認可契約・遵守誓約書を締結した認定業者のみが施工。賠償責任保険完備。</p>
                   </div>
                   <div className="bg-white p-2 rounded border border-stone-100">
-                    <div className="font-bold text-[10px] text-emerald-900">📸 鮮明な高画質写真レポート</div>
-                    <p className="text-[8.5px] text-stone-600 mt-0.5">作業前後の比較写真をWebでお届け。遠方のご家族全員で安心を共有できます。</p>
+                    <div className="font-bold text-[10px] text-emerald-900">📸 鮮明な写真照合＆Web完了報告</div>
+                    <p className="text-[8.5px] text-stone-600 mt-0.5">正面文字や建立者名の写真照合で間違い防止。施工後は高画質写真をスマホにお届け。</p>
                   </div>
                   <div className="bg-white p-2 rounded border border-stone-100">
-                    <div className="font-bold text-[10px] text-emerald-900">🤝 永代供養・墓じまいのご相談も</div>
-                    <p className="text-[8.5px] text-stone-600 mt-0.5">宝塔寺旭ヶ丘霊園での永代供養や、将来の墓じまい・改葬までワンストップ対応。</p>
+                    <div className="font-bold text-[10px] text-emerald-900">💡 お墓の場所が曖昧でも安心特定</div>
+                    <p className="text-[8.5px] text-stone-600 mt-0.5">霊園名と施主名で管理事務所の台帳・図面と連携し、スタッフが確実に墓所を特定。</p>
                   </div>
 
                   <div className="bg-emerald-50 p-2 rounded border border-emerald-200 text-[8.5px]">
                     <div className="font-bold text-emerald-900">💬 地元技術スタッフより</div>
-                    <p className="text-emerald-800 mt-0.5">「松山の気候風土とお墓を知り尽くした私たちが、ご家族の想いを大切にお墓へお届けします。」</p>
+                    <p className="text-emerald-800 mt-0.5">「霊園の管理規則を遵守し、ご家族に代わって真心を込めて丁寧にお墓をお守りいたします。」</p>
                   </div>
 
                   <div className="bg-amber-50 border border-amber-200 p-1.5 rounded text-center text-[8.5px] text-amber-900 font-bold">
@@ -323,20 +323,20 @@ export default function FlyerPage() {
                     <span>提携窓口・会社概要</span>
                   </div>
                   <div className="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100 space-y-0.5">
-                    <span className="text-[9px] font-bold text-emerald-800">愛媛・松山エリア公認パートナー</span>
-                    <p className="text-xs font-black text-stone-900">株式会社 伊予メモリアルパートナーズ（ダミー）</p>
+                    <span className="text-[9px] font-bold text-emerald-800">プラットフォーム運営本部</span>
+                    <p className="text-xs font-black text-stone-900">株式会社ココロモウ / お墓参り代行事務局</p>
                     <p className="text-[8.5px] text-stone-600 leading-tight">
-                      〒790-0056 愛媛県松山市土居田町 / 営業時間：9:00〜18:00
+                      〒790-0004 愛媛県松山市大街道3丁目2-1 メモリアルスクエアビル 5F / 営業時間：9:00〜18:00
                     </p>
                     <div className="text-xs font-black text-emerald-800 pt-0.5">
-                      📞 TEL: 089-997-XXXX
+                      📞 TEL: 089-911-8800
                     </div>
                   </div>
 
                   <div className="bg-stone-50 p-2 rounded text-[8px] text-stone-600 border border-stone-200 leading-tight">
                     <span className="font-bold text-stone-800 block mb-0.5">📍 主な対応エリア・霊園一覧</span>
-                    松山市全域・東温市・伊予市・松前町・砥部町<br />
-                    宝塔寺旭ヶ丘霊園、大明神霊園、客谷霊園、鷺谷霊園、市内寺院・共同墓地
+                    対応地域：松山市全域・東温市・伊予市・松前町・砥部町<br />
+                    提携霊園：宝塔寺旭ヶ丘霊園、松山市営大明神霊園、客谷霊園、鷺谷霊園、市内寺院・共同墓苑全域
                   </div>
 
                   <div className="space-y-1 text-[8px] text-stone-600">
@@ -345,19 +345,19 @@ export default function FlyerPage() {
                       <strong>Q. 立ち会いは必要ですか？</strong><br />A. 一切不要です。高画質写真レポートをWebでお送りします。
                     </div>
                     <div className="bg-stone-50/80 p-1.5 rounded">
-                      <strong>Q. 追加料金はかかりますか？</strong><br />A. かかりません。出張費・資材費込みの明朗会計です。
+                      <strong>Q. お墓の場所が曖昧でも大丈夫？</strong><br />A. 霊園名と施主名で管理事務所と連携してお墓をお探しします。
                     </div>
                     <div className="bg-stone-50/80 p-1.5 rounded">
-                      <strong>Q. 宗派や宗教の指定は？</strong><br />A. 仏教各宗派、神道、キリスト教の作法に配慮いたします。
+                      <strong>Q. どんな人が作業しますか？</strong><br />A. 霊園の出入り認可を受け、安全遵守誓約を結んだ認定業者です。
                     </div>
                     <div className="bg-stone-50/80 p-1.5 rounded">
-                      <strong>Q. 寺院や山間部の墓地でも可能？</strong><br />A. はい。寺院・公営・民間・共同墓地に対応可能です。
+                      <strong>Q. 万が一の破損やトラブルは？</strong><br />A. 賠償責任保険に加入し、専用中性洗剤と手作業水洗いを徹底します。
                     </div>
                     <div className="bg-stone-50/80 p-1.5 rounded">
-                      <strong>Q. 雨天の場合は？</strong><br />A. 丁寧な清掃のため、天候回復後に順延して実施します。
+                      <strong>Q. 追加料金はかかりますか？</strong><br />A. かかりません。出張費・資材費・税込みの明朗会計です。
                     </div>
                     <div className="bg-stone-50/80 p-1.5 rounded">
-                      <strong>Q. 墓石の破損が見つかったら？</strong><br />A. 写真付きで報告し、ご希望に応じて補修見積もりを案内します。
+                      <strong>Q. 宗派や宗教の指定は？</strong><br />A. 仏教各宗派、神道、キリスト教の作法に配慮して拝礼します。
                     </div>
                   </div>
 
@@ -370,7 +370,7 @@ export default function FlyerPage() {
                     <div>
                       <span className="text-[10.5px] font-black text-emerald-950 block">スマホで24時間受付</span>
                       <span className="text-[9px] font-bold text-amber-600 block">簡単3分Webお申し込み</span>
-                      <span className="text-[7.5px] text-stone-400">カメラをかざすだけで注文完了</span>
+                      <span className="text-[7.5px] text-stone-400">写真照合機能でお墓を安心特定</span>
                     </div>
                   </div>
                 </div>
@@ -383,7 +383,7 @@ export default function FlyerPage() {
                       <span className="font-black text-sm tracking-wider">ココロモウ</span>
                     </div>
                     <span className="text-[10px] bg-amber-400 text-stone-950 font-black px-2 py-0.5 rounded">
-                      愛媛・松山版
+                      愛媛・松山 霊園公認
                     </span>
                   </div>
 
@@ -395,7 +395,7 @@ export default function FlyerPage() {
                       ふるさとのお墓を、<br />真心を込めて<br /><span className="text-amber-300">ピカピカに。</span>
                     </h2>
                     <p className="text-[9px] text-emerald-50 leading-relaxed mt-1">
-                      松山の地元専門パートナーがご家族に代わって丁寧に清掃・合掌。鮮明な写真レポートをお届けします。
+                      霊園公認パートナーがご家族に代わって丁寧に清掃・合掌。鮮明な高画質写真レポートをお届けします。
                     </p>
                   </div>
 
@@ -409,7 +409,7 @@ export default function FlyerPage() {
                   <div className="grid grid-cols-3 gap-1 text-center text-[8px]">
                     <div className="bg-white/20 p-1 rounded font-bold">① 明朗会計<br />追加なし</div>
                     <div className="bg-white/20 p-1 rounded font-bold">② 鮮明写真<br />Web報告</div>
-                    <div className="bg-white/20 p-1 rounded font-bold">③ 生花・線香<br />合掌込み</div>
+                    <div className="bg-white/20 p-1 rounded font-bold">③ 霊園公認<br />保険・合掌</div>
                   </div>
 
                   <div className="bg-white p-2 rounded-lg text-stone-900 shadow-md">
@@ -451,16 +451,16 @@ export default function FlyerPage() {
                   </div>
 
                   <div className="bg-white p-2 rounded border border-stone-200">
-                    <span className="font-bold text-[9.5px] text-emerald-900 block mb-0.5">🌸 松山密着だからできる安心対応</span>
+                    <span className="font-bold text-[9.5px] text-emerald-900 block mb-0.5">🌸 霊園公認だからできる安心対応</span>
                     <p className="text-[8.5px] text-stone-600 leading-relaxed">
-                      地元石材のプロが専用資材で墓石を傷めず手作業清掃。お花も松山市内の提携花店から新鮮な状態でお供えします。
+                      霊園の認可パートナーが墓石を傷めない専用資材で手作業清掃。新鮮なシキミ一対とお線香をお供えします。
                     </p>
                   </div>
 
                   <div className="bg-emerald-50/80 p-2 rounded border border-emerald-200 text-[8.5px]">
                     <span className="font-bold text-emerald-900 block mb-0.5">💡 お墓の場所が曖昧でも大丈夫</span>
                     <p className="text-emerald-800 leading-relaxed">
-                      霊園名とお墓の特徴、施主名をお知らせいただければ、管理事務所と連携してスタッフがお墓をお探しします。
+                      霊園名と施主名をお知らせいただければ、管理事務所と連携してスタッフが確実にお墓をお探しします。
                     </p>
                   </div>
 
@@ -469,19 +469,19 @@ export default function FlyerPage() {
                     <div className="space-y-1 text-[8.5px]">
                       <div className="flex items-center gap-2 bg-white p-1.5 rounded border border-stone-100">
                         <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[8px] shrink-0">1</span>
-                        <div><strong>Web・お電話で申込み</strong><span className="text-stone-400 text-[7.5px] block">所要3分で完了</span></div>
+                        <div><strong>Web・お電話で申込み</strong><span className="text-stone-400 text-[7.5px] block">写真照合で同姓のお墓も安心特定（3分）</span></div>
                       </div>
                       <div className="flex items-center gap-2 bg-white p-1.5 rounded border border-stone-100">
                         <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[8px] shrink-0">2</span>
-                        <div><strong>事前決済（明朗会計）</strong><span className="text-stone-400 text-[7.5px] block">クレカ即時決済で追加費用なし</span></div>
+                        <div><strong>事前決済（明朗会計）</strong><span className="text-stone-400 text-[7.5px] block">クレカ即時決済で追加費用は一切なし</span></div>
                       </div>
                       <div className="flex items-center gap-2 bg-white p-1.5 rounded border border-stone-100">
                         <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[8px] shrink-0">3</span>
-                        <div><strong>現地清掃・真心の合掌</strong><span className="text-stone-400 text-[7.5px] block">職人が施工・生花線香をお供え</span></div>
+                        <div><strong>現地清掃・真心の合掌</strong><span className="text-stone-400 text-[7.5px] block">認可職人が丁寧に水洗い・シキミ線香</span></div>
                       </div>
                       <div className="flex items-center gap-2 bg-white p-1.5 rounded border border-stone-100">
                         <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[8px] shrink-0">4</span>
-                        <div><strong>写真レポート納品</strong><span className="text-stone-400 text-[7.5px] block">スマホで確認・親族へ共有可能</span></div>
+                        <div><strong>写真レポート納品</strong><span className="text-stone-400 text-[7.5px] block">スマホで確認・親族へ簡単共有</span></div>
                       </div>
                     </div>
                   </div>
@@ -499,50 +499,48 @@ export default function FlyerPage() {
 
                   <div className="bg-stone-50 p-2 rounded border border-stone-200">
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className="text-[10px] font-bold text-stone-900">基本お参りプラン</span>
+                      <span className="text-[10px] font-bold text-stone-900">簡易プラン</span>
                       <span className="text-xs font-black text-stone-900">¥8,800</span>
                     </div>
                     <div className="text-[8px] text-stone-600 space-y-0.5">
-                      <div>✓ 敷地内の落ち葉・雑草・ゴミ清掃</div>
-                      <div>✓ 墓石全体の水拭き清掃</div>
-                      <div>✓ お線香献香・真心の合掌</div>
-                      <div>✓ 完了写真レポート（メール納品）</div>
+                      <div>✓ 敷地内の落ち葉・雑草・ゴミの簡易清掃</div>
+                      <div>✓ 新鮮なシキミ（樒）一対のお供え</div>
+                      <div>✓ お線香献香・心を込めた合掌礼拝</div>
+                      <div>✓ 完了写真レポート（スマホ・Web納品）</div>
                     </div>
                   </div>
 
                   <div className="bg-emerald-50/70 p-2 rounded border-2 border-emerald-500 shadow-2xs">
                     <div className="text-[8px] font-bold text-amber-700 mb-0.5">★ 一番人気・おすすめ</div>
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className="text-[11px] font-black text-emerald-950">標準徹底お掃除プラン</span>
+                      <span className="text-[11px] font-black text-emerald-950">通常プラン</span>
                       <span className="text-sm font-black text-emerald-800">¥14,800</span>
                     </div>
                     <div className="text-[8px] text-stone-700 space-y-0.5">
-                      <div>✓ <strong>手作業徹底除草（根から除去）</strong></div>
-                      <div>✓ <strong>墓石・花立・香炉の専用水洗い</strong></div>
-                      <div>✓ <strong>頑固なコケ・水垢・汚れ落とし</strong></div>
-                      <div>✓ <strong>季節の生花1対（松山生花店直送）</strong></div>
-                      <div>✓ お線香献香・真心の合掌</div>
-                      <div>✓ 墓石健全度目地点検・詳細写真レポート</div>
+                      <div>✓ 簡易プランの全作業内容（草取り・シキミ・線香）</div>
+                      <div>✓ <strong>墓石全体・花立・香炉の専用水洗い</strong></div>
+                      <div>✓ <strong>埃・汚れ落とし・丁寧な水拭き</strong></div>
+                      <div>✓ <strong>プロの墓石点検（目地割れ・傾き・欠け）</strong></div>
+                      <div>✓ 高解像度のBefore/After写真レポート</div>
                     </div>
                   </div>
 
                   <div className="bg-stone-50 p-2 rounded border border-stone-200">
                     <div className="flex justify-between items-baseline mb-1">
-                      <span className="text-[10px] font-bold text-stone-900">プレミアム美装プラン</span>
-                      <span className="text-xs font-black text-stone-900">¥29,800</span>
+                      <span className="text-[10px] font-bold text-stone-900">プレミアムプラン</span>
+                      <span className="text-xs font-black text-stone-900">¥22,800</span>
                     </div>
                     <div className="text-[8px] text-stone-600 space-y-0.5">
-                      <div>✓ 標準プランの全作業内容</div>
-                      <div>✓ 外柵・敷石の高圧洗浄機クリーニング</div>
-                      <div>✓ <strong>墓石撥水防汚コーティング施工</strong></div>
-                      <div>✓ <strong>防草砂（固まる土）施工</strong></div>
-                      <div>✓ 永代供養・改葬・墓じまい優先無料相談</div>
+                      <div>✓ 通常プランの全作業内容（草取り・水洗い・点検）</div>
+                      <div>✓ <strong>専用洗剤・ブラシによる頑固な水垢・コケ徹底除去</strong></div>
+                      <div>✓ <strong>香炉灰の全量取り出し・清掃・新品香炉灰入替</strong></div>
+                      <div>✓ 詳細点検コメント付き高解像度写真レポート</div>
                     </div>
                   </div>
 
                   <div className="bg-stone-50 p-1.5 rounded border border-stone-200 text-[8px]">
-                    <span className="font-bold text-stone-800 block mb-0.5">🔧 個別オプション対応</span>
-                    文字の墨入れ（白・黒）／花立・線香皿ステンレス交換／樹木の剪定・伐採／墓じまい相談
+                    <span className="font-bold text-stone-800 block mb-0.5">🔧 個別特別オプション対応</span>
+                    区画広さ・基数追加／墓石撥水コーティング／防草施工／文字の墨入れ／永代供養・墓じまい相談
                   </div>
 
                   <div className="p-1.5 bg-stone-50 rounded text-center text-[8.5px] text-emerald-900 font-bold border border-stone-200">
@@ -572,27 +570,27 @@ export default function FlyerPage() {
                         <span>「届いた写真を見て家族で涙が出ました」</span>
                         <span className="text-amber-500">★★★★★</span>
                       </div>
-                      <p className="text-stone-600 mt-0.5">東京から帰省できず心配でしたが、ピカピカになり生花が供えられた写真を見て本当に安心しました。（50代女性）</p>
+                      <p className="text-stone-600 mt-0.5">東京から帰省できず心配でしたが、ピカピカになりシキミが供えられた写真を見て本当に安心しました。（50代女性・宝塔寺旭ヶ丘霊園）</p>
                     </div>
                     <div className="bg-white p-1.5 rounded border border-stone-200 text-[8px]">
                       <div className="flex justify-between font-bold text-amber-900">
                         <span>「目地の点検所見まで添えていただき感謝」</span>
                         <span className="text-amber-500">★★★★★</span>
                       </div>
-                      <p className="text-stone-600 mt-0.5">階段がつらくて困っていましたが、目地の状態まで報告していただき助かりました。（60代男性）</p>
+                      <p className="text-stone-600 mt-0.5">高齢で坂道がつらかったのですが、目地の状態まで写真付きで報告していただき助かりました。（60代男性・松山市営大明神霊園）</p>
                     </div>
                     <div className="bg-white p-1.5 rounded border border-stone-200 text-[8px]">
                       <div className="flex justify-between font-bold text-amber-900">
                         <span>「遠く離れていても親孝行ができました」</span>
                         <span className="text-amber-500">★★★★★</span>
                       </div>
-                      <p className="text-stone-600 mt-0.5">仕事でなかなか帰省できませんでしたが、親族からも大変喜ばれました。（40代男性）</p>
+                      <p className="text-stone-600 mt-0.5">仕事でなかなか帰省できませんでしたが、親族からも大変喜ばれました。（40代男性・松山市）</p>
                     </div>
                   </div>
 
                   <div className="bg-white p-2 rounded-lg border border-emerald-400 text-center">
                     <span className="text-[9px] font-bold text-emerald-900 block">お電話でのご相談・お見積りもお気軽に</span>
-                    <span className="text-xs font-black text-emerald-800 block">📞 089-997-XXXX</span>
+                    <span className="text-xs font-black text-emerald-800 block">📞 089-911-8800</span>
                     <span className="text-[7.5px] text-stone-500">受付時間: 9:00〜18:00（年中無休）</span>
                   </div>
 
