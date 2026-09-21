@@ -295,9 +295,7 @@ export async function getCemeteryCompanies(): Promise<CemeteryCompany[]> {
   if (adminDb) {
     try {
       const snapshot = await adminDb.collection('cemetery_companies').get();
-      if (!snapshot.empty) {
-        return snapshot.docs.map((d) => d.data() as CemeteryCompany);
-      }
+      return snapshot.docs.map((d) => d.data() as CemeteryCompany);
     } catch (e) {
       console.warn('[Firestore] Error fetching cemetery_companies:', e);
     }
@@ -327,9 +325,7 @@ export async function getVendors(): Promise<User[]> {
   if (adminDb) {
     try {
       const snapshot = await adminDb.collection('vendors').get();
-      if (!snapshot.empty) {
-        return snapshot.docs.map((d) => d.data() as User);
-      }
+      return snapshot.docs.map((d) => d.data() as User);
     } catch (e) {
       console.warn('[Firestore] Error fetching vendors:', e);
     }

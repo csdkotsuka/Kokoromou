@@ -44,9 +44,13 @@ function OrderFormContent() {
   // 注文モード（'order': 正式本申し込み / 'inquiry': 無料事前相談・見積り）
   const [orderMode, setOrderMode] = useState<'order' | 'inquiry'>(initialMode);
 
+  // 墓地管理会社 & 提携業者リスト（Firebaseから動的取得・初期値は静的モック）
+  const [cemeteryCompanies, setCemeteryCompanies] = useState<typeof SAMPLE_CEMETERY_COMPANIES>(SAMPLE_CEMETERY_COMPANIES);
+  const [vendorsList, setVendorsList] = useState<typeof SAMPLE_VENDORS>(SAMPLE_VENDORS);
+
   // 都道府県 & 墓地管理会社ステート
   // パラメータで指定された管理会社があればその都道府県を初期値に、なければ「愛媛県」
-  const targetInitialCemetery = SAMPLE_CEMETERY_COMPANIES.find(c => c.id === paramCemeteryId);
+  const targetInitialCemetery = cemeteryCompanies.find(c => c.id === paramCemeteryId);
   const [selectedPrefecture, setSelectedPrefecture] = useState<string>(
     targetInitialCemetery?.prefecture || '愛媛県'
   );
@@ -56,6 +60,53 @@ function OrderFormContent() {
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>(defaultPlanId);
   const [selectedVendorId, setSelectedVendorId] = useState<string>(SAMPLE_VENDORS[0].id);
+
+  // Firebaseからの最新データ取得（レコード削除や追加がリアルタイムに反映される）
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFirebaseData = async () => {
+      try {
+        const [cemeteryRes, vendorRes] = await Promise.all([
+          fetch('/api/cemetery-companies'),
+          fetch('/api/vendors')
+        ]);
+        if (cemeteryRes.ok) {
+          const cData = await cemeteryRes.json();
+          if (cData.success && Array.isArray(cData.companies) && isMounted) {
+            setCemeteryCompanies(cData.companies);
+            // 選択中の管理会社が削除されていた場合や初期化時の調整
+            if (cData.companies.length > 0) {
+              const inPref = cData.companies.filter((c: any) => c.prefecture === selectedPrefecture);
+              if (inPref.length > 0) {
+                const stillExists = inPref.some((c: any) => c.id === selectedCemeteryId);
+                if (!stillExists) {
+                  setSelectedCemeteryId(inPref[0].id);
+                  setFormData((prev) => ({
+                    ...prev,
+                    cemeteryCompanyId: inPref[0].id,
+                    cemeteryName: inPref[0].cemeteryNames?.[0] || inPref[0].name,
+                    locationAddress: inPref[0].locationAddress || prev.locationAddress,
+                  }));
+                }
+              }
+            }
+          }
+        }
+        if (vendorRes.ok) {
+          const vData = await vendorRes.json();
+          if (vData.success && Array.isArray(vData.vendors) && isMounted) {
+            setVendorsList(vData.vendors);
+          }
+        }
+      } catch (err) {
+        console.warn('Firebase data fetch error, using fallback:', err);
+      }
+    };
+    fetchFirebaseData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // 未登録霊園・エリアのリクエストモーダルステート
   const [showAreaRequestModal, setShowAreaRequestModal] = useState<boolean>(false);
@@ -90,9 +141,9 @@ function OrderFormContent() {
   const [graveCount, setGraveCount] = useState<number>(1);
   const [plotSize, setPlotSize] = useState<'standard' | 'large' | 'extra_large'>('standard');
 
-  // お墓の写真ステート（プレビュー表示およびアップロード用）
-  const [frontInscriptionPhoto, setFrontInscriptionPhoto] = useState<string | null>('/images/grave_front_example.jpg');
-  const [builderNamePhoto, setBuilderNamePhoto] = useState<string | null>('/images/grave_side_builder_example.jpg');
+  // お墓の写真ステート（初期値は未選択null：現地に行けない方でも写真なしで申込可能）
+  const [frontInscriptionPhoto, setFrontInscriptionPhoto] = useState<string | null>(null);
+  const [builderNamePhoto, setBuilderNamePhoto] = useState<string | null>(null);
   const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
 
   // フォームステート（未入力状態から開始し、入力完了でステップとボタンが連動）
@@ -117,18 +168,18 @@ function OrderFormContent() {
   // 現在スクロール表示中のステップ (1: 霊園 | 2: プラン | 3: 基数広さ | 4: 提携業者 | 5: 墓石施主情報)
   const [activeStep, setActiveStep] = useState<number>(1);
 
-  // 現在の都道府県に該当する管理会社リスト
-  const availableCemeteries = SAMPLE_CEMETERY_COMPANIES.filter(
+  // 現在の都道府県に該当する管理会社リスト（Firebaseデータ連動）
+  const availableCemeteries = cemeteryCompanies.filter(
     (c) => c.prefecture === selectedPrefecture
   );
 
   // 現在選択中の管理会社
-  const currentCemetery = SAMPLE_CEMETERY_COMPANIES.find((c) => c.id === selectedCemeteryId);
+  const currentCemetery = cemeteryCompanies.find((c) => c.id === selectedCemeteryId) || availableCemeteries[0];
 
-  // 管理会社に紐付いている認定業者リスト
+  // 管理会社に紐付いている認定業者リスト（Firebaseデータ連動）
   const affiliatedVendors = currentCemetery?.affiliatedVendorIds && currentCemetery.affiliatedVendorIds.length > 0
-    ? SAMPLE_VENDORS.filter((v) => currentCemetery.affiliatedVendorIds.includes(v.id))
-    : SAMPLE_VENDORS;
+    ? vendorsList.filter((v) => currentCemetery.affiliatedVendorIds.includes(v.id))
+    : vendorsList;
 
   // 管理会社が変更された時、紐付き業者や霊園名を同期
   const handleCemeterySelect = (cemetery: typeof SAMPLE_CEMETERY_COMPANIES[0]) => {
@@ -153,7 +204,7 @@ function OrderFormContent() {
   const handlePrefectureChange = (pref: string) => {
     setSelectedPrefecture(pref);
     setAreaRequestData((prev) => ({ ...prev, prefecture: pref }));
-    const cemeteriesInPref = SAMPLE_CEMETERY_COMPANIES.filter((c) => c.prefecture === pref);
+    const cemeteriesInPref = cemeteryCompanies.filter((c) => c.prefecture === pref);
     if (cemeteriesInPref.length > 0) {
       handleCemeterySelect(cemeteriesInPref[0]);
     } else {
@@ -1234,8 +1285,21 @@ function OrderFormContent() {
               )}
             </div>
 
-            {/* お墓の特定情報（正面文字 & 側面の建立者名：必須）＋写真添付 */}
+            {/* お墓の特定情報（正面文字 & 側面の建立者名：必須）＋写真添付（任意） */}
             <div className="space-y-4 p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200">
+              {/* 写真がない方への安心案内バナー */}
+              <div className="bg-white/90 border border-emerald-300 rounded-xl p-3.5 text-xs text-emerald-950 space-y-1 shadow-xs">
+                <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+                  <CheckCircle className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>お写真が手元にない・遠方で撮影に行けない場合でもお申し込みいただけます</span>
+                </div>
+                <p className="text-[11px] text-stone-600 leading-relaxed">
+                  お墓の写真の添付は<strong>「任意（なくても可）」</strong>です。遠方にお住まいで写真が手元にない場合は、<strong>空欄（写真なし）のままお申し込みいただけます</strong>。
+                  墓石の「正面文字」と「側面の建立者名」があれば、現地の提携職人が確実にお墓を特定いたします。<br />
+                  <span className="text-emerald-800 font-medium">※場所やお墓の文字自体が分からない場合は、上部の「無料事前相談」より職人による現地特定・事前調査（無料）もご利用いただけます。</span>
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* 1. 正面文字 & 写真 */}
                 <div className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs space-y-3">
@@ -1260,9 +1324,11 @@ function OrderFormContent() {
                     <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1">
                         <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>正面の写真（参考・添付）</span>
+                        <span>正面の写真（任意・なくても可）</span>
                       </span>
-                      <span className="text-[10px] text-emerald-700 font-normal">写真があると確実です</span>
+                      <span className="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-semibold">
+                        任意添付
+                      </span>
                     </label>
 
                     {frontInscriptionPhoto ? (
@@ -1298,8 +1364,8 @@ function OrderFormContent() {
                     ) : (
                       <label className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-lg p-3 text-center cursor-pointer block transition bg-stone-50 hover:bg-emerald-50/30">
                         <Upload className="w-5 h-5 text-stone-400 mx-auto mb-1" />
-                        <span className="text-xs font-semibold text-stone-700 block">正面の写真を添付する</span>
-                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択</span>
+                        <span className="text-xs font-semibold text-stone-700 block">正面の写真を添付する（任意）</span>
+                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択（写真なしでも申込可）</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1334,9 +1400,11 @@ function OrderFormContent() {
                     <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1">
                         <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>側面（建立者名）の写真（推奨）</span>
+                        <span>側面（建立者名）の写真（任意・なくても可）</span>
                       </span>
-                      <span className="text-[10px] text-emerald-700 font-normal">取り違え防止に直結</span>
+                      <span className="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-semibold">
+                        任意添付
+                      </span>
                     </label>
 
                     {builderNamePhoto ? (
@@ -1372,8 +1440,8 @@ function OrderFormContent() {
                     ) : (
                       <label className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-lg p-3 text-center cursor-pointer block transition bg-stone-50 hover:bg-emerald-50/30">
                         <Upload className="w-5 h-5 text-stone-400 mx-auto mb-1" />
-                        <span className="text-xs font-semibold text-stone-700 block">側面の写真を添付する</span>
-                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択</span>
+                        <span className="text-xs font-semibold text-stone-700 block">側面の写真を添付する（任意）</span>
+                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択（写真なしでも申込可）</span>
                         <input
                           type="file"
                           accept="image/*"
