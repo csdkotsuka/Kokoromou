@@ -352,6 +352,20 @@ export async function saveVendor(vendor: User): Promise<User> {
   return vendor;
 }
 
+export async function saveAccount(account: any) {
+  inMemoryMockDb.accounts.set(account.email, account);
+  if (adminDb) {
+    try {
+      await adminDb.collection('accounts').doc(account.email).set(
+        { ...account, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+    } catch (e) {
+      console.error(`[Firestore Error] Could not save account ${account.email}:`, e);
+    }
+  }
+}
+
 /**
  * 注文関連
  */

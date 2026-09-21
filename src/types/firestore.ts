@@ -50,6 +50,7 @@ export interface UserAccount {
 }
 
 export interface VendorProfile {
+  businessType?: 'corporation' | 'individual'; // 法人 または 個人事業主・便利屋
   companyName: string;
   representativeName: string;
   phoneNumber?: string; // 電話番号

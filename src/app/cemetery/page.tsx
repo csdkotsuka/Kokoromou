@@ -31,6 +31,20 @@ function CemeteryDashboard() {
   const [isEditingVendors, setIsEditingVendors] = useState(false);
   const [tempAffiliatedVendorIds, setTempAffiliatedVendorIds] = useState<string[]>([]);
 
+  // 新規代行業者 登録モーダル状態
+  const [isAddingNewVendor, setIsAddingNewVendor] = useState(false);
+  const [newVendorData, setNewVendorData] = useState({
+    displayName: '',
+    representativeName: '',
+    phoneNumber: '',
+    email: '',
+    businessType: 'individual' as 'corporation' | 'individual',
+    serviceAreas: '松山市全域・中予エリア',
+    description: '',
+    password: 'vendor1234',
+  });
+  const [agreedToSafetyWarnings, setAgreedToSafetyWarnings] = useState(false);
+
   // 初期データ読み込み（APIから最新情報を取得、フォールバックあり）
   useEffect(() => {
     async function loadData() {
@@ -104,6 +118,43 @@ function CemeteryDashboard() {
       }
     } catch (err) {
       alert('エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 新規代行業者の登録
+  const handleCreateVendor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreedToSafetyWarnings) {
+      alert('「重要確認事項」をご確認のうえ、同意チェックを入れてください。');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/vendors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newVendorData,
+          cemeteryCompanyId: currentCompany.id,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setVendors((prev) => [...prev, data.vendor]);
+        const newAffiliated = [...(currentCompany.affiliatedVendorIds || []), data.vendor.id];
+        setCompanies((prev) =>
+          prev.map((c) => (c.id === currentCompany.id ? { ...c, affiliatedVendorIds: newAffiliated } : c))
+        );
+        setIsAddingNewVendor(false);
+        setSaveSuccessMsg(`新しい作業代行パートナー「${data.vendor.displayName}」を登録し、提携先に追加しました！`);
+        setTimeout(() => setSaveSuccessMsg(null), 5000);
+      } else {
+        alert(data.error || '登録に失敗しました');
+      }
+    } catch (err: any) {
+      alert('エラーが発生しました: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -311,12 +362,22 @@ function CemeteryDashboard() {
                 当霊園での作業が認定されているパートナー業者です
               </p>
             </div>
-            <button
-              onClick={handleOpenVendorEdit}
-              className="px-6 py-3.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-xl font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0"
-            >
-              <span>🤝</span> 提携代行業者を編集する（追加・解除）
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAddingNewVendor(true)}
+                className="px-5 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+              >
+                <span>➕</span> 新規代行業者・便利屋さんを追加
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenVendorEdit}
+                className="px-5 py-3.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+              >
+                <span>🤝</span> 提携の追加・解除（{affiliatedVendors.length}社）
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -650,6 +711,215 @@ function CemeteryDashboard() {
                 {loading ? '保存中...' : '提携業者の変更を保存する'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 新規代行業者・便利屋さん 登録モーダル（注意喚起付き） */}
+      {isAddingNewVendor && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto">
+            <div className="pb-4 border-b-2 border-stone-200">
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-900 text-base font-extrabold rounded-full">
+                パートナー新規追加
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
+                作業代行業者・便利屋さんの新規登録
+              </h3>
+              <p className="text-stone-600 text-base mt-1 font-medium">
+                当霊園（{currentCompany?.name}）で作業を行う代行業者または個人の便利屋さんを新しく登録します。
+              </p>
+            </div>
+
+            {/* ⚠️ 注意喚起・重要確認事項ボックス */}
+            <div className="my-5 p-5 bg-amber-50 border-2 border-amber-400 rounded-2xl text-stone-800 space-y-3">
+              <div className="flex items-center gap-2 text-amber-900 font-extrabold text-lg">
+                <span className="text-2xl">⚠️</span>
+                <span>【重要】業者・個人を登録する前の確認事項</span>
+              </div>
+              <ul className="text-base space-y-2 list-disc list-inside text-stone-700 font-medium">
+                <li>
+                  <strong className="text-stone-900">墓石清掃の安全遵守:</strong> 金属たわしや酸性・塩素系洗剤の使用は禁止です（水垢落としは専用中性洗剤と柔らかい布・スポンジのみ）。
+                </li>
+                <li>
+                  <strong className="text-stone-900">他家墓所への配慮:</strong> ご依頼区画以外の墓石・敷地・花立て等には一切手を触れないようご指導ください。
+                </li>
+                <li>
+                  <strong className="text-stone-900">身元・連絡先の確認:</strong> 確実につながるお電話番号とご担当者氏名を正しくご入力ください。
+                </li>
+                <li>
+                  <strong className="text-stone-900">破損時の賠償責任:</strong> 万が一の墓石破損やトラブルが生じた際の責任と対応ルールをご周知ください。
+                </li>
+              </ul>
+
+              <div className="pt-2 border-t border-amber-200">
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreedToSafetyWarnings}
+                    onChange={(e) => setAgreedToSafetyWarnings(e.target.checked)}
+                    className="mt-1 w-6 h-6 rounded text-amber-700 focus:ring-amber-500 accent-amber-700 shrink-0 cursor-pointer"
+                  />
+                  <span className="text-base font-extrabold text-amber-950">
+                    上記の安全注意事項を確認し、責任を持って代行業者・便利屋さんを登録します（必須チェック）
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* 登録フォーム */}
+            <form onSubmit={handleCreateVendor} className="space-y-4">
+              <div>
+                <label className="block text-lg font-bold text-stone-800 mb-1">
+                  事業形態・種別
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 text-lg font-bold text-stone-800 cursor-pointer p-3 bg-stone-50 rounded-xl border border-stone-300 flex-1">
+                    <input
+                      type="radio"
+                      name="businessType"
+                      value="individual"
+                      checked={newVendorData.businessType === 'individual'}
+                      onChange={() => setNewVendorData({ ...newVendorData, businessType: 'individual' })}
+                      className="w-5 h-5 text-emerald-700"
+                    />
+                    <span>個人事業主・便利屋さん</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-lg font-bold text-stone-800 cursor-pointer p-3 bg-stone-50 rounded-xl border border-stone-300 flex-1">
+                    <input
+                      type="radio"
+                      name="businessType"
+                      value="corporation"
+                      checked={newVendorData.businessType === 'corporation'}
+                      onChange={() => setNewVendorData({ ...newVendorData, businessType: 'corporation' })}
+                      className="w-5 h-5 text-emerald-700"
+                    />
+                    <span>法人・石材店・清掃会社</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-lg font-bold text-stone-800 mb-1">
+                  屋号・業者名・個人名 <span className="text-red-600 text-sm font-bold">必須</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newVendorData.displayName}
+                  onChange={(e) => setNewVendorData({ ...newVendorData, displayName: e.target.value })}
+                  placeholder="例: 松山おそうじサポート、便利屋 山田"
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-lg font-bold text-stone-800 mb-1">
+                    代表者・担当者氏名 <span className="text-red-600 text-sm font-bold">必須</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newVendorData.representativeName}
+                    onChange={(e) => setNewVendorData({ ...newVendorData, representativeName: e.target.value })}
+                    placeholder="例: 山田 太郎"
+                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-lg font-bold text-stone-800 mb-1">
+                    お電話番号 <span className="text-red-600 text-sm font-bold">必須</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={newVendorData.phoneNumber}
+                    onChange={(e) => setNewVendorData({ ...newVendorData, phoneNumber: e.target.value })}
+                    placeholder="例: 089-999-0000 または 携帯"
+                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-lg font-bold text-stone-800 mb-1">
+                    メールアドレス（ログインID） <span className="text-red-600 text-sm font-bold">必須</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={newVendorData.email}
+                    onChange={(e) => setNewVendorData({ ...newVendorData, email: e.target.value })}
+                    placeholder="例: yamada@example.com"
+                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-lg font-bold text-stone-800 mb-1">
+                    初期パスワード
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newVendorData.password}
+                    onChange={(e) => setNewVendorData({ ...newVendorData, password: e.target.value })}
+                    placeholder="例: vendor1234"
+                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-lg font-bold text-stone-800 mb-1">
+                  対応可能エリア
+                </label>
+                <input
+                  type="text"
+                  value={newVendorData.serviceAreas}
+                  onChange={(e) => setNewVendorData({ ...newVendorData, serviceAreas: e.target.value })}
+                  placeholder="例: 松山市全域、東温市、伊予市"
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-lg font-bold text-stone-800 mb-1">
+                  自己紹介・アピール点・備考
+                </label>
+                <textarea
+                  rows={2}
+                  value={newVendorData.description}
+                  onChange={(e) => setNewVendorData({ ...newVendorData, description: e.target.value })}
+                  placeholder="例: 松山市内で草刈り・便利屋業を営んでいます。丁寧にお参りとお掃除をいたします。"
+                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t-2 border-stone-200 flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingNewVendor(false)}
+                  className="flex-1 py-4 px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xl font-bold rounded-2xl transition"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || !agreedToSafetyWarnings}
+                  className={`flex-1 py-4 px-6 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-2 ${
+                    loading || !agreedToSafetyWarnings
+                      ? 'bg-stone-400 cursor-not-allowed'
+                      : 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer'
+                  }`}
+                >
+                  {loading ? '登録中...' : 'この業者を登録して提携先に追加'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
