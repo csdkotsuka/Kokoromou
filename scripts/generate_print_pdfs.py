@@ -533,10 +533,10 @@ poster_html = f'''<!DOCTYPE html>
 
     <div class="footer-wrap">
       <div class="footer-info-col">
-        <div class="footer-vendor-title">運営本部: 株式会社ココロモウ / お墓参り代行事務局</div>
-        <div class="footer-address">愛媛県松山市大街道3丁目2-1 / 宝塔寺旭ヶ丘霊園ほか松山市内霊園全域対応</div>
+        <div class="footer-vendor-title">運営元: Creative System Design（ココロモウ事務局）</div>
+        <div class="footer-address">〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号 / 宝塔寺旭ヶ丘霊園ほか中予全域対応</div>
         <div class="footer-phone-row">
-          <div class="footer-phone-btn">📞 089-911-8800</div>
+          <div class="footer-phone-btn">📞 090-4116-9476</div>
           <div class="footer-phone-note">お電話でのご相談・お申し込みも承っております（9:00〜18:00）</div>
         </div>
       </div>
@@ -1234,14 +1234,14 @@ leaflet_html = f'''<!DOCTYPE html>
       </div>
 
       <div class="back-vendor-info">
-        <div style="font-size: 9px; font-weight: 800; color: #065f46; margin-bottom: 1px;">プラットフォーム運営本部</div>
-        <div class="back-vendor-name">株式会社ココロモウ / お墓参り代行事務局</div>
+        <div style="font-size: 9px; font-weight: 800; color: #065f46; margin-bottom: 1px;">プラットフォーム運営元</div>
+        <div class="back-vendor-name">Creative System Design（ココロモウ事務局）</div>
         <div class="back-vendor-addr">
-          〒790-0004 愛媛県松山市大街道3丁目2-1 メモリアルスクエアビル 5F<br>
+          〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号<br>
           営業時間：9:00〜18:00（年中無休）
         </div>
         <div class="back-tel-row">
-          📞 TEL: 089-911-8800
+          📞 TEL: 090-4116-9476
         </div>
       </div>
 

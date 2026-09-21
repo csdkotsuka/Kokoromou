@@ -483,7 +483,7 @@ export default function AdminPricingProposalPage() {
 
           <div className="mt-4 pt-2 flex items-center justify-between text-[11px] text-stone-500">
             <span>ココロモウ提携プラン提案書 - 2/2</span>
-            <span>© Kokoromou Inc. All Rights Reserved.</span>
+            <span>© Creative System Design All Rights Reserved.</span>
           </div>
         </div>
 

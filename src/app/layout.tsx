@@ -86,7 +86,7 @@ export default function RootLayout({
             </div>
 
             <p className="mt-8 text-[11px] text-stone-600">
-              &copy; {new Date().getFullYear()} Kokoromou Inc. All rights reserved.
+              &copy; {new Date().getFullYear()} Creative System Design. All rights reserved.
             </p>
           </div>
         </footer>

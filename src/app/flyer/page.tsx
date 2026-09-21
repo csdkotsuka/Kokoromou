@@ -250,11 +250,11 @@ export default function FlyerPage() {
               {/* フッターCTA */}
               <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 p-6 border-t-2 border-emerald-500 flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs font-black text-emerald-950 mb-0.5">運営本部: 株式会社ココロモウ / お墓参り代行事務局</div>
-                  <p className="text-[10px] text-stone-600 mb-2">愛媛県松山市大街道3丁目2-1 / 宝塔寺旭ヶ丘霊園ほか市内霊園全域対応</p>
+                  <div className="text-xs font-black text-emerald-950 mb-0.5">運営元: Creative System Design（ココロモウ事務局）</div>
+                  <p className="text-[10px] text-stone-600 mb-2">〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号 / 宝塔寺旭ヶ丘霊園ほか中予全域対応</p>
                   <div className="inline-flex items-center gap-1 bg-white px-3 py-1 rounded border border-emerald-400 font-black text-emerald-800 text-sm">
                     <Phone className="w-3.5 h-3.5" />
-                    <span>089-911-8800</span>
+                    <span>090-4116-9476</span>
                   </div>
                   <span className="text-[10px] text-stone-500 ml-2">お電話でのご相談・お申し込みも承っております（9:00〜18:00）</span>
                 </div>
@@ -330,13 +330,13 @@ export default function FlyerPage() {
                     <span>提携窓口・会社概要</span>
                   </div>
                   <div className="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100 space-y-0.5">
-                    <span className="text-[9px] font-bold text-emerald-800">プラットフォーム運営本部</span>
-                    <p className="text-xs font-black text-stone-900">株式会社ココロモウ / お墓参り代行事務局</p>
+                    <span className="text-[9px] font-bold text-emerald-800">プラットフォーム運営元</span>
+                    <p className="text-xs font-black text-stone-900">Creative System Design（ココロモウ事務局）</p>
                     <p className="text-[8.5px] text-stone-600 leading-tight">
-                      〒790-0004 愛媛県松山市大街道3丁目2-1 メモリアルスクエアビル 5F / 営業時間：9:00〜18:00
+                      〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号 / 営業時間：9:00〜18:00
                     </p>
                     <div className="text-xs font-black text-emerald-800 pt-0.5">
-                      📞 TEL: 089-911-8800
+                      📞 TEL: 090-4116-9476
                     </div>
                   </div>
 
