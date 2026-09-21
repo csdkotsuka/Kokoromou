@@ -20,6 +20,16 @@ export interface PlatformAdminInfo {
 // -------------------------------------------------------------
 // 2. 墓地管理会社・霊園管理事務所 (Cemetery Management Companies)
 // -------------------------------------------------------------
+export interface VendorContract {
+  vendorId: string;
+  vendorName: string;
+  contractFileUrl?: string; // base64データURL (PDFまたは画像)
+  contractFileName?: string;
+  uploadedAt: string; // ISO 8601
+  status: 'signed' | 'pending';
+  notes?: string;
+}
+
 export interface CemeteryCompany {
   id: string; // 例: "cem_comp_001"
   name: string; // 会社・寺院事務所名 (例: 宝塔寺 旭ヶ丘霊園管理事務所)
@@ -31,6 +41,8 @@ export interface CemeteryCompany {
   description: string;
   // この墓地管理会社と提携・出入り可能な作業代行業者IDリスト
   affiliatedVendorIds: string[];
+  // 作業代行業者ごとの締結済み契約書・誓約書 (vendorId -> VendorContract)
+  vendorContracts?: Record<string, VendorContract>;
 }
 
 // -------------------------------------------------------------

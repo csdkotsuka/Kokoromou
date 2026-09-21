@@ -29,6 +29,17 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
     description: '松山城を望む閑静な旭ヶ丘の高台に位置する歴史ある寺院霊園。同姓の多い共同区画の適正管理と指定業者認定制度を導入。',
     affiliatedVendorIds: ['vendor_001', 'vendor_003', 'vendor_006'], // 松山まごころ、伊予匠、勝山美装
+    vendorContracts: {
+      vendor_001: {
+        vendorId: 'vendor_001',
+        vendorName: '有限会社 松山まごころ清掃',
+        contractFileUrl: '/images/grave_front_example.jpg', // プレビュー確認用サンプル
+        contractFileName: '墓地内作業代行契約書_松山まごころ清掃_20260901.pdf',
+        uploadedAt: '2026-09-01T10:00:00.000Z',
+        status: 'signed',
+        notes: '2026年度更新済。三井住友海上 施設賠償責任保険証券コピー確認済。',
+      },
+    },
   },
   {
     id: 'cem_comp_002',

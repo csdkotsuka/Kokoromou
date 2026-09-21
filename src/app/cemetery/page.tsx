@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CemeteryCompany, User, Order } from '@/types/firestore';
+import { CemeteryCompany, User, Order, VendorContract } from '@/types/firestore';
 import {
   SAMPLE_CEMETERY_COMPANIES,
   SAMPLE_VENDORS,
@@ -44,6 +44,26 @@ function CemeteryDashboard() {
     password: 'vendor1234',
   });
   const [agreedToSafetyWarnings, setAgreedToSafetyWarnings] = useState(false);
+
+  // 契約書印刷・ダウンロードモーダル状態
+  const [contractPrintTargetVendor, setContractPrintTargetVendor] = useState<User | null>(null);
+  const [showContractTemplateModal, setShowContractTemplateModal] = useState(false);
+
+  // 契約書アップロードモーダル状態
+  const [uploadTargetVendor, setUploadTargetVendor] = useState<User | null>(null);
+  const [contractUploadFile, setContractUploadFile] = useState<{
+    dataUrl: string;
+    fileName: string;
+    fileType: string;
+  } | null>(null);
+  const [contractUploadNotes, setContractUploadNotes] = useState('');
+  const [isUploadingContract, setIsUploadingContract] = useState(false);
+
+  // 添付契約書 閲覧プレビューモーダル状態
+  const [viewingContract, setViewingContract] = useState<{
+    vendorName: string;
+    contract: VendorContract;
+  } | null>(null);
 
   // 初期データ読み込み（APIから最新情報を取得、フォールバックあり）
   useEffect(() => {
@@ -218,6 +238,223 @@ function CemeteryDashboard() {
     router.push('/cemetery/login');
   };
 
+  // 契約書ファイル選択ハンドラー（PDFまたは画像）
+  const handleContractFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // ファイルサイズチェック (最大 12MB)
+    if (file.size > 12 * 1024 * 1024) {
+      alert('ファイルサイズが大きすぎます（12MB以下にしてください）');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setContractUploadFile({
+        dataUrl: event.target?.result as string,
+        fileName: file.name,
+        fileType: file.type || 'application/pdf',
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 契約書を保存（Firestoreへ永続化）
+  const handleSaveContract = async () => {
+    if (!uploadTargetVendor || !contractUploadFile || !currentCompany) return;
+    setIsUploadingContract(true);
+
+    try {
+      const updatedContracts: Record<string, VendorContract> = {
+        ...(currentCompany.vendorContracts || {}),
+        [uploadTargetVendor.id]: {
+          vendorId: uploadTargetVendor.id,
+          vendorName: uploadTargetVendor.displayName,
+          contractFileUrl: contractUploadFile.dataUrl,
+          contractFileName: contractUploadFile.fileName,
+          uploadedAt: new Date().toISOString(),
+          status: 'signed',
+          notes: contractUploadNotes,
+        },
+      };
+
+      const updatedCompany: CemeteryCompany = {
+        ...currentCompany,
+        vendorContracts: updatedContracts,
+      };
+
+      const res = await fetch('/api/cemetery-companies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCompany),
+      });
+
+      if (!res.ok) throw new Error('契約書の保存に失敗しました');
+
+      // ステート更新
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c))
+      );
+      setSaveSuccessMsg(`「${uploadTargetVendor.displayName}」の締結済み契約書を添付・保存しました！`);
+      setUploadTargetVendor(null);
+      setContractUploadFile(null);
+      setContractUploadNotes('');
+      setTimeout(() => setSaveSuccessMsg(null), 4000);
+    } catch (e: any) {
+      alert(e.message || '保存エラーが発生しました');
+    } finally {
+      setIsUploadingContract(false);
+    }
+  };
+
+  // 契約書を削除
+  const handleDeleteContract = async (vendorId: string, vendorName: string) => {
+    if (!currentCompany) return;
+    if (!confirm(`「${vendorName}」の添付契約書を削除してもよろしいですか？\n（未提出・未締結状態に戻ります）`)) {
+      return;
+    }
+
+    try {
+      const updatedContracts = { ...(currentCompany.vendorContracts || {}) };
+      delete updatedContracts[vendorId];
+
+      const updatedCompany: CemeteryCompany = {
+        ...currentCompany,
+        vendorContracts: updatedContracts,
+      };
+
+      const res = await fetch('/api/cemetery-companies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCompany),
+      });
+
+      if (!res.ok) throw new Error('契約書の削除に失敗しました');
+
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c))
+      );
+      setSaveSuccessMsg(`「${vendorName}」の契約書を削除しました。`);
+      setTimeout(() => setSaveSuccessMsg(null), 4000);
+    } catch (e: any) {
+      alert(e.message || '削除エラーが発生しました');
+    }
+  };
+
+  // 契約書印刷（window.print）
+  const handlePrintContract = () => {
+    window.print();
+  };
+
+  // 契約書HTMLファイルダウンロード
+  const handleDownloadContractHtml = (vendor?: User | null) => {
+    const vName = vendor?.displayName || '＿＿＿＿＿＿＿＿＿＿＿＿＿＿';
+    const vRep = vendor?.vendorProfile?.representativeName || '＿＿＿＿＿＿＿＿';
+    const vPhone = vendor?.phoneNumber || '＿＿＿＿＿＿＿＿';
+    const vAddress = vendor?.vendorProfile?.serviceAreas?.join('、') || '＿＿＿＿＿＿＿＿＿＿＿＿＿＿';
+
+    const cName = currentCompany?.name || '霊園管理事務所';
+    const cRep = currentCompany?.representativeName || '霊園管理長';
+    const cPhone = currentCompany?.phoneNumber || '＿＿＿＿＿＿＿＿';
+    const cAddress = currentCompany?.locationAddress || '＿＿＿＿＿＿＿＿';
+    const cemes = currentCompany?.cemeteryNames?.join('、') || '管轄霊園';
+
+    const todayStr = new Date().toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>墓地内作業代行業務 基本契約書 兼 遵守誓約書</title>
+<style>
+  body { font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; line-height: 1.7; padding: 40px; max-width: 800px; margin: 0 auto; color: #111; }
+  h1 { text-align: center; font-size: 22px; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 14px; margin-top: 20px; margin-bottom: 6px; }
+  p, li { font-size: 13px; text-align: justify; }
+  ol { padding-left: 20px; }
+  .preamble { margin-bottom: 20px; }
+  .signatures { margin-top: 40px; border-top: 1px solid #666; padding-top: 20px; }
+  .sig-block { display: flex; justify-content: space-between; margin-top: 20px; }
+  .sig-col { width: 48%; border: 1px solid #ccc; padding: 15px; border-radius: 6px; }
+  .seal-box { border: 1px dashed #999; width: 60px; height: 60px; display: inline-block; text-align: center; line-height: 60px; font-size: 11px; float: right; color: #888; }
+</style>
+</head>
+<body>
+<h1>墓地内作業代行業務 基本契約書 兼 遵守誓約書</h1>
+<p class="preamble">
+  <strong>${cName}</strong>（以下「甲」という）と、作業代行業者 <strong>${vName}</strong>（以下「乙」という）は、甲が管理する霊園・墓地（${cemes}）内において、墓地使用者等から委託を受けたお墓参り・墓所清掃・除草等の作業代行業務を実施するにあたり、以下の通り契約を締結し、乙はこれを厳格に遵守することを誓約する。
+</p>
+
+<h2>第1条（目的及び作業の認可）</h2>
+<p>甲は、乙が本契約に定める各条項および甲の定める霊園管理規則を遵守することを条件として、甲の管轄する霊園内への出入りおよび墓所作業の実施を認可する。</p>
+
+<h2>第2条（霊園管理規則および作業規律の遵守）</h2>
+<ol>
+  <li>乙は、作業の実施にあたり、甲の管理規約、指定された作業可能時間帯、車両乗り入れ規則を遵守しなければならない。</li>
+  <li>作業に伴い発生した雑草・落葉・ゴミ・古花等は、霊園内のゴミ集積所や水場に放置せず、乙の責任においてすべて場外へ持ち帰り適正に処分すること。</li>
+  <li>水汲み場、通路等の共有設備を清潔に使用し、一般の墓参者の通行や参拝を妨げないこと。</li>
+</ol>
+
+<h2>第3条（善管注意義務及び損害賠償責任【極めて重要】）</h2>
+<ol>
+  <li>乙は、善良なる管理者の注意をもって作業を行わなければならない。</li>
+  <li>乙が作業中または作業に関連して、対象墓石の欠損・破損・文字彫刻の剥離、または隣接・周辺の墓石・外柵・卒塔婆・共有施設に破損・汚損を生じさせた場合、<strong>乙が自己の費用と責任において直ちに原状回復を行い、甲および被害者に対する損害の一切を賠償するものとする。</strong></li>
+</ol>
+
+<h2>第4条（損害保険への加入確認）</h2>
+<p>乙は、前条に定める賠償責任を担保するため、業務活動に伴う施設賠償責任保険等に加入し、有効な保険期間を維持すること。</p>
+
+<h2>第5条（直接取引・中抜き行為の禁止）</h2>
+<p>乙は、本業務を通じて知り得た施主または霊園関係者に対し、甲および正規プラットフォームを経由しない直接取引の勧誘や営業を行ってはならない。</p>
+
+<h2>第6条（作業完了報告及び写真提出の義務）</h2>
+<p>乙は、作業の適正性を証するため、作業前および作業後の状況写真を正確に記録し、甲および施主に対して指定の報告書を提出しなければならない。</p>
+
+<h2>第7条（契約解除及び出入り禁止処分）</h2>
+<p>乙が本契約に違反した場合、または霊園の秩序を著しく乱す行為があった場合、甲は何らの催告を要せず直ちに乙に対する出入り認可を取り消し、霊園内への立ち入りを禁止することができる。</p>
+
+<div class="signatures">
+  <p>本契約締結の証として本書2通を作成し、甲乙記名押印の上、各自1通を保有する。</p>
+  <p style="text-align: right; margin-top: 15px;">契約締結日：${todayStr}</p>
+  <div class="sig-block">
+    <div class="sig-col">
+      <div class="seal-box">甲印</div>
+      <strong>【甲：霊園管理会社】</strong><br>
+      所在地：${cAddress}<br>
+      名　称：${cName}<br>
+      代表者：${cRep}　　印<br>
+      電　話：${cPhone}
+    </div>
+    <div class="sig-col">
+      <div class="seal-box">乙印</div>
+      <strong>【乙：作業代行業者】</strong><br>
+      所在地：${vAddress}<br>
+      屋号・商号：${vName}<br>
+      代表者：${vRep}　　印<br>
+      電　話：${vPhone}
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+
+    const fileName = `墓地作業代行基本契約書_${vendor?.displayName || '雛形'}_${new Date().toISOString().slice(0, 10)}.html`;
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-stone-100 text-slate-900 pb-24">
       {/* ⚠️ 本部管理者から来た場合のみ表示する戻りバー */}
@@ -365,6 +602,16 @@ function CemeteryDashboard() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
+                onClick={() => {
+                  setContractPrintTargetVendor(null);
+                  setShowContractTemplateModal(true);
+                }}
+                className="px-5 py-3.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+              >
+                <span>📄</span> 契約書雛形（PDF）を印刷・DL
+              </button>
+              <button
+                type="button"
                 onClick={() => setIsAddingNewVendor(true)}
                 className="px-5 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
               >
@@ -381,42 +628,142 @@ function CemeteryDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {affiliatedVendors.map((vendor) => (
-              <div
-                key={vendor.id}
-                className="bg-stone-50 border-2 border-stone-300 hover:border-blue-500 rounded-3xl p-6 shadow-sm transition flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900">
-                      {vendor.displayName}
-                    </h3>
-                    <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                      ★ 認定パートナー
-                    </span>
-                  </div>
-                  <p className="text-base text-stone-600 font-bold mb-3">
-                    代表・責任者: <span className="text-stone-900">{vendor.vendorProfile?.representativeName}</span>
-                  </p>
-                  <p className="text-base text-stone-700 mb-4 line-clamp-2">
-                    {vendor.vendorProfile?.description}
-                  </p>
-                  <div className="text-base text-stone-600 space-y-1 mb-4 bg-white p-3 rounded-xl border border-stone-200">
-                    <div>📞 連絡先: <strong className="text-stone-900">{vendor.phoneNumber}</strong></div>
-                    <div>📍 対応エリア: {vendor.vendorProfile?.serviceAreas?.join(', ')}</div>
-                    <div>⭐ 実績評価: <strong className="text-amber-700">{vendor.vendorProfile?.rating}点</strong>（施工件数: {vendor.vendorProfile?.completedJobsCount}件）</div>
-                  </div>
-                </div>
+            {affiliatedVendors.map((vendor) => {
+              const contract = currentCompany?.vendorContracts?.[vendor.id];
+              const hasContract = Boolean(contract && contract.contractFileUrl);
 
-                {/* 作業代行業者の画面を見に行くボタン（from=cemetery を付与） */}
-                <Link
-                  href={`/vendor?vendorId=${vendor.id}&from=cemetery&companyId=${currentCompany.id}`}
-                  className="mt-3 w-full py-3.5 px-4 bg-blue-700 hover:bg-blue-800 text-white text-lg font-bold rounded-2xl text-center shadow-md transition flex items-center justify-center gap-2"
+              return (
+                <div
+                  key={vendor.id}
+                  className="bg-stone-50 border-2 border-stone-300 hover:border-blue-500 rounded-3xl p-6 shadow-sm transition flex flex-col justify-between"
                 >
-                  <span>👁️</span> この代行業者の画面を確認する
-                </Link>
-              </div>
-            ))}
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900">
+                        {vendor.displayName}
+                      </h3>
+                      <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                        ★ 認定パートナー
+                      </span>
+                    </div>
+                    <p className="text-base text-stone-600 font-bold mb-3">
+                      代表・責任者: <span className="text-stone-900">{vendor.vendorProfile?.representativeName}</span>
+                    </p>
+                    <p className="text-base text-stone-700 mb-4 line-clamp-2">
+                      {vendor.vendorProfile?.description}
+                    </p>
+                    <div className="text-base text-stone-600 space-y-1 mb-4 bg-white p-3 rounded-xl border border-stone-200">
+                      <div>📞 連絡先: <strong className="text-stone-900">{vendor.phoneNumber}</strong></div>
+                      <div>📍 対応エリア: {vendor.vendorProfile?.serviceAreas?.join(', ')}</div>
+                      <div>⭐ 実績評価: <strong className="text-amber-700">{vendor.vendorProfile?.rating}点</strong>（施工件数: {vendor.vendorProfile?.completedJobsCount}件）</div>
+                    </div>
+
+                    {/* 契約書・誓約書 締結状況エリア */}
+                    <div className="mt-4 pt-4 border-t-2 border-stone-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-base font-bold text-stone-800 flex items-center gap-1.5">
+                          <span>📋</span> 墓地内作業契約書・誓約書
+                        </span>
+                        {hasContract ? (
+                          <span className="text-sm font-extrabold bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1 shadow-xs">
+                            <span>✅</span> 締結済み
+                          </span>
+                        ) : (
+                          <span className="text-sm font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-300 flex items-center gap-1">
+                            <span>⚠️</span> 未提出（未締結）
+                          </span>
+                        )}
+                      </div>
+
+                      {hasContract ? (
+                        <div className="bg-emerald-50/90 border border-emerald-300 rounded-2xl p-4 text-sm text-stone-800 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-emerald-950 truncate max-w-[220px]" title={contract?.contractFileName}>
+                              📎 {contract?.contractFileName || '締結済み契約書'}
+                            </span>
+                            <span className="text-stone-500 text-xs">
+                              {contract?.uploadedAt ? new Date(contract.uploadedAt).toLocaleDateString('ja-JP') : ''} 添付
+                            </span>
+                          </div>
+                          {contract?.notes && (
+                            <p className="text-xs text-stone-700 bg-white/90 p-2 rounded-xl border border-stone-200">
+                              📝 {contract.notes}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setViewingContract({ vendorName: vendor.displayName, contract: contract! })}
+                              className="flex-1 py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-1.5 cursor-pointer transition shadow-xs"
+                            >
+                              <span>👁️</span> 契約書を表示・確認
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUploadTargetVendor(vendor);
+                                setContractUploadFile(null);
+                                setContractUploadNotes(contract?.notes || '');
+                              }}
+                              className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-sm cursor-pointer transition"
+                              title="別のファイルで差し替える"
+                            >
+                              🔄 差替
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteContract(vendor.id, vendor.displayName)}
+                              className="py-2.5 px-3 bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl text-sm cursor-pointer transition"
+                              title="契約書を削除する"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 text-sm text-stone-800 space-y-3">
+                          <p className="text-stone-700 text-xs leading-relaxed">
+                            ※墓石破損時の賠償責任や霊園管理規則を担保するため、契約書を交わして添付してください。
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUploadTargetVendor(vendor);
+                                setContractUploadFile(null);
+                                setContractUploadNotes('');
+                              }}
+                              className="flex-1 py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-1.5 cursor-pointer transition shadow-sm"
+                            >
+                              <span>📎</span> 記入・捺印済み契約書を添付する
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setContractPrintTargetVendor(vendor);
+                                setShowContractTemplateModal(true);
+                              }}
+                              className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-sm flex items-center justify-center gap-1 cursor-pointer transition"
+                              title="この業者の名前入りの契約書を印刷・ダウンロード"
+                            >
+                              <span>📄</span> 雛形印刷
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 作業代行業者の画面を見に行くボタン（from=cemetery を付与） */}
+                  <Link
+                    href={`/vendor?vendorId=${vendor.id}&from=cemetery&companyId=${currentCompany.id}`}
+                    className="mt-4 w-full py-3.5 px-4 bg-blue-700 hover:bg-blue-800 text-white text-lg font-bold rounded-2xl text-center shadow-md transition flex items-center justify-center gap-2"
+                  >
+                    <span>👁️</span> この代行業者の画面を確認する
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -923,6 +1270,381 @@ function CemeteryDashboard() {
           </div>
         </div>
       )}
+
+      {/* 4. 契約書雛形 印刷・PDFダウンロード用モーダル */}
+      {showContractTemplateModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print-bg">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden my-4">
+            {/* モーダル操作ヘッダー（印刷時は非表示） */}
+            <div className="no-print p-5 bg-stone-900 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+              <div>
+                <span className="text-xs bg-amber-500 text-stone-950 font-bold px-2.5 py-0.5 rounded-full">
+                  {contractPrintTargetVendor ? `専用契約書（${contractPrintTargetVendor.displayName}）` : '契約書標準雛形（手書き用）'}
+                </span>
+                <h3 className="text-xl font-bold mt-1">
+                  📄 墓地内作業代行業務 基本契約書 兼 遵守誓約書
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrintContract}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition cursor-pointer"
+                >
+                  <span>🖨️</span> PDF保存・印刷する（A4）
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadContractHtml(contractPrintTargetVendor)}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition cursor-pointer"
+                >
+                  <span>📥</span> HTML文書をDL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowContractTemplateModal(false);
+                    setContractPrintTargetVendor(null);
+                  }}
+                  className="px-3.5 py-2.5 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded-xl text-sm transition cursor-pointer"
+                >
+                  ✕ 閉じる
+                </button>
+              </div>
+            </div>
+
+            {/* 印刷・書面プレビューエリア */}
+            <div className="p-6 sm:p-10 overflow-y-auto bg-stone-50 text-stone-900">
+              <div
+                id="printable-contract-container"
+                className="bg-white p-8 sm:p-12 shadow-sm rounded-xl border border-stone-300 max-w-3xl mx-auto text-stone-900 font-serif leading-relaxed"
+                style={{ fontFamily: '"Hiragino Mincho ProN", "Yu Mincho", serif' }}
+              >
+                <h1 className="text-center text-2xl font-bold pb-4 mb-6 border-b-2 border-stone-800 tracking-wider">
+                  墓地内作業代行業務 基本契約書 兼 遵守誓約書
+                </h1>
+
+                <p className="text-sm text-justify mb-6 indent-4">
+                  <strong>{currentCompany?.name || '霊園管理事務所'}</strong>（以下「甲」という）と、作業代行業者{' '}
+                  <strong>{contractPrintTargetVendor ? contractPrintTargetVendor.displayName : '＿＿＿＿＿＿＿＿＿＿＿＿＿＿'}</strong>（以下「乙」という）は、甲が管理する霊園・墓地（{currentCompany?.cemeteryNames?.join('、') || '管轄霊園'}）内において、墓地使用者等から委託を受けたお墓参り・墓所清掃・除草等の作業代行業務を実施するにあたり、以下の通り契約を締結し、乙はこれを厳格に遵守することを誓約する。
+                </p>
+
+                <div className="space-y-4 text-xs sm:text-sm">
+                  <div>
+                    <h2 className="font-bold text-base mb-1">第1条（目的及び作業の認可）</h2>
+                    <p className="text-justify indent-4">
+                      甲は、乙が本契約に定める各条項および甲の定める霊園管理規則を誠実に遵守することを条件として、甲の管轄する霊園内への出入りおよび墓所作業の実施を認可する。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h2 className="font-bold text-base mb-1">第2条（霊園管理規則および作業規律の遵守）</h2>
+                    <ol className="list-decimal pl-6 space-y-1">
+                      <li>乙は、作業の実施にあたり、甲の管理規約、指定された作業可能時間帯、車両乗り入れ規則を遵守しなければならない。</li>
+                      <li>作業に伴い発生した雑草・落葉・ゴミ・古花等は、霊園内のゴミ集積所や水場に放置せず、乙の責任においてすべて場外へ持ち帰り適正に処分すること。</li>
+                      <li>水汲み場、通路等の共有設備を清潔に使用し、一般の墓参者の通行や参拝を妨げないこと。</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-amber-50/60 p-3 rounded border border-amber-300">
+                    <h2 className="font-bold text-base mb-1 text-amber-950">第3条（善管注意義務及び損害賠償責任【極めて重要】）</h2>
+                    <ol className="list-decimal pl-6 space-y-1 text-amber-950">
+                      <li>乙は、善良なる管理者の注意をもって作業を行わなければならない。</li>
+                      <li>乙が作業中または作業に関連して、対象墓石の欠損・破損・文字彫刻の剥離、または隣接・周辺の墓石・外柵・卒塔婆・共有施設に破損・汚損を生じさせた場合、<strong>乙が自己の費用と責任において直ちに原状回復を行い、甲および被害者に対する損害の一切を賠償するものとする。</strong></li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <h2 className="font-bold text-base mb-1">第4条（損害保険への加入確認）</h2>
+                    <p className="text-justify indent-4">
+                      乙は、前条に定める賠償責任を担保するため、業務活動に伴う施設賠償責任保険等に加入し、有効な保険期間を維持すること。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h2 className="font-bold text-base mb-1">第5条（直接取引・中抜き行為の禁止）</h2>
+                    <p className="text-justify indent-4">
+                      乙は、本業務を通じて知り得た施主または霊園関係者に対し、甲および正規プラットフォームを経由しない直接取引の勧誘や営業を行ってはならない。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h2 className="font-bold text-base mb-1">第6条（作業完了報告及び写真提出の義務）</h2>
+                    <p className="text-justify indent-4">
+                      乙は、作業の適正性を証するため、作業前および作業後の状況写真を正確に記録し、甲および施主に対して指定の報告書を提出しなければならない。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h2 className="font-bold text-base mb-1">第7条（契約解除及び出入り禁止処分）</h2>
+                    <p className="text-justify indent-4">
+                      乙が本契約に違反した場合、または霊園の秩序を著しく乱す行為があった場合、甲は何らの催告を要せず直ちに乙に対する出入り認可を取り消し、霊園内への立ち入りを禁止することができる。
+                    </p>
+                  </div>
+                </div>
+
+                {/* 署名捺印欄 */}
+                <div className="mt-8 pt-6 border-t border-stone-400">
+                  <p className="text-xs">
+                    本契約締結の証として本書2通を作成し、甲乙記名押印の上、各自1通を保有する。
+                  </p>
+                  <p className="text-right text-xs mt-3">
+                    契約締結日：{new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4 mt-4 text-xs">
+                    <div className="border border-stone-300 p-4 rounded bg-stone-50/50 relative">
+                      <div className="absolute top-4 right-4 w-12 h-12 border border-dashed border-stone-400 text-stone-400 flex items-center justify-center text-[10px]">
+                        甲印
+                      </div>
+                      <span className="font-bold block mb-1">【甲：霊園管理者】</span>
+                      <div>所在地：{currentCompany?.locationAddress || '＿＿＿＿＿＿＿＿＿＿＿＿'}</div>
+                      <div>名　称：{currentCompany?.name || '霊園管理事務所'}</div>
+                      <div className="mt-1">代表者：{currentCompany?.representativeName || '霊園管理長'}　　印</div>
+                      <div>電　話：{currentCompany?.phoneNumber || '＿＿＿＿＿＿＿＿＿＿＿＿'}</div>
+                    </div>
+
+                    <div className="border border-stone-300 p-4 rounded bg-stone-50/50 relative">
+                      <div className="absolute top-4 right-4 w-12 h-12 border border-dashed border-stone-400 text-stone-400 flex items-center justify-center text-[10px]">
+                        乙印
+                      </div>
+                      <span className="font-bold block mb-1">【乙：作業代行業者】</span>
+                      <div>所在地：{contractPrintTargetVendor?.vendorProfile?.serviceAreas?.join('、') || '＿＿＿＿＿＿＿＿＿＿＿＿'}</div>
+                      <div>屋号名：{contractPrintTargetVendor?.displayName || '＿＿＿＿＿＿＿＿＿＿＿＿'}</div>
+                      <div className="mt-1">代表者：{contractPrintTargetVendor?.vendorProfile?.representativeName || '＿＿＿＿＿＿＿＿'}　　印</div>
+                      <div>電　話：{contractPrintTargetVendor?.phoneNumber || '＿＿＿＿＿＿＿＿＿＿＿＿'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. 記入済み契約書の添付・貼り付けアップロードモーダル */}
+      {uploadTargetVendor && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-stone-200">
+              <div>
+                <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full">
+                  契約書の電子保管
+                </span>
+                <h3 className="text-xl font-extrabold text-stone-900 mt-1">
+                  📎 記入・捺印済み契約書の添付
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadTargetVendor(null);
+                  setContractUploadFile(null);
+                }}
+                className="text-stone-400 hover:text-stone-700 text-2xl font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
+              <span className="text-xs font-bold text-stone-500 block">対象の作業代行業者</span>
+              <span className="text-lg font-extrabold text-stone-900">{uploadTargetVendor.displayName}</span>
+              <span className="text-sm text-stone-600 block">責任者: {uploadTargetVendor.vendorProfile?.representativeName} 様</span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-base font-bold text-stone-800 mb-2">
+                  契約書ファイルを選択（PDF または スマホで撮影した画像）
+                </label>
+                <div className="border-2 border-dashed border-stone-300 hover:border-emerald-600 rounded-2xl p-6 text-center bg-stone-50 transition">
+                  <input
+                    type="file"
+                    id="contract-file-input"
+                    accept="application/pdf,image/*"
+                    onChange={handleContractFileSelect}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="contract-file-input"
+                    className="cursor-pointer flex flex-col items-center justify-center gap-2"
+                  >
+                    <span className="text-4xl">📄</span>
+                    <span className="text-base font-bold text-emerald-800 hover:underline">
+                      ここをクリックしてファイルを選択
+                    </span>
+                    <span className="text-xs text-stone-500">
+                      PDF、またはスマホカメラで撮影したJPG / PNG写真（最大12MB）
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 選択されたファイルプレビュー */}
+              {contractUploadFile && (
+                <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-xl shrink-0">
+                      {contractUploadFile.fileType.includes('pdf') ? '📑' : '🖼️'}
+                    </span>
+                    <div className="truncate">
+                      <span className="font-bold text-emerald-950 text-sm block truncate">
+                        {contractUploadFile.fileName}
+                      </span>
+                      <span className="text-xs text-emerald-700">アップロード準備完了</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setContractUploadFile(null)}
+                    className="text-stone-400 hover:text-rose-600 font-bold text-xs p-1"
+                  >
+                    取消
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-bold text-stone-800 mb-1">
+                  備考・確認メモ（任意）
+                </label>
+                <input
+                  type="text"
+                  value={contractUploadNotes}
+                  onChange={(e) => setContractUploadNotes(e.target.value)}
+                  placeholder="例: 2026年9月締結。賠償責任保険証書の写しも確認済み。"
+                  className="w-full text-sm p-3 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t-2 border-stone-200 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadTargetVendor(null);
+                    setContractUploadFile(null);
+                  }}
+                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  disabled={!contractUploadFile || isUploadingContract}
+                  onClick={handleSaveContract}
+                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
+                    !contractUploadFile || isUploadingContract
+                      ? 'bg-stone-400 cursor-not-allowed'
+                      : 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer'
+                  }`}
+                >
+                  {isUploadingContract ? '保存中...' : '契約書を保存して締結済みにする'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. 添付契約書の拡大閲覧・確認モーダル */}
+      {viewingContract && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="p-5 bg-stone-900 text-white flex items-center justify-between gap-3 shrink-0">
+              <div>
+                <span className="text-xs bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded-full">
+                  締結済み契約書
+                </span>
+                <h3 className="text-xl font-bold mt-1">
+                  👁️ {viewingContract.vendorName} の契約書
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingContract.contract.contractFileUrl && (
+                  <a
+                    href={viewingContract.contract.contractFileUrl}
+                    download={viewingContract.contract.contractFileName || '契約書'}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1"
+                  >
+                    <span>📥</span> ダウンロード
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setViewingContract(null)}
+                  className="px-3.5 py-2 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                >
+                  ✕ 閉じる
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto bg-stone-100 flex-1 flex flex-col items-center justify-center">
+              {viewingContract.contract.contractFileUrl ? (
+                viewingContract.contract.contractFileUrl.startsWith('data:image/') ? (
+                  <div className="max-w-full overflow-auto bg-white p-2 rounded-2xl shadow border border-stone-200">
+                    <img
+                      src={viewingContract.contract.contractFileUrl}
+                      alt="添付契約書"
+                      className="max-h-[65vh] w-auto object-contain rounded-xl"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-[65vh] bg-white rounded-2xl shadow overflow-hidden border border-stone-200">
+                    <iframe
+                      src={viewingContract.contract.contractFileUrl}
+                      title="契約書PDF"
+                      className="w-full h-full"
+                    />
+                  </div>
+                )
+              ) : (
+                <div className="text-stone-500 font-bold p-8">ファイルデータがありません</div>
+              )}
+
+              <div className="w-full max-w-xl mt-4 bg-white p-3.5 rounded-xl border border-stone-200 text-xs text-stone-700 space-y-1">
+                <div>📎 ファイル名: <strong>{viewingContract.contract.contractFileName || '不明'}</strong></div>
+                <div>📅 添付日時: {viewingContract.contract.uploadedAt ? new Date(viewingContract.contract.uploadedAt).toLocaleString('ja-JP') : '不明'}</div>
+                {viewingContract.contract.notes && (
+                  <div>📝 備考メモ: {viewingContract.contract.notes}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 印刷・PDF保存専用CSSスタイル */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-contract-container,
+          #printable-contract-container * {
+            visibility: visible;
+          }
+          #printable-contract-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 15mm;
+            background: white !important;
+            color: #000 !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .no-print-bg {
+            background: none !important;
+            position: static !important;
+            padding: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
