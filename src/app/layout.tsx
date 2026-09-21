@@ -7,6 +7,15 @@ import Navbar from "@/components/Navbar";
 export const metadata: Metadata = {
   title: "ココロモウ（Kokoromou）| お墓参り・お掃除代行プラットフォーム",
   description: "遠方に住むご家族と、地元の信頼できる石材・清掃業者を繋ぐお墓参り・清掃代行サービス。Stripe Connectによる安心の自動分配決済。",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png' },
+    ],
+  },
 };
 
 export default function RootLayout({

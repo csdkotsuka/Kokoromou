@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Flower2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Navbar() {
   return (
@@ -10,9 +10,16 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* ロゴ */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-full bg-emerald-800 flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
-              <Flower2 className="w-6 h-6" />
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm transition-transform group-hover:scale-105 shrink-0 border border-stone-200 bg-white">
+              <Image
+                src="/logo.png"
+                alt="ココロモウ ロゴ"
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
             <div>
               <span className="text-xl font-bold tracking-tight text-stone-900 block leading-tight">ココロモウ</span>

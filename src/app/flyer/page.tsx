@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Printer, 
   ArrowLeft, 
@@ -136,8 +137,14 @@ export default function FlyerPage() {
               <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 p-8 text-white">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-full bg-white text-emerald-700 flex items-center justify-center font-black text-xl shadow-md">
-                      🌸
+                    <div className="w-10 h-10 rounded-full bg-white overflow-hidden shadow-md shrink-0">
+                      <Image
+                        src="/logo.png"
+                        alt="ココロモウ ロゴ"
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <span className="text-2xl font-black tracking-tight block leading-tight">ココロモウ</span>
@@ -379,7 +386,15 @@ export default function FlyerPage() {
                 <div className="p-4 flex flex-col justify-between bg-gradient-to-br from-emerald-500 via-teal-500 to-sky-500 text-white rounded-xl shadow-md space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-base">🌸</span>
+                      <div className="w-5 h-5 rounded-full bg-white overflow-hidden shadow-xs shrink-0">
+                        <Image
+                          src="/logo.png"
+                          alt="ココロモウ ロゴ"
+                          width={20}
+                          height={20}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       <span className="font-black text-sm tracking-wider">ココロモウ</span>
                     </div>
                     <span className="text-[10px] bg-amber-400 text-stone-950 font-black px-2 py-0.5 rounded">
