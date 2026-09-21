@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS } from '@/mocks/sample-data';
+import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_CEMETERY_COMPANIES } from '@/mocks/sample-data';
 import { 
   ShieldCheck, 
   CreditCard, 
@@ -364,8 +364,8 @@ function OrderFormContent() {
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-5 h-5 text-amber-400 shrink-0" />
                   <div>
-                    <span className="text-stone-300 block text-[11px]">お電話での直接ご相談・確認も歓迎しております</span>
-                    <strong className="text-lg text-amber-300 font-black">090-4116-9476</strong>
+                    <span className="text-stone-300 block text-[11px]">{SAMPLE_CEMETERY_COMPANIES[0].name} へのお電話でのご相談も歓迎しております</span>
+                    <strong className="text-lg text-amber-300 font-black">{SAMPLE_CEMETERY_COMPANIES[0].phoneNumber}</strong>
                   </div>
                 </div>
                 <span className="text-[10px] text-stone-400 bg-white/10 px-2.5 py-1 rounded">

@@ -513,11 +513,15 @@ export default function AdminPricingProposalPage() {
             break-after: page !important;
             box-shadow: none !important;
             border: none !important;
-            padding: 4mm !important;
+            padding: 10mm !important;
             margin: 0 !important;
             width: 100% !important;
-            min-height: 275mm !important;
-            height: auto !important;
+            height: 277mm !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            overflow: hidden !important;
           }
           .page-sheet:last-child {
             page-break-after: avoid !important;

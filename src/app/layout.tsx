@@ -82,6 +82,22 @@ export default function RootLayout({
                   <Printer className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
                   <span>販促チラシ・三つ折りリーフレット叩き台</span>
                 </Link>
+
+                <Link
+                  href="/cemetery/login"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-amber-300 hover:text-amber-200 text-xs font-medium border border-amber-800/50 transition-colors shadow-xs group"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span>墓地管理会社ログイン</span>
+                </Link>
+
+                <Link
+                  href="/vendor/login"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-blue-300 hover:text-blue-200 text-xs font-medium border border-blue-900/50 transition-colors shadow-xs group"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform" />
+                  <span>作業代行業者ログイン</span>
+                </Link>
               </div>
             </div>
 

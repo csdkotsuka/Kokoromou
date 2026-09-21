@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { User } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -28,7 +29,7 @@ export default function Navbar() {
           </Link>
 
           {/* ナビゲーション（施主・一般利用者向け） */}
-          <nav className="flex items-center gap-3 sm:gap-6">
+          <nav className="flex items-center gap-2 sm:gap-4">
             <Link
               href="/#features"
               className="text-sm font-medium text-stone-600 hover:text-emerald-800 transition-colors hidden md:inline"
@@ -43,39 +44,23 @@ export default function Navbar() {
             </Link>
             <Link
               href="/#reviews"
-              className="text-sm font-medium text-stone-600 hover:text-emerald-800 transition-colors hidden sm:inline"
+              className="text-sm font-medium text-stone-600 hover:text-emerald-800 transition-colors hidden lg:inline"
             >
               お客様の声
             </Link>
             <Link
-              href="/#faq"
-              className="text-sm font-medium text-stone-600 hover:text-emerald-800 transition-colors hidden lg:inline"
-            >
-              よくある質問
-            </Link>
-            <Link
               href="/contact"
-              className="text-xs sm:text-sm font-semibold text-emerald-800 hover:text-emerald-900 transition-colors flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-xs"
+              className="text-xs sm:text-sm font-semibold text-emerald-800 hover:text-emerald-900 transition-colors flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-xs hidden sm:flex"
             >
               <span>無料ご相談・お問い合わせ</span>
             </Link>
+            {/* マイページ - 目立つボタン */}
             <Link
               href="/mypage"
-              className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors hidden md:inline"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white bg-stone-700 hover:bg-stone-800 px-3 py-2 rounded-lg shadow-sm transition-all hover:shadow-md hidden md:inline-flex"
             >
-              マイページ
-            </Link>
-            <Link
-              href="/cemetery/login"
-              className="text-xs sm:text-sm font-semibold text-amber-900 hover:text-amber-950 transition-colors hidden sm:inline"
-            >
-              墓地管理会社
-            </Link>
-            <Link
-              href="/vendor/login"
-              className="text-xs sm:text-sm font-semibold text-blue-900 hover:text-blue-950 transition-colors hidden sm:inline"
-            >
-              作業代行業者
+              <User className="w-3.5 h-3.5" />
+              <span>マイページ</span>
             </Link>
             <Link
               href="/order"
