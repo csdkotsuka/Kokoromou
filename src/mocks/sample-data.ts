@@ -1,4 +1,58 @@
-import { ServicePlan, User, Order, Report } from '@/types/firestore';
+import { ServicePlan, User, Order, Report, PlatformAdminInfo, CemeteryCompany } from '@/types/firestore';
+
+/**
+ * 本部管理情報（ココロモウ運営本部）
+ */
+export const SAMPLE_ADMIN_INFO: PlatformAdminInfo = {
+  organizationName: '株式会社 ココロモウ（Kokoromou Inc.）',
+  serviceName: 'お墓参り・お掃除代行DXプラットフォーム「ココロモウ」',
+  representative: '大塚 浩二（代表取締役）',
+  email: 'admin@kokoromou.example.com',
+  phoneNumber: '089-911-8800',
+  address: '愛媛県松山市大街道3丁目2-1 メモリアルスクエアビル 5F',
+  platformFeePercent: 20, // 標準手数料 20%
+  stripePlatformAccountId: 'acct_1KokoromouPlatformMain',
+  description: '愛媛県松山・中予エリアを中心に、霊園・墓地管理会社と地域の確かな石材・清掃代行業者をつなぐ、安心の代行マッチングおよび決済送金プラットフォーム。',
+};
+
+/**
+ * 墓地管理会社・霊園管理事務所サンプル（3社）
+ */
+export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
+  {
+    id: 'cem_comp_001',
+    name: '宝塔寺 旭ヶ丘霊園管理事務所',
+    cemeteryNames: ['宝塔寺 旭ヶ丘霊園（モデル霊園）', '宝塔寺 東区共同墓苑'],
+    representativeName: '宝塔寺 住職 / 霊園管理長 佐伯 泰山',
+    phoneNumber: '089-925-8822',
+    email: 'info@houtouji-reien-dummy.jp',
+    locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
+    description: '松山城を望む閑静な旭ヶ丘の高台に位置する歴史ある寺院霊園。同姓の多い共同区画の適正管理と指定業者認定制度を導入。',
+    affiliatedVendorIds: ['vendor_001', 'vendor_003', 'vendor_006'], // 松山まごころ、伊予匠、勝山美装
+  },
+  {
+    id: 'cem_comp_002',
+    name: '松山市営霊園 指定管理共同体（大明神・客谷）',
+    cemeteryNames: ['松山市営 大明神霊園', '松山市営 客谷霊園'],
+    representativeName: '所長 門田 喜一郎',
+    phoneNumber: '089-947-6611',
+    email: 'reien@matsuyama-shiei-dummy.jp',
+    locationAddress: '愛媛県松山市溝辺町',
+    description: '松山市営の大規模公営霊園群。広大な敷地の手入れと水回り環境を維持するため、複数の地域清掃代行パートナーと連携。',
+    affiliatedVendorIds: ['vendor_001', 'vendor_002', 'vendor_003', 'vendor_004'], // 複数業者と提携
+  },
+  {
+    id: 'cem_comp_003',
+    name: '道後やすらぎ墓苑 運営会 / 湯山寺院管理所',
+    cemeteryNames: ['道後 湯山地域共同墓地', '道後やすらぎ霊苑'],
+    representativeName: '代表幹事 水野 兼昭',
+    phoneNumber: '089-977-3300',
+    email: 'dogo-yasuragi@dummy.example.com',
+    locationAddress: '愛媛県松山市末町',
+    description: '道後温泉奥座敷の豊かな緑に囲まれた共同霊園。傾斜地や階段のある難所区画が多いため、専門技能を持つ業者を指定。',
+    affiliatedVendorIds: ['vendor_002', 'vendor_004', 'vendor_005'], // 城南みち、道後こもれび、緑風墓苑
+  },
+];
 
 /**
  * サービスプラン一覧
@@ -71,6 +125,7 @@ export const SAMPLE_VENDORS: User[] = [
       description: '松山市土居田町を拠点にお墓の清掃代行・墓じまい・永代供養までトータルでサポート。宝塔寺旭ヶ丘霊園など市内各霊園での施工実績多数。真心を込めてお墓を守ります。',
       rating: 4.9,
       completedJobsCount: 168,
+      affiliatedCemeteryCompanyIds: ['cem_comp_001', 'cem_comp_002'], // 宝塔寺霊園、松山市営霊園
     },
   },
   {
@@ -91,6 +146,7 @@ export const SAMPLE_VENDORS: User[] = [
       description: '松山城下や道後周辺の寺院墓地・公営墓地に対応。地域に根ざした職人が丁寧にお参り・清掃を代行いたします。',
       rating: 4.8,
       completedJobsCount: 85,
+      affiliatedCemeteryCompanyIds: ['cem_comp_002', 'cem_comp_003'], // 市営霊園、道後やすらぎ
     },
   },
   {
@@ -111,6 +167,7 @@ export const SAMPLE_VENDORS: User[] = [
       description: '創業40余年の石材加工技術を活かした本格的な墓石クリーニング。墓石を傷めない専用水洗いと目地補修、白木・ステンレス金具交換など石材のプロならではの施工が強みです。',
       rating: 4.9,
       completedJobsCount: 142,
+      affiliatedCemeteryCompanyIds: ['cem_comp_001', 'cem_comp_002'], // 宝塔寺霊園、市営霊園
     },
   },
   {
@@ -131,6 +188,7 @@ export const SAMPLE_VENDORS: User[] = [
       description: '女性スタッフ中心の細やかな心配りとお掃除代行。お供えする生花は松山老舗生花店から厳選仕入れし、故人様のお好きだった色合いや供物にも温かく対応いたします。',
       rating: 5.0,
       completedJobsCount: 96,
+      affiliatedCemeteryCompanyIds: ['cem_comp_002', 'cem_comp_003'], // 市営霊園、道後やすらぎ
     },
   },
   {
@@ -151,6 +209,7 @@ export const SAMPLE_VENDORS: User[] = [
       description: '山間部や階段の多い急傾斜地墓地、古くからの共同墓地での除草・雑木伐採を得意としています。足場の悪い難所墓地でも安全・確実にお手入れを実施いたします。',
       rating: 4.7,
       completedJobsCount: 115,
+      affiliatedCemeteryCompanyIds: ['cem_comp_003'], // 道後やすらぎ・山間部難所
     },
   },
   {
@@ -171,6 +230,7 @@ export const SAMPLE_VENDORS: User[] = [
       description: '松山市営大明神霊園、宝塔寺旭ヶ丘霊園、客谷霊園など市内主要霊園での実績多数。最新の撥水防汚コーティングや文字墨入れなど、お墓の美観維持に特化した技術を提供します。',
       rating: 4.9,
       completedJobsCount: 203,
+      affiliatedCemeteryCompanyIds: ['cem_comp_001', 'cem_comp_002'], // 宝塔寺、市営霊園
     },
   },
 ];
@@ -185,6 +245,8 @@ export const SAMPLE_ORDERS: Order[] = [
     clientId: 'client_user_101',
     clientName: '山田 太郎',
     clientEmail: 'taro.yamada@example.com',
+    cemeteryCompanyId: 'cem_comp_001',
+    cemeteryCompanyName: '宝塔寺 旭ヶ丘霊園管理事務所',
     vendorId: 'vendor_001',
     vendorName: '松山まごころ墓苑サポート（ダミー提携パートナー）',
     vendorStripeAccountId: 'acct_1OuTESTConnectVendor01',
@@ -201,6 +263,7 @@ export const SAMPLE_ORDERS: Order[] = [
     stripePaymentIntentId: 'pi_test_sample_payment_intent_456',
     status: 'paid',
     graveInfo: {
+      cemeteryCompanyId: 'cem_comp_001',
       cemeteryName: '宝塔寺 旭ヶ丘霊園（モデル霊園・ダミー）',
       locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
       sectionPlotNumber: '東区 5列 12番',
@@ -227,6 +290,8 @@ export const SAMPLE_ORDERS: Order[] = [
     clientId: 'client_user_102',
     clientName: '佐藤 美咲',
     clientEmail: 'misaki.sato@example.com',
+    cemeteryCompanyId: 'cem_comp_002',
+    cemeteryCompanyName: '松山市営霊園 指定管理共同体（大明神・客谷）',
     vendorId: 'vendor_002',
     vendorName: '城南みちお墓クリーン（ダミー提携パートナー）',
     vendorStripeAccountId: 'acct_1OuTESTConnectVendor02',
@@ -241,6 +306,7 @@ export const SAMPLE_ORDERS: Order[] = [
     currency: 'jpy',
     status: 'in_progress',
     graveInfo: {
+      cemeteryCompanyId: 'cem_comp_002',
       cemeteryName: '松山市営 大明神霊園',
       locationAddress: '愛媛県松山市溝辺町',
       sectionPlotNumber: '南3区 8列 15番',
@@ -266,6 +332,8 @@ export const SAMPLE_ORDERS: Order[] = [
     clientId: 'client_user_103',
     clientName: '高橋 健司',
     clientEmail: 'kenji.takahashi@example.com',
+    cemeteryCompanyId: 'cem_comp_003',
+    cemeteryCompanyName: '道後やすらぎ墓苑 運営会 / 湯山寺院管理所',
     vendorId: 'vendor_003',
     vendorName: '伊予匠・石材メンテナンス工房（ダミー提携パートナー）',
     vendorStripeAccountId: 'acct_1OuTESTConnectVendor03',
@@ -280,6 +348,7 @@ export const SAMPLE_ORDERS: Order[] = [
     currency: 'jpy',
     status: 'paid',
     graveInfo: {
+      cemeteryCompanyId: 'cem_comp_003',
       cemeteryName: '道後 湯山地域共同墓地',
       locationAddress: '愛媛県松山市末町',
       sectionPlotNumber: '参道沿い中段 7番',

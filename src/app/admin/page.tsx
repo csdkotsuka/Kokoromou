@@ -22,16 +22,45 @@ import {
   PlusCircle,
   Clock,
   ArrowUpRight,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  Phone,
+  Mail,
+  Home,
+  Check,
+  Briefcase
 } from 'lucide-react';
-import { SAMPLE_VENDORS, SAMPLE_ORDERS, SAMPLE_SERVICE_PLANS } from '@/mocks/sample-data';
-import { Order, User } from '@/types/firestore';
+import { 
+  SAMPLE_ADMIN_INFO, 
+  SAMPLE_CEMETERY_COMPANIES, 
+  SAMPLE_VENDORS, 
+  SAMPLE_ORDERS 
+} from '@/mocks/sample-data';
+import { Order, User, CemeteryCompany, PlatformAdminInfo } from '@/types/firestore';
 
 export default function AdminDashboardPage() {
+  // 本部管理情報ステート
+  const [adminInfo, setAdminInfo] = useState<PlatformAdminInfo>(SAMPLE_ADMIN_INFO);
+
+  // 墓地管理会社ステート
+  const [cemeteryCompanies, setCemeteryCompanies] = useState<CemeteryCompany[]>(SAMPLE_CEMETERY_COMPANIES);
+
+  // 作業代行業者ステート
   const [vendors, setVendors] = useState<User[]>(SAMPLE_VENDORS);
+
+  // 注文ステート
   const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
-  const [selectedTab, setSelectedTab] = useState<'orders' | 'vendors'>('orders');
+
+  // 選択中のタブ
+  const [selectedTab, setSelectedTab] = useState<'orders' | 'cemetery_relations' | 'admin_profile'>('orders');
+
+  // 墓地管理会社紐付けタブで選択中の墓地管理会社ID
+  const [selectedCemeteryId, setSelectedCemeteryId] = useState<string>(SAMPLE_CEMETERY_COMPANIES[0].id);
+
+  // 検索クエリ
   const [searchQuery, setSearchQuery] = useState('');
+
+  // 写真プレビューモーダル
   const [previewPhoto, setPreviewPhoto] = useState<{ title: string; url: string } | null>(null);
 
   // 売上・手数料の集計
@@ -39,7 +68,43 @@ export default function AdminDashboardPage() {
   const totalPlatformFee = orders.reduce((sum, o) => sum + o.platformFeeAmount, 0);
   const totalVendorPayout = orders.reduce((sum, o) => sum + o.vendorPayoutAmount, 0);
 
-  // 担当管理会社（パートナー）の切り替えハンドラー
+  // 選択中の墓地管理会社オブジェクト
+  const activeCemeteryCompany = cemeteryCompanies.find((c) => c.id === selectedCemeteryId) || cemeteryCompanies[0];
+
+  // 墓地管理会社への代行業者紐付け（トグル切り替え）
+  const handleToggleVendorAffiliation = (cemeteryCompId: string, vendorId: string) => {
+    setCemeteryCompanies((prev) =>
+      prev.map((comp) => {
+        if (comp.id === cemeteryCompId) {
+          const isAffiliated = comp.affiliatedVendorIds.includes(vendorId);
+          const newIds = isAffiliated
+            ? comp.affiliatedVendorIds.filter((id) => id !== vendorId)
+            : [...comp.affiliatedVendorIds, vendorId];
+          return { ...comp, affiliatedVendorIds: newIds };
+        }
+        return comp;
+      })
+    );
+
+    setVendors((prev) =>
+      prev.map((v) => {
+        if (v.id === vendorId && v.vendorProfile) {
+          const currentIds = v.vendorProfile.affiliatedCemeteryCompanyIds || [];
+          const isAffiliated = currentIds.includes(cemeteryCompId);
+          const newIds = isAffiliated
+            ? currentIds.filter((id) => id !== cemeteryCompId)
+            : [...currentIds, cemeteryCompId];
+          return {
+            ...v,
+            vendorProfile: { ...v.vendorProfile, affiliatedCemeteryCompanyIds: newIds },
+          };
+        }
+        return v;
+      })
+    );
+  };
+
+  // 注文に対する代行業者アサイン切り替えハンドラー
   const handleAssignVendor = (orderId: string, newVendorId: string) => {
     const targetVendor = vendors.find((v) => v.id === newVendorId);
     if (!targetVendor) return;
@@ -59,42 +124,26 @@ export default function AdminDashboardPage() {
     );
   };
 
-  // 注文ステータスの切り替え
+  // 注文ステータスの変更
   const handleStatusChange = (orderId: string, newStatus: any) => {
     setOrders((prev) =>
       prev.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord))
     );
   };
 
-  // フィルタリング
-  const filteredOrders = orders.filter(
-    (o) =>
-      o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.graveInfo.cemeteryName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredVendors = vendors.filter(
-    (v) =>
-      v.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.vendorProfile?.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.vendorProfile?.serviceAreas.some((a) => a.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
   return (
     <div className="min-h-screen bg-stone-100/70 py-8 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* 本部管理者ヘッダー */}
+        {/* 本部統括ヘッダー */}
         <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 bg-emerald-950 text-emerald-300 border border-emerald-800/80 px-3 py-1 rounded-full text-xs font-semibold mb-3">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>ココロモウ プラットフォーム運営本部</span>
+              <span>{adminInfo.serviceName} 統括管理ポータル</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">自社統括・管理ポータル</h1>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{adminInfo.organizationName}</h1>
             <p className="text-xs sm:text-sm text-stone-400 mt-1">
-              全体の流通額・手数料売上集計、提携墓地管理会社の管理、注文ごとの担当会社切り替え・アサイン
+              墓地管理会社（霊園）と現場作業代行業者を紐付け・統括管理する本部向け管理画面
             </p>
           </div>
 
@@ -103,8 +152,8 @@ export default function AdminDashboardPage() {
               href="/vendor"
               className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition"
             >
-              <Building2 className="w-4 h-4" />
-              <span>各管理会社の専用画面を見る</span>
+              <Briefcase className="w-4 h-4" />
+              <span>各代行業者専用ポータルへ</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
             <Link
@@ -129,7 +178,7 @@ export default function AdminDashboardPage() {
 
           <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs ring-2 ring-emerald-600/20 bg-emerald-50/20">
             <div className="flex items-center justify-between text-emerald-800 mb-2">
-              <span className="text-xs font-bold">自社手数料売上 (20%)</span>
+              <span className="text-xs font-bold">本部手数料売上 ({adminInfo.platformFeePercent}%)</span>
               <CreditCard className="w-4 h-4 text-emerald-700" />
             </div>
             <div className="text-2xl font-black text-emerald-800">¥{totalPlatformFee.toLocaleString()}</div>
@@ -138,75 +187,83 @@ export default function AdminDashboardPage() {
 
           <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
             <div className="flex items-center justify-between text-stone-500 mb-2">
-              <span className="text-xs font-semibold">提携会社送金予定額 (80%)</span>
-              <Building2 className="w-4 h-4 text-stone-700" />
+              <span className="text-xs font-semibold">提携代行業者 送金報酬額 (80%)</span>
+              <Briefcase className="w-4 h-4 text-stone-700" />
             </div>
             <div className="text-2xl font-black text-stone-900">¥{totalVendorPayout.toLocaleString()}</div>
-            <span className="text-[11px] text-stone-500 mt-1 block">管理会社への直接送金総額</span>
+            <span className="text-[11px] text-stone-500 mt-1 block">各代行業者への直接送金総額</span>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
             <div className="flex items-center justify-between text-stone-500 mb-2">
-              <span className="text-xs font-semibold">登録提携会社数 / 総注文数</span>
-              <Users className="w-4 h-4 text-stone-700" />
+              <span className="text-xs font-semibold">墓地管理会社 / 提携代行業者</span>
+              <Building2 className="w-4 h-4 text-stone-700" />
             </div>
             <div className="text-2xl font-black text-stone-900">
-              {vendors.length}社 <span className="text-base font-normal text-stone-500">/ {orders.length}件</span>
+              {cemeteryCompanies.length}社 <span className="text-base font-normal text-stone-500">/ {vendors.length}社</span>
             </div>
-            <span className="text-[11px] text-emerald-700 font-medium mt-1 block">全社 Stripe Connect 接続済</span>
+            <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
+              管轄霊園: {cemeteryCompanies.reduce((sum, c) => sum + c.cemeteryNames.length, 0)}霊園
+            </span>
           </div>
         </div>
 
-        {/* タブ切り替えバー */}
+        {/* タブナビゲーション */}
         <div className="bg-white p-2 rounded-2xl border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setSelectedTab('orders')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                 selectedTab === 'orders'
                   ? 'bg-emerald-800 text-white shadow-sm'
                   : 'text-stone-600 hover:bg-stone-100'
               }`}
             >
-              受注・担当管理会社アサイン ({orders.length}件)
+              <Clock className="w-3.5 h-3.5" />
+              <span>① 受注・代行業者アサイン ({orders.length}件)</span>
             </button>
             <button
               type="button"
-              onClick={() => setSelectedTab('vendors')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                selectedTab === 'vendors'
+              onClick={() => setSelectedTab('cemetery_relations')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                selectedTab === 'cemetery_relations'
                   ? 'bg-emerald-800 text-white shadow-sm'
                   : 'text-stone-600 hover:bg-stone-100'
               }`}
             >
-              提携墓地管理会社一覧 ({vendors.length}社)
+              <Building2 className="w-3.5 h-3.5" />
+              <span>② 墓地管理会社 ＆ 提携代行業者の紐付け管理</span>
             </button>
-          </div>
-
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="会社名、施主名、霊園名で検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs bg-stone-50 border border-stone-300 rounded-xl pl-9 pr-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
+            <button
+              type="button"
+              onClick={() => setSelectedTab('admin_profile')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                selectedTab === 'admin_profile'
+                  ? 'bg-emerald-800 text-white shadow-sm'
+                  : 'text-stone-600 hover:bg-stone-100'
+              }`}
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>③ 本部管理情報・プラットフォーム設定</span>
+            </button>
           </div>
         </div>
 
-        {/* タブ1: 受注案件 ＆ 担当管理会社の切り替え（アサイン） */}
+        {/* ========================================================================= */}
+        {/* タブ1: 受注案件 ＆ 墓地管理会社ごとの代行業者アサイン */}
+        {/* ========================================================================= */}
         {selectedTab === 'orders' && (
-          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden space-y-4">
             <div className="p-6 border-b border-stone-100 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-bold text-stone-900">受注案件一覧 ＆ 担当管理会社アサイン</h2>
+                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                  <span>受注案件一覧 ＆ 現場作業代行業者アサイン</span>
+                </h2>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  注文ごとに担当する墓地管理会社をドロップダウンで即座に切り替え・再割り当てできます。
+                  施主が指定した霊園（墓地管理会社）と提携契約を結んでいる代行業者の中から、担当業者をワンクリックで切り替えできます。
                 </p>
               </div>
-              <span className="text-xs text-stone-500 font-medium">該当: {filteredOrders.length}件</span>
             </div>
 
             <div className="overflow-x-auto">
@@ -215,234 +272,416 @@ export default function AdminDashboardPage() {
                   <tr>
                     <th className="py-3.5 px-4">注文番号 / 日時</th>
                     <th className="py-3.5 px-4">施主情報</th>
+                    <th className="py-3.5 px-4">管轄 墓地管理会社 / 霊園</th>
                     <th className="py-3.5 px-4">墓石特定情報（正面/側面写真・基数）</th>
                     <th className="py-3.5 px-4">プラン / 金額</th>
-                    <th className="py-3.5 px-4">担当管理会社の切り替え</th>
+                    <th className="py-3.5 px-4">担当 作業代行業者</th>
                     <th className="py-3.5 px-4">ステータス</th>
                     <th className="py-3.5 px-4 text-right">アクション</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {filteredOrders.map((ord) => (
-                    <tr key={ord.id} className="hover:bg-stone-50/80 transition-colors">
-                      <td className="py-4 px-4 align-top">
-                        <span className="font-bold text-stone-900 block font-mono">{ord.orderNumber}</span>
-                        <span className="text-[10px] text-stone-400 block mt-0.5">
-                          {new Date(ord.createdAt).toLocaleDateString('ja-JP')}
-                        </span>
-                        <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold inline-block mt-1">
-                          希望: {ord.preferredDate || '指定なし'}
-                        </span>
-                      </td>
+                  {orders.map((ord) => {
+                    // この注文の墓地管理会社
+                    const comp = cemeteryCompanies.find((c) => c.id === ord.cemeteryCompanyId);
+                    // この墓地管理会社に紐付いている代行業者リスト
+                    const allowedVendors = vendors.filter((v) =>
+                      comp ? comp.affiliatedVendorIds.includes(v.id) : true
+                    );
 
-                      <td className="py-4 px-4 align-top">
-                        <span className="font-bold text-stone-900 block">{ord.clientName} 様</span>
-                        <span className="text-[11px] text-stone-500 block">{ord.clientEmail}</span>
-                      </td>
-
-                      <td className="py-4 px-4 align-top max-w-xs space-y-1.5">
-                        <div>
-                          <span className="font-semibold text-stone-900 block truncate">
-                            {ord.graveInfo.cemeteryName} ({ord.graveInfo.sectionPlotNumber})
+                    return (
+                      <tr key={ord.id} className="hover:bg-stone-50/80 transition-colors">
+                        <td className="py-4 px-4 align-top">
+                          <span className="font-bold text-stone-900 block font-mono">{ord.orderNumber}</span>
+                          <span className="text-[10px] text-stone-400 block mt-0.5">
+                            {new Date(ord.createdAt).toLocaleDateString('ja-JP')}
                           </span>
-                        </div>
-                        <div className="bg-stone-50 p-2 rounded-lg border border-stone-200/80 space-y-1 text-[11px]">
-                          <div>
-                            <span className="text-stone-500">正面: </span>
-                            <span className="font-bold text-stone-800">{ord.graveInfo.frontInscription}</span>
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold inline-block mt-1">
+                            希望: {ord.preferredDate || '指定なし'}
+                          </span>
+                        </td>
+
+                        <td className="py-4 px-4 align-top">
+                          <span className="font-bold text-stone-900 block">{ord.clientName} 様</span>
+                          <span className="text-[11px] text-stone-500 block">{ord.clientEmail}</span>
+                        </td>
+
+                        {/* 管轄 墓地管理会社 / 霊園 */}
+                        <td className="py-4 px-4 align-top max-w-[200px]">
+                          <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mb-1">
+                            管理元: {comp?.name || ord.cemeteryCompanyName || '未設定'}
+                          </span>
+                          <span className="font-bold text-stone-900 block text-xs">
+                            {ord.graveInfo.cemeteryName}
+                          </span>
+                          <span className="text-[11px] text-stone-500 block">
+                            区画: {ord.graveInfo.sectionPlotNumber}
+                          </span>
+                        </td>
+
+                        {/* 墓石特定情報 */}
+                        <td className="py-4 px-4 align-top max-w-xs space-y-1.5">
+                          <div className="bg-stone-50 p-2 rounded-lg border border-stone-200/80 space-y-1 text-[11px]">
+                            <div>
+                              <span className="text-stone-500">正面文字: </span>
+                              <span className="font-bold text-stone-800">{ord.graveInfo.frontInscription}</span>
+                            </div>
+                            <div>
+                              <span className="text-stone-500">建立者名: </span>
+                              <span className="font-bold text-emerald-800">{ord.graveInfo.builderName}</span>
+                            </div>
+                            <div className="text-[10px] text-stone-600">
+                              基数: <strong>{ord.graveInfo.graveCount || 1}基</strong> / 広さ: {ord.graveInfo.plotSize === 'extra_large' ? '特大' : ord.graveInfo.plotSize === 'large' ? '広め' : '標準'}
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-stone-500">建立者: </span>
-                            <span className="font-bold text-emerald-800">{ord.graveInfo.builderName}</span>
+
+                          {/* 写真プレビューボタン */}
+                          <div className="flex gap-2">
+                            {ord.graveInfo.frontInscriptionPhotoUrl && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPreviewPhoto({
+                                    title: `正面文字写真 - ${ord.graveInfo.frontInscription}`,
+                                    url: ord.graveInfo.frontInscriptionPhotoUrl!,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 text-[10px] text-emerald-800 hover:text-emerald-950 font-bold bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200 transition"
+                              >
+                                <Camera className="w-3 h-3 text-emerald-700" />
+                                <span>正面写真</span>
+                              </button>
+                            )}
+                            {ord.graveInfo.builderNamePhotoUrl && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPreviewPhoto({
+                                    title: `側面建立者写真 - ${ord.graveInfo.builderName}`,
+                                    url: ord.graveInfo.builderNamePhotoUrl!,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 text-[10px] text-amber-800 hover:text-amber-950 font-bold bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 transition"
+                              >
+                                <Camera className="w-3 h-3 text-amber-700" />
+                                <span>側面建立者写真</span>
+                              </button>
+                            )}
                           </div>
-                          <div className="text-[10px] text-stone-600">
-                            基数: <strong>{ord.graveInfo.graveCount || 1}基</strong> / 広さ: {ord.graveInfo.plotSize === 'extra_large' ? '特大' : ord.graveInfo.plotSize === 'large' ? '広め' : '標準'}
+                        </td>
+
+                        {/* 金額 */}
+                        <td className="py-4 px-4 align-top">
+                          <span className="font-medium text-stone-800 block text-[11px]">{ord.servicePlanName}</span>
+                          <span className="font-black text-stone-900 text-sm block mt-0.5">
+                            ¥{ord.totalAmount.toLocaleString()}
+                          </span>
+                          <div className="text-[10px] text-stone-500 mt-1">
+                            本部手数料(20%): ¥{ord.platformFeeAmount.toLocaleString()}<br />
+                            業者受取: ¥{ord.vendorPayoutAmount.toLocaleString()}
                           </div>
-                        </div>
+                        </td>
 
-                        {/* 正面写真・側面建立者写真プレビューリンク */}
-                        <div className="flex gap-2 pt-0.5">
-                          {ord.graveInfo.frontInscriptionPhotoUrl && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setPreviewPhoto({
-                                  title: `正面文字写真 - ${ord.graveInfo.frontInscription}`,
-                                  url: ord.graveInfo.frontInscriptionPhotoUrl!,
-                                })
-                              }
-                              className="inline-flex items-center gap-1 text-[10px] text-emerald-800 hover:text-emerald-950 font-bold bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded border border-emerald-200 transition"
-                            >
-                              <Camera className="w-3 h-3 text-emerald-700" />
-                              <span>正面写真</span>
-                            </button>
-                          )}
-                          {ord.graveInfo.builderNamePhotoUrl && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setPreviewPhoto({
-                                  title: `側面建立者名写真 - ${ord.graveInfo.builderName}`,
-                                  url: ord.graveInfo.builderNamePhotoUrl!,
-                                })
-                              }
-                              className="inline-flex items-center gap-1 text-[10px] text-amber-800 hover:text-amber-950 font-bold bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded border border-amber-200 transition"
-                            >
-                              <Camera className="w-3 h-3 text-amber-700" />
-                              <span>側面建立者写真</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                        {/* 担当作業代行業者 セレクター（該当墓地に紐付く業者を優先表示） */}
+                        <td className="py-4 px-4 align-top">
+                          <select
+                            value={ord.vendorId}
+                            onChange={(e) => handleAssignVendor(ord.id, e.target.value)}
+                            className="w-full text-xs font-semibold bg-white border border-emerald-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-stone-900 shadow-xs cursor-pointer"
+                          >
+                            <optgroup label="【この霊園の指定・提携代行業者】">
+                              {allowedVendors.map((v) => (
+                                <option key={v.id} value={v.id}>
+                                  ★ {v.displayName}
+                                </option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="【その他登録代行業者】">
+                              {vendors
+                                .filter((v) => !allowedVendors.some((av) => av.id === v.id))
+                                .map((v) => (
+                                  <option key={v.id} value={v.id}>
+                                    {v.displayName}
+                                  </option>
+                                ))}
+                            </optgroup>
+                          </select>
+                          <span className="text-[10px] text-stone-400 block mt-1">
+                            送金先: {ord.vendorStripeAccountId || 'Stripe未設定'}
+                          </span>
+                        </td>
 
-                      <td className="py-4 px-4 align-top">
-                        <span className="font-medium text-stone-800 block text-[11px]">{ord.servicePlanName}</span>
-                        <span className="font-black text-stone-900 text-sm block mt-1">
-                          ¥{ord.totalAmount.toLocaleString()}
-                        </span>
-                        <div className="text-[10px] text-stone-500 mt-1">
-                          手数料: ¥{ord.platformFeeAmount.toLocaleString()} (20%)<br />
-                          業者受取: ¥{ord.vendorPayoutAmount.toLocaleString()}
-                        </div>
-                      </td>
+                        {/* ステータス */}
+                        <td className="py-4 px-4 align-top">
+                          <select
+                            value={ord.status}
+                            onChange={(e) => handleStatusChange(ord.id, e.target.value)}
+                            className={`text-xs font-bold rounded-lg px-2.5 py-1.5 border cursor-pointer ${
+                              ord.status === 'completed'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : ord.status === 'in_progress'
+                                ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                : ord.status === 'report_submitted'
+                                ? 'bg-purple-100 text-purple-800 border-purple-300'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                            }`}
+                          >
+                            <option value="paid">決済完了 (未着手)</option>
+                            <option value="in_progress">現地作業中</option>
+                            <option value="report_submitted">写真レポート提出済</option>
+                            <option value="completed">作業完了 (確認済)</option>
+                          </select>
+                        </td>
 
-                      {/* 担当管理会社セレクター（切り替え可能） */}
-                      <td className="py-4 px-4 align-top">
-                        <select
-                          value={ord.vendorId}
-                          onChange={(e) => handleAssignVendor(ord.id, e.target.value)}
-                          className="w-full text-xs font-semibold bg-white border border-emerald-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-stone-900 shadow-xs"
-                        >
-                          {vendors.map((v) => (
-                            <option key={v.id} value={v.id}>
-                              {v.displayName}
-                            </option>
-                          ))}
-                        </select>
-                        <span className="text-[10px] text-stone-500 block mt-1">
-                          送金先: {ord.vendorStripeAccountId || 'Stripe未連携'}
-                        </span>
-                      </td>
-
-                      {/* ステータスドロップダウン */}
-                      <td className="py-4 px-4 align-top">
-                        <select
-                          value={ord.status}
-                          onChange={(e) => handleStatusChange(ord.id, e.target.value)}
-                          className={`text-xs font-bold rounded-lg px-2.5 py-1.5 border ${
-                            ord.status === 'completed'
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              : ord.status === 'in_progress'
-                              ? 'bg-blue-100 text-blue-800 border-blue-300'
-                              : ord.status === 'report_submitted'
-                              ? 'bg-purple-100 text-purple-800 border-purple-300'
-                              : 'bg-amber-100 text-amber-800 border-amber-300'
-                          }`}
-                        >
-                          <option value="paid">決済完了 (未着手)</option>
-                          <option value="in_progress">現地作業中</option>
-                          <option value="report_submitted">写真レポート提出済</option>
-                          <option value="completed">作業完了 (確認済)</option>
-                        </select>
-                      </td>
-
-                      <td className="py-4 px-4 align-top text-right space-y-1">
-                        <Link
-                          href={`/vendor/reports/${ord.id}`}
-                          className="inline-flex items-center gap-1 text-[11px] text-emerald-800 hover:text-emerald-950 font-bold bg-white hover:bg-stone-50 px-2.5 py-1.5 rounded-lg border border-stone-200 shadow-xs transition"
-                        >
-                          <span>報告書編集</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                        <td className="py-4 px-4 align-top text-right">
+                          <Link
+                            href={`/vendor/reports/${ord.id}`}
+                            className="inline-flex items-center gap-1 text-[11px] text-emerald-800 hover:text-emerald-950 font-bold bg-white hover:bg-stone-50 px-2.5 py-1.5 rounded-lg border border-stone-200 shadow-xs transition"
+                          >
+                            <span>報告書確認</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* タブ2: 提携墓地管理会社一覧 */}
-        {selectedTab === 'vendors' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-stone-900">登録済み 提携墓地管理会社（パートナー）</h2>
-              <span className="text-xs text-stone-500">計 {filteredVendors.length}社 登録中</span>
+        {/* ========================================================================= */}
+        {/* タブ2: 墓地管理会社 ＆ 提携代行業者の紐付け管理（多対多の整理） */}
+        {/* ========================================================================= */}
+        {selectedTab === 'cemetery_relations' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* 左カラム：墓地管理会社（霊園管理元）の選択リスト */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+                  <div>
+                    <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-emerald-700" />
+                      <span>墓地管理会社・霊園管理事務所</span>
+                    </h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      管理元を選択すると、右側に提携代行業者の一覧が表示されます。
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-stone-400">{cemeteryCompanies.length}社</span>
+                </div>
+
+                <div className="space-y-3">
+                  {cemeteryCompanies.map((comp) => {
+                    const isSelected = comp.id === selectedCemeteryId;
+                    return (
+                      <div
+                        key={comp.id}
+                        onClick={() => setSelectedCemeteryId(comp.id)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-600/20 shadow-xs'
+                            : 'border-stone-200 hover:border-stone-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-bold text-stone-900 text-sm">{comp.name}</h4>
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full shrink-0">
+                            提携代行: {comp.affiliatedVendorIds.length}社
+                          </span>
+                        </div>
+                        <p className="text-xs text-stone-500 mt-1">
+                          責任者: {comp.representativeName} • 電話: {comp.phoneNumber}
+                        </p>
+                        <div className="mt-2 pt-2 border-t border-stone-100 text-[11px] text-stone-600">
+                          <span className="font-semibold text-emerald-900">管轄霊園: </span>
+                          <span>{comp.cemeteryNames.join('、')}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredVendors.map((vendor) => {
-                const assignedCount = orders.filter((o) => o.vendorId === vendor.id).length;
-                return (
-                  <div
-                    key={vendor.id}
-                    className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-                            {vendor.vendorProfile?.stripeChargesEnabled ? 'Stripe Connect 接続済' : '未接続'}
-                          </span>
-                          <h3 className="text-base font-bold text-stone-900 mt-1.5 leading-snug">
-                            {vendor.displayName}
-                          </h3>
-                        </div>
-                        <span className="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 shrink-0">
-                          ★ {vendor.vendorProfile?.rating}
-                        </span>
-                      </div>
+            {/* 右カラム：選択した墓地管理会社に紐付く「作業代行業者」の整理・編集パネル */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200 shadow-sm space-y-6">
+                <div className="pb-4 border-b border-stone-100">
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    選択中の墓地管理会社
+                  </span>
+                  <h3 className="text-lg font-bold text-stone-900 mt-2">
+                    {activeCemeteryCompany.name}
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-1">
+                    所在地: {activeCemeteryCompany.locationAddress} • メール: {activeCemeteryCompany.email}
+                  </p>
+                  <p className="text-xs text-stone-600 mt-2 bg-stone-50 p-3 rounded-xl border border-stone-200/80">
+                    {activeCemeteryCompany.description}
+                  </p>
+                </div>
 
-                      <div className="text-xs text-stone-600 space-y-1 pt-2 border-t border-stone-100">
-                        <div>
-                          <span className="text-stone-400">法人名: </span>
-                          <span className="font-semibold text-stone-800">{vendor.vendorProfile?.companyName}</span>
-                        </div>
-                        <div>
-                          <span className="text-stone-400">担当代表者: </span>
-                          <span className="font-semibold text-stone-800">{vendor.vendorProfile?.representativeName}</span>
-                        </div>
-                        <div>
-                          <span className="text-stone-400">連絡先: </span>
-                          <span className="font-mono text-stone-700">{vendor.phoneNumber}</span>
-                        </div>
-                        <div>
-                          <span className="text-stone-400">対応エリア: </span>
-                          <span className="text-emerald-900 font-medium">
-                            {vendor.vendorProfile?.serviceAreas.join('、')}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-[11px] text-stone-500 leading-relaxed bg-stone-50 p-2.5 rounded-xl border border-stone-200/60">
-                        {vendor.vendorProfile?.description}
+                {/* 提携代行業者の一覧 ＆ チェックボックスで紐付け・重複整理 */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                        <Briefcase className="w-4 h-4 text-emerald-700" />
+                        <span>この霊園に出入り可能な作業代行業者（提携パートナー）</span>
+                      </h4>
+                      <p className="text-[11px] text-stone-500">
+                        チェックを入れると、この墓地管理会社（霊園）の案件へアサイン可能になります（複数霊園との重複提携対応）。
                       </p>
                     </div>
-
-                    <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-stone-400 block">現在のアサイン案件</span>
-                        <span className="text-sm font-black text-stone-900">{assignedCount} 件</span>
-                      </div>
-
-                      {/* この管理会社のダッシュボードへジャンプ */}
-                      <Link
-                        href={`/vendor?vendorId=${vendor.id}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold bg-emerald-800 hover:bg-emerald-900 text-white px-3.5 py-2 rounded-xl shadow-xs transition"
-                      >
-                        <span>管理画面へ切替</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
                   </div>
-                );
-              })}
+
+                  <div className="space-y-2.5 pt-2">
+                    {vendors.map((vendor) => {
+                      const isAffiliated = activeCemeteryCompany.affiliatedVendorIds.includes(vendor.id);
+                      const affiliatedCount = vendor.vendorProfile?.affiliatedCemeteryCompanyIds?.length || 0;
+
+                      return (
+                        <div
+                          key={vendor.id}
+                          className={`p-3.5 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
+                            isAffiliated
+                              ? 'bg-emerald-50/40 border-emerald-300'
+                              : 'bg-white border-stone-200 opacity-75 hover:opacity-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isAffiliated}
+                              onChange={() => handleToggleVendorAffiliation(activeCemeteryCompany.id, vendor.id)}
+                              className="mt-1 w-4 h-4 rounded text-emerald-700 focus:ring-emerald-500 cursor-pointer"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-stone-900 text-xs sm:text-sm">
+                                  {vendor.displayName}
+                                </span>
+                                <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                  ★ {vendor.vendorProfile?.rating}
+                                </span>
+                                {isAffiliated && (
+                                  <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full">
+                                    指定提携中
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-stone-500 mt-0.5">
+                                代表: {vendor.vendorProfile?.representativeName} • 対応地域: {vendor.vendorProfile?.serviceAreas.join('・')}
+                              </p>
+                              <span className="text-[10px] text-stone-400 mt-1 block">
+                                現在 {affiliatedCount}箇所の墓地管理会社と重複提携中（施工実績: {vendor.vendorProfile?.completedJobsCount}件）
+                              </span>
+                            </div>
+                          </div>
+
+                          <Link
+                            href={`/vendor?vendorId=${vendor.id}`}
+                            className="shrink-0 inline-flex items-center gap-1 text-[11px] text-emerald-800 hover:text-emerald-950 font-bold bg-white hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-stone-200 transition"
+                          >
+                            <span>代行業者画面</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* 写真モーダルポップアップ */}
+        {/* ========================================================================= */}
+        {/* タブ3: 本部管理情報・プラットフォーム設定 */}
+        {/* ========================================================================= */}
+        {selectedTab === 'admin_profile' && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm max-w-4xl mx-auto space-y-6">
+            <div className="pb-4 border-b border-stone-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-emerald-700" />
+                  <span>本部運営会社 基本情報 ＆ プラットフォーム設定</span>
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  ココロモウの運営責任者情報、決済プラットフォーム口座、手数料率などのマスター設定
+                </p>
+              </div>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">
+                本部マスターデータ
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+              <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 space-y-1">
+                <span className="text-stone-400 block text-[11px]">運営法人名</span>
+                <span className="font-bold text-stone-900 text-sm block">{adminInfo.organizationName}</span>
+                <span className="text-[10px] text-stone-500">{adminInfo.serviceName}</span>
+              </div>
+
+              <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 space-y-1">
+                <span className="text-stone-400 block text-[11px]">代表責任者</span>
+                <span className="font-bold text-stone-900 text-sm block">{adminInfo.representative}</span>
+                <span className="text-[10px] text-stone-500">運営総括統括責任者</span>
+              </div>
+
+              <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 space-y-1">
+                <span className="text-stone-400 block text-[11px]">本部代表連絡先</span>
+                <span className="font-bold text-stone-900 text-sm block flex items-center gap-1 font-mono">
+                  <Phone className="w-3.5 h-3.5 text-emerald-700" />
+                  {adminInfo.phoneNumber}
+                </span>
+                <span className="text-[11px] text-stone-600 flex items-center gap-1 font-mono">
+                  <Mail className="w-3.5 h-3.5 text-stone-400" />
+                  {adminInfo.email}
+                </span>
+              </div>
+
+              <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 space-y-1">
+                <span className="text-stone-400 block text-[11px]">本社所在地</span>
+                <span className="font-bold text-stone-900 text-xs block flex items-start gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                  {adminInfo.address}
+                </span>
+              </div>
+            </div>
+
+            {/* プラットフォーム手数料・Stripe Connect設定 */}
+            <div className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-emerald-700" />
+                  <span>Stripe Connect プラットフォーム決済・自動送金設定</span>
+                </span>
+                <span className="text-xs font-black text-emerald-900 bg-emerald-100 px-3 py-1 rounded-lg">
+                  標準手数料率: {adminInfo.platformFeePercent}%
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-900 leading-relaxed">
+                施主様がクレジットカード決済を行った際、決済総額の<strong>{adminInfo.platformFeePercent}%</strong>がココロモウ本部へ自動留保され、残りの<strong>{100 - adminInfo.platformFeePercent}%</strong>が担当作業代行業者のStripe Connect受取口座へ自動送金（Destination Charges方式）されます。
+              </p>
+              <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between text-xs">
+                <span className="text-emerald-800">プラットフォーム口座ID:</span>
+                <span className="font-mono font-bold text-emerald-950">{adminInfo.stripePlatformAccountId}</span>
+              </div>
+            </div>
+
+            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200/80 text-xs text-stone-600 space-y-1.5">
+              <span className="font-bold text-stone-800 block">プラットフォーム運営理念・概要</span>
+              <p className="text-[11px] leading-relaxed text-stone-600">
+                {adminInfo.description}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 写真拡大モーダル */}
         {previewPhoto && (
           <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 p-6 animate-in fade-in zoom-in-95">
@@ -451,7 +690,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setPreviewPhoto(null)}
-                  className="text-stone-400 hover:text-stone-700 font-bold text-sm px-2 py-1 rounded-lg hover:bg-stone-100"
+                  className="text-stone-400 hover:text-stone-700 font-bold text-sm px-2 py-1 rounded-lg hover:bg-stone-100 cursor-pointer"
                 >
                   ✕ 閉じる
                 </button>
@@ -463,7 +702,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setPreviewPhoto(null)}
-                  className="bg-stone-900 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-stone-800 transition"
+                  className="bg-stone-900 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-stone-800 transition cursor-pointer"
                 >
                   閉じる
                 </button>

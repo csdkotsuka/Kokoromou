@@ -3,7 +3,38 @@
  */
 
 // -------------------------------------------------------------
-// 1. ユーザー情報 (users コレクション)
+// 1. 本部管理の情報 (Platform Headquarters)
+// -------------------------------------------------------------
+export interface PlatformAdminInfo {
+  organizationName: string; // 運営会社名 (例: 株式会社ココロモウ)
+  serviceName: string; // サービス名 (お墓参り・清掃代行プラットフォーム ココロモウ)
+  representative: string; // 代表責任者名
+  email: string; // 本部代表メール
+  phoneNumber: string; // 本部電話番号
+  address: string; // 本社所在地
+  platformFeePercent: number; // 標準プラットフォーム手数料 (20%)
+  stripePlatformAccountId: string; // Stripe Platform Account ID
+  description: string;
+}
+
+// -------------------------------------------------------------
+// 2. 墓地管理会社・霊園管理事務所 (Cemetery Management Companies)
+// -------------------------------------------------------------
+export interface CemeteryCompany {
+  id: string; // 例: "cem_comp_001"
+  name: string; // 会社・寺院事務所名 (例: 宝塔寺 旭ヶ丘霊園管理事務所)
+  cemeteryNames: string[]; // 管轄する霊園名 (例: ["宝塔寺 旭ヶ丘霊園", "宝塔寺 東区共同墓苑"])
+  representativeName: string; // 責任者名
+  phoneNumber: string;
+  email: string;
+  locationAddress: string;
+  description: string;
+  // この墓地管理会社と提携・出入り可能な作業代行業者IDリスト
+  affiliatedVendorIds: string[];
+}
+
+// -------------------------------------------------------------
+// 3. ユーザー情報 (users コレクション)
 // -------------------------------------------------------------
 export type UserRole = 'client' | 'vendor' | 'admin';
 
@@ -17,6 +48,8 @@ export interface VendorProfile {
   description?: string;
   rating?: number; // 平均評価 (例: 4.8)
   completedJobsCount: number; // 完了実績数
+  // 提携・出入り契約を結んでいる墓地管理会社IDリスト（複数重複可能）
+  affiliatedCemeteryCompanyIds?: string[];
 }
 
 export interface User {
@@ -52,6 +85,7 @@ export interface ServicePlan {
 export type PlotSizeCategory = 'standard' | 'large' | 'extra_large';
 
 export interface GraveInfo {
+  cemeteryCompanyId?: string; // 管轄墓地管理会社ID (例: "cem_comp_001")
   cemeteryName: string; // 霊園・寺院名 (例: ○○霊園)
   locationAddress: string; // 所在地・住所
   sectionPlotNumber: string; // 区画番号・墓石番号 (例: 3区 12番)
@@ -86,6 +120,11 @@ export interface Order {
   clientName: string;
   clientEmail: string;
 
+  // 墓地管理会社（霊園管理元）
+  cemeteryCompanyId?: string;
+  cemeteryCompanyName?: string;
+
+  // 担当作業代行業者
   vendorId: string; // 担当提携業者ユーザーID
   vendorName: string;
   vendorStripeAccountId: string; // 送金先 Stripe Connect Account ID (acct_xxx)

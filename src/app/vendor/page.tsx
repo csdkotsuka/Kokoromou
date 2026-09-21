@@ -22,7 +22,7 @@ import {
   User,
   Sparkles
 } from 'lucide-react';
-import { SAMPLE_VENDORS, SAMPLE_ORDERS } from '@/mocks/sample-data';
+import { SAMPLE_VENDORS, SAMPLE_ORDERS, SAMPLE_CEMETERY_COMPANIES } from '@/mocks/sample-data';
 import { Order, User as UserType } from '@/types/firestore';
 
 function VendorDashboardContent() {
@@ -152,6 +152,25 @@ function VendorDashboardContent() {
               </span>
               <span className="text-[10px] text-stone-400 block mt-1">愛媛県中予エリア中心</span>
             </div>
+          </div>
+
+          {/* 提携・出入り契約中の墓地管理会社（霊園） */}
+          <div className="pt-2 border-t border-stone-100 flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-bold text-stone-700 flex items-center gap-1 shrink-0">
+              <Building2 className="w-3.5 h-3.5 text-emerald-700" />
+              <span>提携・出入り認定 墓地管理会社：</span>
+            </span>
+            {SAMPLE_CEMETERY_COMPANIES.filter((c) =>
+              c.affiliatedVendorIds.includes(currentVendor.id)
+            ).map((comp) => (
+              <span
+                key={comp.id}
+                className="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold text-[11px] flex items-center gap-1"
+              >
+                <span>{comp.name}</span>
+                <span className="text-[9px] text-emerald-700">（{comp.cemeteryNames[0]}）</span>
+              </span>
+            ))}
           </div>
         </div>
 
