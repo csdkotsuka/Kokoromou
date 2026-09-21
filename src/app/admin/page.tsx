@@ -368,6 +368,16 @@ export default function AdminDashboardPage() {
               <span>代行業者画面を閲覧</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
+
+            {/* 提携料金表・提案資料（adminからのみアクセス可能） */}
+            <Link
+              href="/admin/pricing"
+              className="inline-flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-md transition active:scale-95 border border-blue-500"
+            >
+              <span>📊</span>
+              <span>提携料金表・提案資料</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
 
