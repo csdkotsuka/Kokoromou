@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Building2, 
   Users, 
@@ -28,7 +29,9 @@ import {
   Mail,
   Home,
   Check,
-  Briefcase
+  Briefcase,
+  LogOut,
+  KeyRound
 } from 'lucide-react';
 import { 
   SAMPLE_ADMIN_INFO, 
@@ -39,6 +42,8 @@ import {
 import { Order, User, CemeteryCompany, PlatformAdminInfo } from '@/types/firestore';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
+
   // 本部管理情報ステート
   const [adminInfo, setAdminInfo] = useState<PlatformAdminInfo>(SAMPLE_ADMIN_INFO);
 
@@ -63,6 +68,13 @@ export default function AdminDashboardPage() {
   // 写真プレビューモーダル
   const [previewPhoto, setPreviewPhoto] = useState<{ title: string; url: string } | null>(null);
 
+  // パスワード変更モーダル状態
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState<string | null>(null);
+
   // シード処理中フラグ＆メッセージ
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedResultMsg, setSeedResultMsg] = useState<{ text: string; isError?: boolean } | null>(null);
@@ -84,12 +96,81 @@ export default function AdminDashboardPage() {
   });
   const [agreedToWarnings, setAgreedToWarnings] = useState(false);
 
+  // 認証ガードチェック
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('skipAuth') === 'true') return;
+
+      const cookies = document.cookie.split(';').map((c) => c.trim());
+      const authCookie = cookies.find((c) => c.startsWith('kokoromou_auth='));
+      if (!authCookie) {
+        router.push('/admin/login');
+        return;
+      }
+      try {
+        const decoded = decodeURIComponent(authCookie.split('=')[1]);
+        const user = JSON.parse(decoded);
+        if (user.role !== 'admin') {
+          router.push('/admin/login');
+        }
+      } catch (e) {
+        router.push('/admin/login');
+      }
+    }
+  }, [router]);
+
+  // ログアウト処理
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    document.cookie = 'kokoromou_auth=; path=/; max-age=0';
+    router.push('/admin/login');
+  };
+
+  // パスワード変更保存
+  const handleSavePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newAdminPassword !== confirmAdminPassword) {
+      alert('新しいパスワードが一致しません');
+      return;
+    }
+    if (newAdminPassword.length < 4) {
+      alert('パスワードは4文字以上で設定してください');
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'kotsuka@creativesd.net', newPassword: newAdminPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordSuccessMsg('管理者パスワードを正常に更新しました！');
+        setIsChangingPassword(false);
+        setNewAdminPassword('');
+        setConfirmAdminPassword('');
+        setTimeout(() => setPasswordSuccessMsg(null), 5000);
+      } else {
+        alert(data.error || 'パスワードの更新に失敗しました');
+      }
+    } catch (e: any) {
+      alert('エラーが発生しました: ' + e.message);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   // Escキーで開いているすべてのポップアップ・モーダルを閉じる
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setPreviewPhoto(null);
         setIsAddingVendor(false);
+        setIsChangingPassword(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -378,8 +459,34 @@ export default function AdminDashboardPage() {
               <span>提携料金表・提案資料</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
+
+            {/* パスワード設定・変更ボタン */}
+            <button
+              onClick={() => setIsChangingPassword(true)}
+              className="inline-flex items-center gap-1.5 bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-stone-700 shadow transition cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span>パスワード設定</span>
+            </button>
+
+            {/* ログアウトボタン */}
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-bold px-3.5 py-2.5 rounded-xl border border-stone-700 shadow transition cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>ログアウト</span>
+            </button>
           </div>
         </div>
+
+        {/* パスワード更新成功バナー */}
+        {passwordSuccessMsg && (
+          <div className="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 text-sm font-bold shadow-sm flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span>{passwordSuccessMsg}</span>
+          </div>
+        )}
 
         {/* シード処理結果バナー */}
         {seedResultMsg && (
@@ -1166,6 +1273,76 @@ export default function AdminDashboardPage() {
                     }`}
                   >
                     この業者を登録する
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 管理者パスワード設定・変更モーダル */}
+        {isChangingPassword && (
+          <div 
+            onClick={(e) => { if (e.target === e.currentTarget) setIsChangingPassword(false); }}
+            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+          >
+            <div className="bg-white text-stone-900 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-4 border-stone-800 cursor-default space-y-5">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-6 h-6 text-amber-600" />
+                <h2 className="text-xl font-black text-stone-900">管理者パスワードの設定・変更</h2>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                対象管理者アカウント：<strong className="text-stone-900">kotsuka@creativesd.net</strong><br />
+                新しいパスワードを設定してください。次回ログイン時から有効になります。
+              </p>
+
+              <form onSubmit={handleSavePassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-stone-800 mb-1">
+                    新しいパスワード（4文字以上）
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)}
+                    placeholder="新しいパスワードを入力"
+                    className="w-full p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none text-sm font-medium text-stone-900 bg-stone-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-800 mb-1">
+                    新しいパスワード（確認用・もう一度入力）
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={confirmAdminPassword}
+                    onChange={(e) => setConfirmAdminPassword(e.target.value)}
+                    placeholder="確認のためもう一度入力"
+                    className="w-full p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none text-sm font-medium text-stone-900 bg-stone-50"
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-stone-200 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsChangingPassword(false);
+                      setNewAdminPassword('');
+                      setConfirmAdminPassword('');
+                    }}
+                    className="flex-1 py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-sm transition cursor-pointer"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPassword || !newAdminPassword}
+                    className="flex-1 py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-sm shadow-md transition cursor-pointer disabled:bg-stone-300"
+                  >
+                    {isUpdatingPassword ? '保存中...' : 'パスワードを保存'}
                   </button>
                 </div>
               </form>

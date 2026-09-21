@@ -4,12 +4,12 @@ import { ServicePlan, User, Order, Report, PlatformAdminInfo, CemeteryCompany } 
  * 本部管理情報（ココロモウ運営本部）
  */
 export const SAMPLE_ADMIN_INFO: PlatformAdminInfo = {
-  organizationName: '株式会社 ココロモウ（Kokoromou Inc.）',
+  organizationName: 'Creative System Design（プラットフォーム本部）',
   serviceName: 'お墓参り・お掃除代行DXプラットフォーム「ココロモウ」',
-  representative: '大塚 浩二（代表取締役）',
-  email: 'admin@kokoromou.example.com',
-  phoneNumber: '089-911-8800',
-  address: '愛媛県松山市大街道3丁目2-1 メモリアルスクエアビル 5F',
+  representative: '大塚',
+  email: 'kotsuka@creativesd.net',
+  phoneNumber: '090-4116-9476',
+  address: '〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号',
   platformFeePercent: 20, // 標準手数料 20%
   stripePlatformAccountId: 'acct_1KokoromouPlatformMain',
   description: '愛媛県松山・中予エリアを中心に、霊園・墓地管理会社と地域の確かな石材・清掃代行業者をつなぐ、安心の代行マッチングおよび決済送金プラットフォーム。',
@@ -506,10 +506,10 @@ export const SAMPLE_ACCOUNTS = [
   // 本部統括
   {
     id: 'acc_admin_001',
-    email: 'admin@kokoromou.example.com',
+    email: 'kotsuka@creativesd.net',
     password: 'admin1234',
     role: 'admin' as const,
-    name: 'ココロモウ本部統括',
+    name: 'Creative System Design（本部統括）',
     createdAt: '2026-01-01T00:00:00Z',
   },
   // 墓地管理会社（3社）

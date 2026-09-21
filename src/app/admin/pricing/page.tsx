@@ -424,15 +424,15 @@ export default function AdminPricingProposalPage() {
           <div className="border-2 border-stone-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
             <div className="space-y-1">
               <span className="font-black text-sm text-stone-900 block">
-                運営会社：株式会社ココロモウ（プラットフォーム本部）
+                運営元：Creative System Design（プラットフォーム本部）
               </span>
               <p className="text-stone-600 text-[11px]">
-                〒790-0833 愛媛県松山市祝谷東町甲582-1（全国墓地管理会社 提携窓口）
+                〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号
               </p>
               <div className="flex flex-wrap items-center gap-3 pt-1 text-stone-700 font-bold text-[11px]">
-                <span>📞 お電話: <strong>089-941-8920</strong></span>
-                <span>✉️ メール: <strong>info@kokoromou.com</strong></span>
-                <span>🌐 Web: <strong>https://kokoromou.vercel.app/</strong></span>
+                <span>📞 お電話: <strong>090-4116-9476</strong></span>
+                <span>✉️ 窓口: <strong>kotsuka@creativesd.net</strong>（問い合わせフォーム受付）</span>
+                <span>🌐 公式Web: <strong>https://kokoromou.inteve-cloud.com/</strong></span>
               </div>
             </div>
             <div className="text-right shrink-0">

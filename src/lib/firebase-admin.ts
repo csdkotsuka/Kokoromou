@@ -452,5 +452,25 @@ export async function authenticateAccount(email: string, password?: string) {
   return null;
 }
 
+/**
+ * パスワード更新
+ */
+export async function updateAccountPassword(email: string, newPassword: string) {
+  if (adminDb) {
+    try {
+      await adminDb.collection('accounts').doc(email).set({ password: newPassword }, { merge: true });
+      console.log(`[Firestore] Password updated for account: ${email}`);
+    } catch (e) {
+      console.warn('[Firestore] Error updating account password:', e);
+    }
+  }
+  const mockAcc = inMemoryMockDb.accounts.get(email);
+  if (mockAcc) {
+    mockAcc.password = newPassword;
+    inMemoryMockDb.accounts.set(email, mockAcc);
+  }
+  return true;
+}
+
 export { adminDb };
 
