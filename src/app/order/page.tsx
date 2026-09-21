@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS } from '@/mocks/sample-data';
 import { 
@@ -8,6 +8,7 @@ import {
   CreditCard, 
   Loader2, 
   CheckCircle, 
+  Check,
   Info, 
   Sparkles, 
   MapPin, 
@@ -41,23 +42,84 @@ function OrderFormContent() {
   const [builderNamePhoto, setBuilderNamePhoto] = useState<string | null>('/images/grave_side_builder_example.jpg');
   const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
 
-  // フォームステート
+  // フォームステート（未入力状態から開始し、入力完了でステップとボタンが連動）
   const [formData, setFormData] = useState({
-    clientName: '山田 太郎',
-    clientEmail: 'client@example.com',
+    clientName: '',
+    clientEmail: '',
     cemeteryName: '宝塔寺 旭ヶ丘霊園（モデル霊園）',
     locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
-    sectionPlotNumber: '東区 5列 12番',
-    frontInscription: '山田家先祖代々之墓',
-    builderName: '昭和五十年八月 山田太郎建之',
-    googleMapsUrl: 'https://maps.app.goo.gl/sample123',
-    landmarksDescription: '東区入口の階段を上がってすぐ右、大楠の木の隣。隣接墓地は「加藤家」です。',
-    specialRequests: '花立ての水垢と墓石周辺の雑草が目立ってきたため、丁寧に水洗いして綺麗にしていただけますと幸いです。',
-    preferredDate: '2026-09-25',
+    sectionPlotNumber: '',
+    frontInscription: '',
+    builderName: '',
+    googleMapsUrl: '',
+    landmarksDescription: '',
+    specialRequests: '',
+    preferredDate: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 現在スクロール表示中のステップ (1 | 2 | 3 | 4)
+  const [activeStep, setActiveStep] = useState<number>(1);
+
+  // 各ステップの入力完了判定
+  const isStep1Completed = Boolean(selectedPlanId);
+  const isStep2Completed = Boolean(graveCount >= 1 && plotSize);
+  const isStep3Completed = Boolean(selectedVendorId);
+  const isStep4Completed = Boolean(
+    formData.frontInscription.trim() &&
+    formData.builderName.trim() &&
+    formData.clientName.trim() &&
+    formData.clientEmail.trim()
+  );
+
+  // 全ステップ完了判定（決済ボタンの活性化条件）
+  const isAllCompleted = isStep1Completed && isStep2Completed && isStep3Completed && isStep4Completed;
+
+  // スクロール位置の検知（今画面に表示されている項目をハイライト）
+  useEffect(() => {
+    const handleScroll = () => {
+      const stepIds = ['step-plan', 'step-graves', 'step-vendor', 'step-info'];
+      const scrollPos = window.scrollY + 260; // ヘッダーオフセット
+
+      for (let i = stepIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(stepIds[i]);
+        if (el && el.offsetTop <= scrollPos) {
+          setActiveStep(i + 1);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // ステッパーのボタンボタンスタイルヘルパー
+  const getStepButtonClass = (stepNumber: number, isCompleted: boolean) => {
+    const isCurrent = activeStep === stepNumber;
+    if (isCurrent) {
+      return 'bg-blue-50/95 border-2 border-blue-600 text-blue-950 font-extrabold shadow-sm ring-2 ring-blue-200/70 transition-all text-left group cursor-pointer';
+    }
+    if (isCompleted) {
+      return 'bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-400/80 text-emerald-950 font-bold shadow-xs transition-all text-left group cursor-pointer';
+    }
+    return 'bg-stone-50/80 hover:bg-stone-100/80 border border-stone-200 text-stone-500 font-medium transition-all text-left group cursor-pointer';
+  };
+
+  // ステッパーの番号バッジスタイルヘルパー
+  const getStepBadgeClass = (stepNumber: number, isCompleted: boolean) => {
+    const isCurrent = activeStep === stepNumber;
+    if (isCurrent) {
+      return 'bg-blue-600 text-white font-bold shadow-xs';
+    }
+    if (isCompleted) {
+      return 'bg-emerald-600 text-white font-bold shadow-xs';
+    }
+    return 'bg-stone-200 text-stone-600 font-normal';
+  };
 
   // 画像アップロードハンドラー
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'builder') => {
@@ -161,42 +223,71 @@ function OrderFormContent() {
       <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/95 backdrop-blur-md border-y border-stone-200 shadow-sm mb-8 transition-all">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            {/* ① プラン選択 */}
             <button
               type="button"
               onClick={() => document.getElementById('step-plan')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 font-bold transition-all text-left group shadow-xs cursor-pointer"
+              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(1, isStep1Completed)}`}
             >
-              <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0 group-hover:scale-105">1</span>
-              <span className="truncate">① プラン選択</span>
+              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(1, isStep1Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                {isStep1Completed && activeStep !== 1 ? <Check className="w-3 h-3 stroke-[3]" /> : '1'}
+              </span>
+              <div className="leading-tight truncate">
+                <span className="block truncate font-bold">① プラン選択</span>
+                <span className={`block text-[9px] font-normal ${activeStep === 1 ? 'text-blue-700 font-semibold' : isStep1Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                  {activeStep === 1 ? '● 選択中' : isStep1Completed ? '✓ 選択済み' : '未選択'}
+                </span>
+              </div>
             </button>
+
+            {/* ② 墓石の基数・広さ */}
             <button
               type="button"
               onClick={() => document.getElementById('step-graves')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 font-bold transition-all text-left group shadow-xs cursor-pointer"
+              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(2, isStep2Completed)}`}
             >
-              <span className="w-5 h-5 rounded-full bg-emerald-700 text-white text-[11px] flex items-center justify-center shrink-0 group-hover:scale-105">2</span>
+              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(2, isStep2Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                {isStep2Completed && activeStep !== 2 ? <Check className="w-3 h-3 stroke-[3]" /> : '2'}
+              </span>
               <div className="leading-tight truncate">
-                <span className="block truncate">② 墓石の基数・広さ</span>
-                <span className="block text-[9px] text-emerald-700 font-normal">複数基の料金自動連動</span>
+                <span className="block truncate font-bold">② 基数・広さ</span>
+                <span className={`block text-[9px] font-normal ${activeStep === 2 ? 'text-blue-700 font-semibold' : isStep2Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                  {activeStep === 2 ? '● 設定中' : isStep2Completed ? `✓ ${graveCount}基 / 設定済` : '未設定'}
+                </span>
               </div>
             </button>
+
+            {/* ③ 提携業者選択 */}
             <button
               type="button"
               onClick={() => document.getElementById('step-vendor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="flex items-center gap-2 p-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 hover:border-emerald-300 text-stone-800 font-semibold transition-all text-left group cursor-pointer"
+              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(3, isStep3Completed)}`}
             >
-              <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-700 text-[11px] flex items-center justify-center shrink-0 group-hover:bg-emerald-700 group-hover:text-white transition-colors">3</span>
-              <span className="truncate">③ 提携業者選択</span>
+              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(3, isStep3Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                {isStep3Completed && activeStep !== 3 ? <Check className="w-3 h-3 stroke-[3]" /> : '3'}
+              </span>
+              <div className="leading-tight truncate">
+                <span className="block truncate font-bold">③ 提携業者</span>
+                <span className={`block text-[9px] font-normal ${activeStep === 3 ? 'text-blue-700 font-semibold' : isStep3Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                  {activeStep === 3 ? '● 選択中' : isStep3Completed ? '✓ 選択済み' : '未選択'}
+                </span>
+              </div>
             </button>
+
+            {/* ④ 墓石登録・写真 */}
             <button
               type="button"
               onClick={() => document.getElementById('step-info')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="flex items-center gap-2 p-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 hover:border-emerald-300 text-stone-800 font-semibold transition-all text-left group cursor-pointer"
+              className={`flex items-center gap-2 p-2 rounded-xl ${getStepButtonClass(4, isStep4Completed)}`}
             >
-              <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-700 text-[11px] flex items-center justify-center shrink-0 group-hover:bg-emerald-700 group-hover:text-white transition-colors">4</span>
+              <span className={`w-5 h-5 rounded-full ${getStepBadgeClass(4, isStep4Completed)} text-[11px] flex items-center justify-center shrink-0`}>
+                {isStep4Completed && activeStep !== 4 ? <Check className="w-3 h-3 stroke-[3]" /> : '4'}
+              </span>
               <div className="leading-tight truncate">
-                <span className="block truncate">④ 墓石登録・写真</span>
-                <span className="block text-[9px] text-stone-500 font-normal">正面・側面建立者名</span>
+                <span className="block truncate font-bold">④ 墓石・施主情報</span>
+                <span className={`block text-[9px] font-normal ${activeStep === 4 ? 'text-blue-700 font-semibold' : isStep4Completed ? 'text-emerald-700' : 'text-stone-400'}`}>
+                  {activeStep === 4 ? '● 入力中' : isStep4Completed ? '✓ 入力完了' : '未入力'}
+                </span>
               </div>
             </button>
           </div>
@@ -863,24 +954,55 @@ function OrderFormContent() {
               </div>
             </div>
 
-            {/* 決済ボタン */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 text-sm cursor-pointer"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>決済画面へ接続中...</span>
-                </>
+            {/* 決済ボタン（全入力完了でアクティブ化、それまではグレーアウト） */}
+            <div className="space-y-2">
+              <button
+                type="submit"
+                disabled={!isAllCompleted || isLoading}
+                className={`w-full flex items-center justify-center gap-2 font-bold py-4 px-6 rounded-xl transition-all text-sm ${
+                  isAllCompleted && !isLoading
+                    ? 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-md hover:shadow-lg cursor-pointer transform active:scale-[0.99]'
+                    : 'bg-stone-200 text-stone-400 border border-stone-300 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>決済画面へ接続中...</span>
+                  </>
+                ) : isAllCompleted ? (
+                  <>
+                    <CreditCard className="w-5 h-5" />
+                    <span>Stripeで安全に決済する</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 opacity-40" />
+                    <span>必須項目を入力すると決済できます</span>
+                  </>
+                )}
+              </button>
+
+              {/* 未入力時のガイダンス案内 / 入力完了時の確認メッセージ */}
+              {!isAllCompleted ? (
+                <div className="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5 leading-relaxed">
+                    <span className="font-bold block">お申し込みに必要な未入力項目があります</span>
+                    <p className="text-[11px] text-amber-800">
+                      {!isStep4Completed
+                        ? 'ステップ④の「正面の刻印文字」「側面の建立者名」「お名前」「メールアドレス」をご入力ください。'
+                        : '必須項目をすべてご入力いただくと決済ボタンが有効になります。'}
+                    </p>
+                  </div>
+                </div>
               ) : (
-                <>
-                  <CreditCard className="w-5 h-5" />
-                  <span>Stripeで安全に決済する</span>
-                </>
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs flex items-center justify-center gap-1.5 font-bold">
+                  <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+                  <span>すべての必須項目の入力が完了しました。決済へ進めます。</span>
+                </div>
               )}
-            </button>
+            </div>
 
             <div className="text-[11px] text-stone-500 space-y-1.5 text-center">
               <div className="flex items-center justify-center gap-1 text-emerald-700 font-semibold">
