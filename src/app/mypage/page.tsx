@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   HeartHandshake, 
@@ -21,16 +22,58 @@ import {
   RotateCcw,
   ExternalLink,
   HelpCircle,
-  Share2
+  Share2,
+  LogOut
 } from 'lucide-react';
 
 export default function CustomerMyPage() {
-  // サンプルの施主データ
-  const clientInfo = {
-    name: '山田 太郎 様',
-    email: 'client@example.com',
-    memberSince: '2026年9月登録',
+  const router = useRouter();
+  const [authUser, setAuthUser] = useState<{ name?: string; email?: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    // Cookie から認証情報を確認
+    const cookieMatch = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('kokoromou_auth='));
+
+    if (cookieMatch) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(cookieMatch.split('=').slice(1).join('=')));
+        if (userData.role === 'customer' || userData.role === 'admin') {
+          setAuthUser(userData);
+        } else {
+          // 別ロールのアカウントはマイページ不可
+          router.push('/mypage/login');
+          return;
+        }
+      } catch {
+        router.push('/mypage/login');
+        return;
+      }
+    } else {
+      router.push('/mypage/login');
+      return;
+    }
+    setAuthChecked(true);
+  }, [router]);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/mypage/login');
   };
+
+  // 認証確認中はローディング表示
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-stone-500 font-medium">認証確認中...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 登録済みのお墓情報（複数基対応・特定写真あり）
   const registeredGrave = {
@@ -94,13 +137,13 @@ export default function CustomerMyPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900">{clientInfo.name}</h1>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900">{authUser?.name ?? '施主様'} 様</h1>
                 <span className="text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-full">
                   施主会員
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-1">
-                {clientInfo.email} • {clientInfo.memberSince}
+                {authUser?.email} • 2026年9月登録
               </p>
             </div>
           </div>
@@ -115,6 +158,14 @@ export default function CustomerMyPage() {
               <span>次回のお参り・清掃を予約する</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-3 rounded-xl transition-all text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>ログアウト</span>
+            </button>
           </div>
         </div>
 

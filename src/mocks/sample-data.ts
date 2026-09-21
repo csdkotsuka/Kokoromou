@@ -628,5 +628,22 @@ export const SAMPLE_ACCOUNTS = [
     targetId: 'vendor_006',
     createdAt: '2026-01-01T00:00:00Z',
   },
+  // 施主（顧客）ダミーアカウント
+  {
+    id: 'acc_cus_001',
+    email: 'client@example.com',
+    password: 'client1234',
+    role: 'customer' as const,
+    name: '山田 太郎',
+    createdAt: '2026-09-01T00:00:00Z',
+  },
+  {
+    id: 'acc_cus_002',
+    email: 'tanaka@example.com',
+    password: 'client1234',
+    role: 'customer' as const,
+    name: '田中 花子',
+    createdAt: '2026-09-01T00:00:00Z',
+  },
 ];
 
