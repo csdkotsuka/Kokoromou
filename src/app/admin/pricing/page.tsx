@@ -1,25 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import QRCode from 'qrcode';
 import { 
   ArrowLeft, 
   Printer, 
   CheckCircle2, 
   ShieldCheck, 
   Clock, 
-  Mail, 
   Phone, 
   Building2, 
   FileText, 
   Sparkles,
   AlertTriangle,
   ArrowRight,
-  Download
+  Download,
+  QrCode
 } from 'lucide-react';
 
 export default function AdminPricingProposalPage() {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    QRCode.toDataURL('https://kokoromou.inteve-cloud.com/', {
+      width: 200,
+      margin: 1,
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff'
+      }
+    })
+      .then((url) => setQrCodeDataUrl(url))
+      .catch((err) => console.error('QR code generation error:', err));
+  }, []);
+
   const handlePrint = () => {
     window.print();
   };
@@ -421,24 +437,47 @@ export default function AdminPricingProposalPage() {
           </div>
 
           {/* 運営会社・お問い合わせ窓口 */}
-          <div className="border-2 border-stone-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-            <div className="space-y-1">
+          <div className="border-2 border-stone-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs bg-stone-50/50">
+            <div className="space-y-1.5 flex-1">
               <span className="font-black text-sm text-stone-900 block">
                 運営元：Creative System Design（プラットフォーム本部）
               </span>
               <p className="text-stone-600 text-[11px]">
                 〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号
               </p>
-              <div className="flex flex-wrap items-center gap-3 pt-1 text-stone-700 font-bold text-[11px]">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-stone-700 font-bold text-[11px]">
                 <span>📞 お電話: <strong>090-4116-9476</strong></span>
-                <span>✉️ 窓口: <strong>kotsuka@creativesd.net</strong>（問い合わせフォーム受付）</span>
-                <span>🌐 公式Web: <strong>https://kokoromou.inteve-cloud.com/</strong></span>
+                <span>🌐 公式Web: <strong className="text-emerald-800">https://kokoromou.inteve-cloud.com/</strong></span>
               </div>
+              <p className="text-[10px] text-stone-500 font-medium">
+                ※ご相談・デモ導入のお申し込みは、右記QRコードまたは公式Web内の専用問い合わせフォームより24時間承っております。
+              </p>
             </div>
-            <div className="text-right shrink-0">
-              <span className="inline-block bg-stone-900 text-white font-black px-4 py-2 rounded-xl text-xs shadow-sm">
-                無料トライアル随時受付中
-              </span>
+
+            {/* QRコード表示エリア */}
+            <div className="flex items-center gap-3 bg-white px-3.5 py-2.5 rounded-xl border border-stone-300 shadow-xs shrink-0">
+              <div className="w-14 h-14 bg-stone-100 rounded flex items-center justify-center overflow-hidden border border-stone-200">
+                {qrCodeDataUrl ? (
+                  <img 
+                    src={qrCodeDataUrl} 
+                    alt="お問い合わせQRコード" 
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <QrCode className="w-10 h-10 text-stone-700" />
+                )}
+              </div>
+              <div className="text-left space-y-0.5">
+                <span className="inline-block px-1.5 py-0.5 bg-emerald-100 text-emerald-800 font-black text-[9px] rounded">
+                  24時間受付
+                </span>
+                <span className="text-[11px] font-black text-stone-900 block">
+                  Web問い合わせ窓口
+                </span>
+                <span className="text-[9px] text-stone-500 block">
+                  スマホで簡単アクセス
+                </span>
+              </div>
             </div>
           </div>
 

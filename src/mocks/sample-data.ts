@@ -147,6 +147,30 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     description: '道後温泉奥座敷の豊かな緑に囲まれた共同霊園。傾斜地や階段のある難所区画が多いため、専門技能を持つ業者を指定。',
     affiliatedVendorIds: ['vendor_002', 'vendor_004', 'vendor_005'], // 城南みち、道後こもれび、緑風墓苑
   },
+  {
+    id: 'cem_comp_004',
+    name: 'お墓のトータルエージェント（宝塔寺・善福寺・東榮寺・法寿院 総合窓口）',
+    cemeteryNames: ['宝塔寺 旭ヶ丘霊園', '善福寺 境内墓地', '東榮寺 墓苑', '法寿院 墓地'],
+    representativeName: '代表窓口 / 霊園総合管理者',
+    phoneNumber: '089-997-7466',
+    email: 'info@totalagent.net',
+    locationAddress: '愛媛県松山市土居田町455-16',
+    description: '愛媛県松山・中予エリアを中心に、宝塔寺霊園や善福寺など中核霊園の管理受託・墓石建立・墓じまい・お参り代行相談をワンストップで手掛ける有力エージェント。',
+    affiliatedVendorIds: ['vendor_001', 'vendor_002', 'vendor_003', 'vendor_004', 'vendor_005', 'vendor_006'],
+    vendorContracts: {
+      vendor_001: {
+        vendorId: 'vendor_001',
+        vendorName: '有限会社 松山まごころ清掃',
+        contractFileUrl: '/images/grave_front_example.jpg',
+        contractFileName: '墓地内作業代行契約書_松山まごころ清掃_2026.pdf',
+        uploadedAt: '2026-09-10T10:00:00.000Z',
+        status: 'signed',
+        notes: '2026年度提携更新済。中予全域の代行作業を連携。',
+      },
+    },
+    contractTemplateFileName: 'お墓のトータルエージェント_提携作業代行基本契約書.pdf',
+    contractTemplateUpdatedAt: '2026-09-10T09:00:00.000Z',
+  },
 ];
 
 /**
@@ -538,6 +562,15 @@ export const SAMPLE_ACCOUNTS = [
     role: 'cemetery' as const,
     name: '道後やすらぎ墓苑 運営会',
     targetId: 'cem_comp_003',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_cem_004',
+    email: 'info@totalagent.net',
+    password: 'cem1234',
+    role: 'cemetery' as const,
+    name: 'お墓のトータルエージェント',
+    targetId: 'cem_comp_004',
     createdAt: '2026-01-01T00:00:00Z',
   },
   // 作業代行業者（6社）
