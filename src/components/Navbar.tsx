@@ -65,12 +65,6 @@ export default function Navbar() {
               作業代行業者
             </Link>
             <Link
-              href="/admin"
-              className="text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 transition-colors hidden lg:inline"
-            >
-              本部統括
-            </Link>
-            <Link
               href="/order"
               className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-900 px-4 py-2 rounded-lg shadow-sm transition-all hover:shadow-md"
             >

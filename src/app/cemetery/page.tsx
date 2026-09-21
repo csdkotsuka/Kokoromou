@@ -22,10 +22,14 @@ function CemeteryDashboard() {
   const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
   const [loading, setLoading] = useState(false);
 
-  // 編集モーダル状態
+  // 会社情報 編集モーダル状態
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<CemeteryCompany>>({});
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  // 提携代行業者 編集モーダル状態
+  const [isEditingVendors, setIsEditingVendors] = useState(false);
+  const [tempAffiliatedVendorIds, setTempAffiliatedVendorIds] = useState<string[]>([]);
 
   // 初期データ読み込み（APIから最新情報を取得、フォールバックあり）
   useEffect(() => {
@@ -61,6 +65,49 @@ function CemeteryDashboard() {
   const affiliatedVendors = vendors.filter((v) =>
     currentCompany?.affiliatedVendorIds?.includes(v.id)
   );
+
+  // 提携業者の編集モーダルを開く
+  const handleOpenVendorEdit = () => {
+    setTempAffiliatedVendorIds([...(currentCompany?.affiliatedVendorIds || [])]);
+    setIsEditingVendors(true);
+  };
+
+  // 提携業者のチェック切り替え（トグル）
+  const handleToggleVendorId = (vendorId: string) => {
+    setTempAffiliatedVendorIds((prev) =>
+      prev.includes(vendorId) ? prev.filter((id) => id !== vendorId) : [...prev, vendorId]
+    );
+  };
+
+  // 提携代行業者の変更をFirestoreに保存
+  const handleSaveVendors = async () => {
+    setLoading(true);
+    try {
+      const updated: CemeteryCompany = {
+        ...currentCompany,
+        affiliatedVendorIds: tempAffiliatedVendorIds,
+      };
+
+      const res = await fetch('/api/cemetery-companies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+
+      if (res.ok) {
+        setCompanies((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+        setIsEditingVendors(false);
+        setSaveSuccessMsg('提携作業代行業者の設定を更新・保存しました！');
+        setTimeout(() => setSaveSuccessMsg(null), 4000);
+      } else {
+        alert('保存に失敗しました');
+      }
+    } catch (err) {
+      alert('エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // この墓地管理会社が管轄する霊園の注文一覧
   const companyOrders = orders.filter(
@@ -252,20 +299,24 @@ function CemeteryDashboard() {
 
         {/* 2. 提携している作業代行業者一覧 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
-          <div className="mb-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <span className="text-base font-bold text-blue-800 bg-blue-100 px-3 py-1 rounded-full">
-                  現場の職人・パートナー
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-                  提携作業代行業者（{affiliatedVendors.length}社）
-                </h2>
-              </div>
-              <p className="text-stone-600 text-base font-medium">
+          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-base font-bold text-blue-800 bg-blue-100 px-3 py-1 rounded-full">
+                現場の職人・パートナー
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
+                提携作業代行業者（{affiliatedVendors.length}社）
+              </h2>
+              <p className="text-stone-600 text-base font-medium mt-1">
                 当霊園での作業が認定されているパートナー業者です
               </p>
             </div>
+            <button
+              onClick={handleOpenVendorEdit}
+              className="px-6 py-3.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-xl font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0"
+            >
+              <span>🤝</span> 提携代行業者を編集する（追加・解除）
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -501,6 +552,104 @@ function CemeteryDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 提携代行業者 編集モーダル（高齢者向け特大UI） */}
+      {isEditingVendors && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-600 max-h-[90vh] flex flex-col">
+            <div className="pb-4 border-b-2 border-stone-200">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-blue-100 text-blue-900 text-base font-extrabold rounded-full">
+                  出入り認定・提携設定
+                </span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
+                提携作業代行業者の追加・解除
+              </h3>
+              <p className="text-stone-600 text-lg mt-1 font-medium">
+                当霊園（{currentCompany?.name}）で作業を認める代行業者を選んでチェックを入れてください。
+              </p>
+            </div>
+
+            {/* 業者一覧（スクロール可能） */}
+            <div className="py-4 overflow-y-auto flex-1 space-y-3 pr-2">
+              {vendors.map((vendor) => {
+                const isChecked = tempAffiliatedVendorIds.includes(vendor.id);
+                return (
+                  <div
+                    key={vendor.id}
+                    onClick={() => handleToggleVendorId(vendor.id)}
+                    className={`p-5 rounded-2xl border-2 cursor-pointer transition flex items-start justify-between gap-4 ${
+                      isChecked
+                        ? 'bg-blue-50/80 border-blue-500 shadow-sm'
+                        : 'bg-stone-50 border-stone-300 hover:border-stone-400 opacity-80 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {}} // 親divのonClickでトグル
+                        className="mt-1.5 w-6 h-6 rounded text-blue-700 focus:ring-blue-500 cursor-pointer accent-blue-700 shrink-0"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-xl sm:text-2xl font-extrabold text-stone-900">
+                            {vendor.displayName}
+                          </h4>
+                          {isChecked ? (
+                            <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                              ✅ 提携・出入り認可
+                            </span>
+                          ) : (
+                            <span className="bg-stone-200 text-stone-600 text-sm font-bold px-3 py-1 rounded-full">
+                              未提携
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-base text-stone-700 font-bold mt-1">
+                          代表: {vendor.vendorProfile?.representativeName} • 電話: {vendor.phoneNumber}
+                        </p>
+                        <p className="text-base text-stone-600 mt-1 line-clamp-1">
+                          {vendor.vendorProfile?.description}
+                        </p>
+                        <div className="text-sm text-stone-500 mt-1">
+                          対応地域: {vendor.vendorProfile?.serviceAreas?.join(', ')} / 実績: {vendor.vendorProfile?.completedJobsCount}件完了
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-lg border border-amber-300">
+                        ★ {vendor.vendorProfile?.rating}点
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* モーダルフッター */}
+            <div className="pt-4 border-t-2 border-stone-200 flex gap-4">
+              <button
+                type="button"
+                onClick={() => setIsEditingVendors(false)}
+                className="flex-1 py-4 px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xl font-bold rounded-2xl transition"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleSaveVendors}
+                className="flex-1 py-4 px-6 bg-blue-700 hover:bg-blue-800 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-2"
+              >
+                {loading ? '保存中...' : '提携業者の変更を保存する'}
+              </button>
+            </div>
           </div>
         </div>
       )}
