@@ -49,6 +49,18 @@ function VendorDashboardContent() {
   });
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
+  // Escキーで開いているすべてのポップアップ・モーダルを閉じる
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setPreviewPhoto(null);
+        setIsEditingProfile(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // 最新データのフェッチ
   useEffect(() => {
     async function loadData() {
@@ -506,13 +518,16 @@ function VendorDashboardContent() {
 
       {/* 写真プレビューモーダル */}
       {previewPhoto && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setPreviewPhoto(null); }}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 cursor-default">
             <div className="flex items-center justify-between">
               <h4 className="text-2xl font-extrabold text-slate-900">{previewPhoto.title}</h4>
               <button
                 onClick={() => setPreviewPhoto(null)}
-                className="p-2 hover:bg-slate-100 rounded-full text-slate-600"
+                className="p-2 hover:bg-slate-100 rounded-full text-slate-600 cursor-pointer"
               >
                 <X className="w-8 h-8" />
               </button>
@@ -522,7 +537,7 @@ function VendorDashboardContent() {
             </div>
             <button
               onClick={() => setPreviewPhoto(null)}
-              className="w-full py-3.5 bg-slate-900 text-white text-lg font-bold rounded-xl"
+              className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white text-lg font-bold rounded-xl cursor-pointer transition"
             >
               閉じる
             </button>
@@ -532,8 +547,11 @@ function VendorDashboardContent() {
 
       {/* プロフィール編集モーダル */}
       {isEditingProfile && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsEditingProfile(false); }}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto cursor-default">
             <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
               自社情報の変更・編集
             </h3>

@@ -84,6 +84,18 @@ export default function AdminDashboardPage() {
   });
   const [agreedToWarnings, setAgreedToWarnings] = useState(false);
 
+  // Escキーで開いているすべてのポップアップ・モーダルを閉じる
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setPreviewPhoto(null);
+        setIsAddingVendor(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // サーバーAPIから最新データを読み込み
   React.useEffect(() => {
     async function fetchServerData() {
@@ -922,8 +934,11 @@ export default function AdminDashboardPage() {
 
         {/* 写真拡大モーダル */}
         {previewPhoto && (
-          <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 p-6 animate-in fade-in zoom-in-95">
+          <div 
+            onClick={(e) => { if (e.target === e.currentTarget) setPreviewPhoto(null); }}
+            className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+          >
+            <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl space-y-4 p-6 animate-in fade-in zoom-in-95 cursor-default">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-stone-900">{previewPhoto.title}</h3>
                 <button
@@ -952,8 +967,11 @@ export default function AdminDashboardPage() {
 
         {/* 新規代行業者追加モーダル（注意喚起付き） */}
         {isAddingVendor && (
-          <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div 
+            onClick={(e) => { if (e.target === e.currentTarget) setIsAddingVendor(false); }}
+            className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+          >
+            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto cursor-default">
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
                 <div>
                   <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">

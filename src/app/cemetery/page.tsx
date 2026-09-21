@@ -65,6 +65,32 @@ function CemeteryDashboard() {
     contract: VendorContract;
   } | null>(null);
 
+  // 契約書テンプレートPDF アップロードモーダル状態
+  const [isUploadingTemplate, setIsUploadingTemplate] = useState(false);
+  const [templateUploadFile, setTemplateUploadFile] = useState<{
+    dataUrl: string;
+    fileName: string;
+    fileType: string;
+  } | null>(null);
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+
+  // Escキーで開いているすべてのポップアップ・モーダルを閉じる
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsEditingCompany(false);
+        setIsEditingVendors(false);
+        setIsAddingNewVendor(false);
+        setShowContractTemplateModal(false);
+        setUploadTargetVendor(null);
+        setViewingContract(null);
+        setIsUploadingTemplate(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // 初期データ読み込み（APIから最新情報を取得、フォールバックあり）
   useEffect(() => {
     async function loadData() {
@@ -455,6 +481,77 @@ function CemeteryDashboard() {
     URL.revokeObjectURL(url);
   };
 
+  // テンプレートPDFファイル選択ハンドラー
+  const handleTemplateFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      alert('ファイルサイズが大きすぎます（20MB以下にしてください）');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setTemplateUploadFile({
+        dataUrl: event.target?.result as string,
+        fileName: file.name,
+        fileType: file.type || 'application/pdf',
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // テンプレートPDFを自社の公式雛形として保存
+  const handleSaveTemplatePdf = async () => {
+    if (!templateUploadFile || !currentCompany) return;
+    setIsSavingTemplate(true);
+
+    try {
+      const updatedCompany: CemeteryCompany = {
+        ...currentCompany,
+        contractTemplateUrl: templateUploadFile.dataUrl,
+        contractTemplateFileName: templateUploadFile.fileName,
+        contractTemplateUpdatedAt: new Date().toISOString(),
+      };
+
+      const res = await fetch('/api/cemetery-companies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCompany),
+      });
+
+      if (!res.ok) throw new Error('テンプレートPDFの保存に失敗しました');
+
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c))
+      );
+      setSaveSuccessMsg(`「${templateUploadFile.fileName}」を自社公式契約書テンプレートとして登録・保管しました！`);
+      setIsUploadingTemplate(false);
+      setTemplateUploadFile(null);
+      setTimeout(() => setSaveSuccessMsg(null), 4000);
+    } catch (e: any) {
+      alert(e.message || '保存エラーが発生しました');
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  // テンプレートPDFのダウンロード処理
+  const handleDownloadTemplatePdf = (vendor?: User | null) => {
+    if (currentCompany?.contractTemplateUrl) {
+      const link = document.createElement('a');
+      link.href = currentCompany.contractTemplateUrl;
+      link.download = currentCompany.contractTemplateFileName || '墓地内作業代行基本契約書_テンプレート.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      // テンプレート未登録時はHTML文書をダウンロード
+      handleDownloadContractHtml(vendor);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-stone-100 text-slate-900 pb-24">
       {/* ⚠️ 本部管理者から来た場合のみ表示する戻りバー */}
@@ -611,13 +708,10 @@ function CemeteryDashboard() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setContractPrintTargetVendor(null);
-                  setShowContractTemplateModal(true);
-                }}
+                onClick={() => handleDownloadTemplatePdf(null)}
                 className="px-5 py-3.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
               >
-                <span>📄</span> 契約書雛形（PDF）を印刷・DL
+                <span>📥</span> 契約書PDFテンプレートをDL
               </button>
               <button
                 type="button"
@@ -632,6 +726,54 @@ function CemeteryDashboard() {
                 className="px-5 py-3.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
               >
                 <span>🤝</span> 提携の追加・解除（{affiliatedVendors.length}社）
+              </button>
+            </div>
+          </div>
+
+          {/* 📄 自社公式 契約書テンプレート（PDF原本）の管理・保管バー */}
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full">
+                  自社公式 契約書テンプレート（PDF原本保管）
+                </span>
+                {currentCompany.contractTemplateUrl ? (
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                    登録済み ✓
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                    標準雛形適用中
+                  </span>
+                )}
+              </div>
+              <h3 className="text-lg font-extrabold text-stone-900">
+                {currentCompany.contractTemplateFileName || '自社契約書テンプレートPDF（未登録）'}
+              </h3>
+              <p className="text-xs text-stone-600">
+                {currentCompany.contractTemplateUrl
+                  ? '各社独自の実際の契約書PDFが保管されています。代行業者に手渡す際はここからダウンロードして印刷できます。'
+                  : '寺院・霊園で普段お使いの実際の契約書・誓約書（PDF）をアップロードして保管・配布できます。'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleDownloadTemplatePdf(null)}
+                className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <span>📥</span> PDFをダウンロード
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTemplateUploadFile(null);
+                  setIsUploadingTemplate(true);
+                }}
+                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <span>📤</span> {currentCompany.contractTemplateUrl ? '差替・更新' : 'PDFを登録'}
               </button>
             </div>
           </div>
@@ -749,13 +891,17 @@ function CemeteryDashboard() {
                             <button
                               type="button"
                               onClick={() => {
-                                setContractPrintTargetVendor(vendor);
-                                setShowContractTemplateModal(true);
+                                if (currentCompany.contractTemplateUrl) {
+                                  handleDownloadTemplatePdf(vendor);
+                                } else {
+                                  setContractPrintTargetVendor(vendor);
+                                  setShowContractTemplateModal(true);
+                                }
                               }}
                               className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-sm flex items-center justify-center gap-1 cursor-pointer transition"
-                              title="この業者の名前入りの契約書を印刷・ダウンロード"
+                              title="この業者に渡す契約書をダウンロード・印刷"
                             >
-                              <span>📄</span> 雛形印刷
+                              <span>📄</span> 雛形DL
                             </button>
                           </div>
                         </div>
@@ -863,8 +1009,11 @@ function CemeteryDashboard() {
 
       {/* 編集モーダル */}
       {isEditingCompany && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-amber-500 max-h-[90vh] overflow-y-auto">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsEditingCompany(false); }}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-amber-500 max-h-[90vh] overflow-y-auto cursor-default">
             <h3 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">
               管理会社情報の変更・編集
             </h3>
@@ -975,8 +1124,11 @@ function CemeteryDashboard() {
 
       {/* 提携代行業者 編集モーダル（高齢者向け特大UI） */}
       {isEditingVendors && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-600 max-h-[90vh] flex flex-col">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsEditingVendors(false); }}
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-600 max-h-[90vh] flex flex-col cursor-default">
             <div className="pb-4 border-b-2 border-stone-200">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 bg-blue-100 text-blue-900 text-base font-extrabold rounded-full">
@@ -1073,8 +1225,11 @@ function CemeteryDashboard() {
 
       {/* 新規代行業者・便利屋さん 登録モーダル（注意喚起付き） */}
       {isAddingNewVendor && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsAddingNewVendor(false); }}
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto cursor-default">
             <div className="pb-4 border-b-2 border-stone-200">
               <span className="px-3 py-1 bg-emerald-100 text-emerald-900 text-base font-extrabold rounded-full">
                 パートナー新規追加
@@ -1282,8 +1437,16 @@ function CemeteryDashboard() {
 
       {/* 4. 契約書雛形 印刷・PDFダウンロード用モーダル */}
       {showContractTemplateModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print-bg">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden my-4">
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowContractTemplateModal(false);
+              setContractPrintTargetVendor(null);
+            }
+          }}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto no-print-bg cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden my-4 cursor-default">
             {/* モーダル操作ヘッダー（印刷時は非表示） */}
             <div className="no-print p-5 bg-stone-900 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
               <div>
@@ -1433,8 +1596,16 @@ function CemeteryDashboard() {
 
       {/* 5. 記入済み契約書の添付・貼り付けアップロードモーダル */}
       {uploadTargetVendor && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl">
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setUploadTargetVendor(null);
+              setContractUploadFile(null);
+            }
+          }}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl cursor-default">
             <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-stone-200">
               <div>
                 <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full">
@@ -1558,8 +1729,15 @@ function CemeteryDashboard() {
 
       {/* 6. 添付契約書の拡大閲覧・確認モーダル */}
       {viewingContract && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setViewingContract(null);
+            }
+          }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden cursor-default">
             <div className="p-5 bg-stone-900 text-white flex items-center justify-between gap-3 shrink-0">
               <div>
                 <span className="text-xs bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded-full">
@@ -1618,6 +1796,134 @@ function CemeteryDashboard() {
                 {viewingContract.contract.notes && (
                   <div>📝 備考メモ: {viewingContract.contract.notes}</div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. 自社公式契約書テンプレートPDFの登録・更新モーダル */}
+      {isUploadingTemplate && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsUploadingTemplate(false);
+              setTemplateUploadFile(null);
+            }
+          }}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-600 cursor-default">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-stone-200">
+              <div>
+                <span className="text-xs font-bold bg-blue-100 text-blue-900 px-3 py-1 rounded-full">
+                  自社書類テンプレート管理
+                </span>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mt-1">
+                  📄 公式契約書PDFテンプレートの登録
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsUploadingTemplate(false);
+                  setTemplateUploadFile(null);
+                }}
+                className="text-stone-400 hover:text-stone-700 text-2xl font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-stone-600 text-sm mb-4 leading-relaxed">
+              霊園で実際に使用されている<strong>公式の契約書・誓約書PDF原本</strong>をアップロードして保管します。
+              登録した原本PDFは、提携作業代行業者への配布や印刷にそのまま利用できます。
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-base font-bold text-stone-800 mb-2">
+                  PDFファイルを選択
+                </label>
+                <div className="border-2 border-dashed border-stone-300 hover:border-blue-600 rounded-2xl p-6 text-center bg-stone-50 transition">
+                  <input
+                    type="file"
+                    id="template-pdf-input"
+                    accept="application/pdf"
+                    onChange={handleTemplateFileSelect}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="template-pdf-input"
+                    className="cursor-pointer flex flex-col items-center justify-center gap-2"
+                  >
+                    <span className="text-4xl">📄</span>
+                    <span className="text-base font-bold text-blue-800 hover:underline">
+                      ここをクリックしてPDF原本を選択
+                    </span>
+                    <span className="text-xs text-stone-500">
+                      PDF形式（最大20MBまで対応）
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 選択されたテンプレートファイル情報 */}
+              {templateUploadFile && (
+                <div className="p-3.5 bg-blue-50 border border-blue-300 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-2xl shrink-0">📑</span>
+                    <div className="truncate">
+                      <span className="font-bold text-blue-950 text-sm block truncate">
+                        {templateUploadFile.fileName}
+                      </span>
+                      <span className="text-xs text-blue-700">登録準備完了</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTemplateUploadFile(null)}
+                    className="text-stone-400 hover:text-rose-600 font-bold text-xs p-1 cursor-pointer"
+                  >
+                    取消
+                  </button>
+                </div>
+              )}
+
+              {currentCompany?.contractTemplateFileName && !templateUploadFile && (
+                <div className="p-3 bg-stone-100 rounded-xl text-xs text-stone-600">
+                  <span>現在登録中の原本: <strong>{currentCompany.contractTemplateFileName}</strong></span>
+                  {currentCompany.contractTemplateUpdatedAt && (
+                    <span className="block text-stone-500 mt-0.5">
+                      （最終更新: {new Date(currentCompany.contractTemplateUpdatedAt).toLocaleDateString('ja-JP')}）
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="pt-4 border-t-2 border-stone-200 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUploadingTemplate(false);
+                    setTemplateUploadFile(null);
+                  }}
+                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  disabled={!templateUploadFile || isSavingTemplate}
+                  onClick={handleSaveTemplatePdf}
+                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
+                    !templateUploadFile || isSavingTemplate
+                      ? 'bg-stone-400 cursor-not-allowed'
+                      : 'bg-blue-700 hover:bg-blue-800 cursor-pointer'
+                  }`}
+                >
+                  {isSavingTemplate ? '保管中...' : 'テンプレート原本を登録・保存'}
+                </button>
               </div>
             </div>
           </div>

@@ -40,6 +40,8 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
         notes: '2026年度更新済。三井住友海上 施設賠償責任保険証券コピー確認済。',
       },
     },
+    contractTemplateFileName: '宝塔寺_霊園内作業代行業務基本契約書_標準雛形.pdf',
+    contractTemplateUpdatedAt: '2026-09-01T09:00:00.000Z',
   },
   {
     id: 'cem_comp_002',

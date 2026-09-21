@@ -43,6 +43,10 @@ export interface CemeteryCompany {
   affiliatedVendorIds: string[];
   // 作業代行業者ごとの締結済み契約書・誓約書 (vendorId -> VendorContract)
   vendorContracts?: Record<string, VendorContract>;
+  // 管理会社独自の契約書・誓約書テンプレートPDF（ダウンロード・印刷用）
+  contractTemplateUrl?: string;
+  contractTemplateFileName?: string;
+  contractTemplateUpdatedAt?: string;
 }
 
 // -------------------------------------------------------------
