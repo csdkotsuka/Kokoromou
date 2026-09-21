@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CemeteryCompany, User, Order, VendorContract } from '@/types/firestore';
+import { CemeteryCompany, User, Order, VendorContract, EmailTemplate } from '@/types/firestore';
 import {
   SAMPLE_CEMETERY_COMPANIES,
   SAMPLE_VENDORS,
@@ -74,6 +74,17 @@ function CemeteryDashboard() {
   } | null>(null);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
+  // 案内メール用テンプレート状態・顧客管理状態
+  const [activeTemplates, setActiveTemplates] = useState<EmailTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [emailSubject, setEmailSubject] = useState<string>('');
+  const [emailBody, setEmailBody] = useState<string>('');
+  const [selectedClientEmails, setSelectedClientEmails] = useState<string[]>([]);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [isSavingTemplateLoading, setIsSavingTemplateLoading] = useState(false);
+  const [isAddingTemplateModal, setIsAddingTemplateModal] = useState(false);
+  const [newTemplateTitleInput, setNewTemplateTitleInput] = useState('');
+
   // Escキーで開いているすべてのポップアップ・モーダルを閉じる
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,6 +96,7 @@ function CemeteryDashboard() {
         setUploadTargetVendor(null);
         setViewingContract(null);
         setIsUploadingTemplate(false);
+        setIsAddingTemplateModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -212,6 +224,248 @@ function CemeteryDashboard() {
       o.cemeteryCompanyId === currentCompany?.id ||
       currentCompany?.cemeteryNames?.some((name) => o.graveInfo?.cemeteryName?.includes(name))
   );
+
+  // 施主様（顧客）の集約名簿リスト
+  const clientsSummary = useMemo(() => {
+    const map = new Map<string, {
+      id: string;
+      email: string;
+      name: string;
+      phone?: string;
+      frontInscription: string;
+      builderName: string;
+      sectionPlotNumber: string;
+      cemeteryName: string;
+      lastOrderDate: string;
+      orderCount: number;
+      lastPlanName: string;
+    }>();
+
+    companyOrders.forEach((o) => {
+      const emailKey = o.clientEmail || `no_email_${o.clientId || o.id}`;
+      const existing = map.get(emailKey);
+      if (!existing) {
+        map.set(emailKey, {
+          id: o.clientId || o.id,
+          email: o.clientEmail || '',
+          name: o.clientName || '施主様',
+          frontInscription: o.graveInfo?.frontInscription || '',
+          builderName: o.graveInfo?.builderName || '',
+          sectionPlotNumber: o.graveInfo?.sectionPlotNumber || '',
+          cemeteryName: o.graveInfo?.cemeteryName || '',
+          lastOrderDate: o.createdAt || '',
+          orderCount: 1,
+          lastPlanName: o.servicePlanName || '',
+        });
+      } else {
+        existing.orderCount += 1;
+        if (new Date(o.createdAt) > new Date(existing.lastOrderDate)) {
+          existing.lastOrderDate = o.createdAt;
+          existing.lastPlanName = o.servicePlanName || existing.lastPlanName;
+        }
+      }
+    });
+
+    return Array.from(map.values());
+  }, [companyOrders]);
+
+  // 初期テンプレートの生成・同期
+  useEffect(() => {
+    const fallbackTemplates: EmailTemplate[] = [
+      {
+        id: 'tpl_autumn',
+        title: '秋のお彼岸のご案内',
+        subject: `【${currentCompany?.name || '霊園管理所'}】秋のお彼岸のご供養・お墓参り代行のご案内`,
+        body: `いつも大変お世話になっております。${currentCompany?.name || '霊園管理所'}でございます。\n\n朝夕はめっきり涼しくなってまいりましたが、施主様におかれましてはいかがお過ごしでしょうか。\nさて、まもなく秋のお彼岸の時期を迎えます。\n\n遠方にお住まいでご来園が難しい方や、ご高齢によりお参り・草刈りがご負担となっている施主様に向けて、当霊園では公認パートナー業者による「お墓参り・墓所清掃・お供花代行サービス」を承っております。\n\n心を込めて綺麗にお掃除し、お花と線香をお供えして写真付きでご報告いたします。\nご希望の施主様は、ぜひお早めにお申し付け・ご相談ください。\n\n━━━━━━━━━━━━━━━━━━━━━\n${currentCompany?.name || '霊園管理所'}\n代表・管理者: ${currentCompany?.representativeName || ''}\n電話番号: ${currentCompany?.phoneNumber || ''}\n所在地: ${currentCompany?.locationAddress || ''}\n━━━━━━━━━━━━━━━━━━━━━`,
+        category: 'seasonal',
+        updatedAt: '2026-09-01T00:00:00Z',
+      },
+      {
+        id: 'tpl_bon',
+        title: 'お盆のご供養・お墓参り代行のご案内',
+        subject: `【${currentCompany?.name || '霊園管理所'}】お盆のご供養・墓所清掃代行のご案内`,
+        body: `いつも大変お世話になっております。${currentCompany?.name || '霊園管理所'}でございます。\n\n猛暑の候、皆様のご健勝をお祈り申し上げます。\nまもなくご先祖様をお迎えするお盆の季節を迎えます。\n\n真夏の炎天下でのお墓掃除や除草作業は、熱中症の危険もあり大きな重労働となります。\n当霊園の公認作業代行サービスでは、墓石水洗い・区画内の草抜き・お花や線香のお供えを丁寧に実施いたします。\n\n施主様に代わり、真心込めてお墓をお守りいたします。\n\n━━━━━━━━━━━━━━━━━━━━━\n${currentCompany?.name || '霊園管理所'}\n電話番号: ${currentCompany?.phoneNumber || ''}\n━━━━━━━━━━━━━━━━━━━━━`,
+        category: 'seasonal',
+        updatedAt: '2026-07-01T00:00:00Z',
+      },
+      {
+        id: 'tpl_spring',
+        title: '春のお彼岸のご案内',
+        subject: `【${currentCompany?.name || '霊園管理所'}】春のお彼岸のご案内（お墓参り代行サービス）`,
+        body: `いつもお世話になっております。${currentCompany?.name || '霊園管理所'}でございます。\n\n寒さの中にも春の兆しが感じられる季節となりました。\n春のお彼岸にあたり、ご先祖様への感謝を込めたお墓参り代行・点検清掃のご案内を申し上げます。\n\nご多忙やご健康上のご理由でお参りが叶わない施主様に代わり、心を込めてご供養・墓石清掃を実施いたします。\n\n━━━━━━━━━━━━━━━━━━━━━\n${currentCompany?.name || '霊園管理所'}\n電話番号: ${currentCompany?.phoneNumber || ''}\n━━━━━━━━━━━━━━━━━━━━━`,
+        category: 'seasonal',
+        updatedAt: '2026-03-01T00:00:00Z',
+      },
+      {
+        id: 'tpl_check',
+        title: '年末年始・定期点検のご案内',
+        subject: `【${currentCompany?.name || '霊園管理所'}】年末年始の墓所清掃・定期確認のご案内`,
+        body: `いつも大変お世話になっております。${currentCompany?.name || '霊園管理所'}でございます。\n\n今年も残すところあとわずかとなりました。\n清々しい新年をお迎えいただくため、年末のお墓掃除や墓石の点検作業を承っております。\n\n一年の締めくくりに、ご先祖様への感謝の気持ちをお届けいたします。\n\n━━━━━━━━━━━━━━━━━━━━━\n${currentCompany?.name || '霊園管理所'}\n電話番号: ${currentCompany?.phoneNumber || ''}\n━━━━━━━━━━━━━━━━━━━━━`,
+        category: 'maintenance',
+        updatedAt: '2026-09-01T00:00:00Z',
+      },
+    ];
+
+    const tpls = currentCompany?.emailTemplates && currentCompany.emailTemplates.length > 0
+      ? currentCompany.emailTemplates
+      : fallbackTemplates;
+
+    setActiveTemplates(tpls);
+    if (tpls.length > 0) {
+      setSelectedTemplateId(tpls[0].id);
+      setEmailSubject(tpls[0].subject);
+      setEmailBody(tpls[0].body);
+    }
+  }, [currentCompany?.id]);
+
+  // 顧客名簿の初期選択（有効なメールアドレスを持つ顧客を自動全選択）
+  useEffect(() => {
+    const validEmails = clientsSummary
+      .map((c) => c.email)
+      .filter((email) => email && email.includes('@'));
+    setSelectedClientEmails(validEmails);
+  }, [clientsSummary]);
+
+  // テンプレート切り替え
+  const handleSelectTemplate = (tplId: string) => {
+    setSelectedTemplateId(tplId);
+    const found = activeTemplates.find((t) => t.id === tplId);
+    if (found) {
+      setEmailSubject(found.subject);
+      setEmailBody(found.body);
+    }
+  };
+
+  // 全選択・全解除
+  const handleToggleSelectAllClients = () => {
+    const validEmails = clientsSummary
+      .map((c) => c.email)
+      .filter((email) => email && email.includes('@'));
+    if (selectedClientEmails.length === validEmails.length) {
+      setSelectedClientEmails([]);
+    } else {
+      setSelectedClientEmails(validEmails);
+    }
+  };
+
+  // 個別チェック切り替え
+  const handleToggleClientEmail = (email: string) => {
+    if (!email) return;
+    setSelectedClientEmails((prev) =>
+      prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email]
+    );
+  };
+
+  // テンプレートの上書き保存
+  const handleSaveEmailTemplate = async () => {
+    if (!currentCompany || !selectedTemplateId) return;
+    setIsSavingTemplateLoading(true);
+    try {
+      const updatedTpls = activeTemplates.map((t) =>
+        t.id === selectedTemplateId
+          ? { ...t, subject: emailSubject, body: emailBody, updatedAt: new Date().toISOString() }
+          : t
+      );
+      const updatedCompany: CemeteryCompany = {
+        ...currentCompany,
+        emailTemplates: updatedTpls,
+      };
+
+      const res = await fetch('/api/cemetery-companies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCompany),
+      });
+
+      if (!res.ok) throw new Error('メールテンプレートの保存に失敗しました');
+
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c))
+      );
+      setActiveTemplates(updatedTpls);
+      const currentTitle = activeTemplates.find((t) => t.id === selectedTemplateId)?.title || 'テンプレート';
+      setSaveSuccessMsg(`メールテンプレート「${currentTitle}」の変更を保存しました！`);
+      setTimeout(() => setSaveSuccessMsg(null), 4000);
+    } catch (e: any) {
+      alert(e.message || '保存エラーが発生しました');
+    } finally {
+      setIsSavingTemplateLoading(false);
+    }
+  };
+
+  // 新規テンプレート追加
+  const handleCreateNewEmailTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTemplateTitleInput.trim() || !currentCompany) return;
+    setIsSavingTemplateLoading(true);
+    try {
+      const newTpl: EmailTemplate = {
+        id: `tpl_${Date.now()}`,
+        title: newTemplateTitleInput.trim(),
+        subject: emailSubject || `【${currentCompany.name}】次回お墓参り・ご供養のご案内`,
+        body: emailBody || '',
+        category: 'other',
+        updatedAt: new Date().toISOString(),
+      };
+      const updatedTpls = [...activeTemplates, newTpl];
+      const updatedCompany: CemeteryCompany = {
+        ...currentCompany,
+        emailTemplates: updatedTpls,
+      };
+
+      const res = await fetch('/api/cemetery-companies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCompany),
+      });
+
+      if (!res.ok) throw new Error('テンプレートの追加に失敗しました');
+
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === updatedCompany.id ? updatedCompany : c))
+      );
+      setActiveTemplates(updatedTpls);
+      setSelectedTemplateId(newTpl.id);
+      setIsAddingTemplateModal(false);
+      setNewTemplateTitleInput('');
+      setSaveSuccessMsg(`新しいメールテンプレート「${newTpl.title}」を登録しました！`);
+      setTimeout(() => setSaveSuccessMsg(null), 4000);
+    } catch (e: any) {
+      alert(e.message || '追加エラーが発生しました');
+    } finally {
+      setIsSavingTemplateLoading(false);
+    }
+  };
+
+  // メーラー起動（BCC一括セット）
+  const handleLaunchMailer = () => {
+    if (selectedClientEmails.length === 0) {
+      alert('送信先の施主様が選択されていません。顧客一覧のチェックボックスを選択してください。');
+      return;
+    }
+    const bcc = selectedClientEmails.join(',');
+    const mailtoUrl = `mailto:?bcc=${encodeURIComponent(bcc)}&subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = mailtoUrl;
+  };
+
+  // BCC宛先コピー
+  const handleCopyBcc = () => {
+    if (selectedClientEmails.length === 0) {
+      alert('送信先の施主様が選択されていません。');
+      return;
+    }
+    navigator.clipboard.writeText(selectedClientEmails.join(', '));
+    setCopyFeedback(`📋 BCC宛先（${selectedClientEmails.length}件）をコピーしました！メールソフトの「BCC」欄に貼り付けてください。`);
+    setTimeout(() => setCopyFeedback(null), 4000);
+  };
+
+  // 件名・本文コピー
+  const handleCopyBody = () => {
+    const text = `【件名】\n${emailSubject}\n\n【本文】\n${emailBody}`;
+    navigator.clipboard.writeText(text);
+    setCopyFeedback('📋 メールの件名と本文をコピーしました！メールソフトに貼り付けてください。');
+    setTimeout(() => setCopyFeedback(null), 4000);
+  };
 
   // 会社情報編集を開く
   const handleOpenEdit = () => {
@@ -1003,6 +1257,252 @@ function CemeteryDashboard() {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* 4. 施主様（顧客）名簿 ＆ 次回お参り・点検ご案内メール作成 */}
+        <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
+          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span className="text-base font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
+                顧客管理台帳 ＆ 案内メール配信
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
+                施主様名簿 ＆ 次回お参り時期のご案内（{clientsSummary.length}名）
+              </h2>
+              <p className="text-stone-600 text-base font-medium mt-1">
+                過去に当霊園でお申込みいただいた施主様へ、「そろそろ次回のお墓参り時期ですよ」のご案内メールを一括作成・送信できます
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsAddingTemplateModal(true)}
+                className="px-5 py-3 bg-stone-800 hover:bg-stone-900 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+              >
+                <span>➕</span> 新しい文面テンプレートを追加
+              </button>
+            </div>
+          </div>
+
+          {/* 💡 送信方式の解説パネル（管理会社様の混乱・返信見落としを防ぐための案内） */}
+          <div className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 mb-8 text-stone-800 space-y-2">
+            <div className="flex items-center gap-2 text-amber-900 font-extrabold text-lg">
+              <span className="text-xl">💡</span>
+              <span>ご案内メールは、霊園様の普段のメールソフト（Outlook・Gmail等）の「BCC」で送信します</span>
+            </div>
+            <p className="text-sm text-stone-700 leading-relaxed">
+              施主様から「次回もお願いしたい」「日程を変更したい」などの<strong>返信があった際、システム内で送信してしまうと霊園事務所の普段の受信トレイに届かず、見落とし事故の原因</strong>となります。<br className="hidden sm:inline" />
+              そのため、本画面で宛先と文面を整えたら、<strong>霊園様のメールソフトのBCC宛先として一発起動・送信</strong>できるよう設計されています。送信控えもご自身のPCに確実に残り安心です。
+            </p>
+          </div>
+
+          {/* コピー通知トースト */}
+          {copyFeedback && (
+            <div className="p-4 mb-6 bg-emerald-100 border-2 border-emerald-500 text-emerald-900 text-lg font-bold rounded-2xl shadow animate-fade-in">
+              {copyFeedback}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* 左側: 施主様（顧客）一覧名簿 (col-span-6 または 7) */}
+            <div className="lg:col-span-6 space-y-4">
+              <div className="flex items-center justify-between bg-stone-100 p-4 rounded-2xl border border-stone-200">
+                <div>
+                  <span className="font-extrabold text-stone-900 text-lg">
+                    送信対象の施主様を選択
+                  </span>
+                  <span className="block text-sm text-stone-600 font-bold">
+                    現在: <strong className="text-blue-700 text-base">{selectedClientEmails.length}</strong> / {clientsSummary.filter(c => c.email).length} 名選択中
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleSelectAllClients}
+                  className="px-4 py-2 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-sm font-bold rounded-xl transition cursor-pointer"
+                >
+                  {selectedClientEmails.length === clientsSummary.filter(c => c.email).length ? 'すべての選択を解除' : '全員を選択する'}
+                </button>
+              </div>
+
+              {/* 顧客名簿リスト */}
+              <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
+                {clientsSummary.length === 0 ? (
+                  <div className="text-center py-12 bg-stone-50 rounded-2xl border border-dashed border-stone-300 text-stone-500">
+                    現在、利用履歴のある施主様データはありません。
+                  </div>
+                ) : (
+                  clientsSummary.map((client) => {
+                    const isChecked = selectedClientEmails.includes(client.email);
+                    const hasEmail = Boolean(client.email && client.email.includes('@'));
+
+                    // 最終利用日からの月数算出
+                    const lastDate = client.lastOrderDate ? new Date(client.lastOrderDate) : null;
+                    const diffMonths = lastDate
+                      ? Math.max(0, Math.floor((new Date().getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24 * 30)))
+                      : null;
+
+                    return (
+                      <div
+                        key={client.id}
+                        onClick={() => {
+                          if (hasEmail) handleToggleClientEmail(client.email);
+                        }}
+                        className={`p-4 rounded-2xl border-2 transition cursor-pointer select-none ${
+                          isChecked
+                            ? 'bg-blue-50/70 border-blue-400 shadow-xs'
+                            : 'bg-stone-50/80 border-stone-200 hover:border-stone-300'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            disabled={!hasEmail}
+                            onChange={() => handleToggleClientEmail(client.email)}
+                            className="w-6 h-6 mt-0.5 text-blue-600 rounded cursor-pointer shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-extrabold text-stone-900 text-lg">
+                                {client.name} 様
+                              </span>
+                              <span className="text-xs font-bold px-2.5 py-1 bg-stone-200 text-stone-800 rounded-lg shrink-0">
+                                利用回数: {client.orderCount}回
+                              </span>
+                            </div>
+
+                            <div className="text-sm text-stone-600 mt-1 font-medium">
+                              正面文字:「<strong className="text-stone-900">{client.frontInscription || '未登録'}</strong>」様墓
+                              {client.sectionPlotNumber && (
+                                <span className="ml-2">（区画: {client.sectionPlotNumber}）</span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-2 text-xs text-stone-500">
+                              <span className="truncate">
+                                ✉️ {client.email ? (
+                                  <strong className="text-stone-700">{client.email}</strong>
+                                ) : (
+                                  <span className="text-rose-500 font-bold">メールアドレス未登録</span>
+                                )}
+                              </span>
+                              {lastDate && (
+                                <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold">
+                                  最終利用: {diffMonths !== null && diffMonths > 0 ? `約${diffMonths}ヶ月前` : '今月'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* 右側: 案内メール作成 ＆ 送信アクション (col-span-6 または 5) */}
+            <div className="lg:col-span-6 bg-stone-50 rounded-2xl p-5 sm:p-6 border-2 border-stone-300 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200">
+                  <span className="font-extrabold text-stone-900 text-lg flex items-center gap-1.5">
+                    <span>✉️</span> 案内メールの文面編集
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={isSavingTemplateLoading}
+                      onClick={handleSaveEmailTemplate}
+                      className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold rounded-xl shadow transition active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:bg-stone-400"
+                    >
+                      <span>💾</span> {isSavingTemplateLoading ? '保存中...' : 'この文面を上書き保存'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* テンプレート選択 */}
+                <div>
+                  <label htmlFor="email-template-select" className="block text-sm font-bold text-stone-700 mb-1">
+                    文面テンプレート選択（時期・用途別）:
+                  </label>
+                  <select
+                    id="email-template-select"
+                    value={selectedTemplateId}
+                    onChange={(e) => handleSelectTemplate(e.target.value)}
+                    className="w-full bg-white text-stone-900 font-bold px-4 py-2.5 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-base shadow-xs"
+                  >
+                    {activeTemplates.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 件名 */}
+                <div>
+                  <label htmlFor="email-subject-input" className="block text-sm font-bold text-stone-700 mb-1">
+                    メール件名:
+                  </label>
+                  <input
+                    id="email-subject-input"
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    className="w-full bg-white text-stone-900 font-bold px-4 py-2.5 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-base shadow-xs"
+                    placeholder="メールの件名を入力"
+                  />
+                </div>
+
+                {/* 本文 */}
+                <div>
+                  <label htmlFor="email-body-textarea" className="block text-sm font-bold text-stone-700 mb-1">
+                    メール本文（自由に加筆・修正できます）:
+                  </label>
+                  <textarea
+                    id="email-body-textarea"
+                    rows={12}
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    className="w-full bg-white text-stone-900 font-medium px-4 py-3 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-base leading-relaxed shadow-xs"
+                    placeholder="メールの本文を入力"
+                  />
+                </div>
+              </div>
+
+              {/* 送信アクションボタン群 */}
+              <div className="mt-6 pt-5 border-t-2 border-stone-300 space-y-3">
+                <button
+                  type="button"
+                  onClick={handleLaunchMailer}
+                  className="w-full py-4 px-6 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-xl font-extrabold rounded-2xl shadow-lg transition flex items-center justify-center gap-3 cursor-pointer"
+                >
+                  <span>✉️</span>
+                  <span>メールソフトを起動して送信（BCC {selectedClientEmails.length}件）</span>
+                </button>
+                <p className="text-center text-xs text-stone-500">
+                  ※お使いのPCのメールソフト（Outlook、Mac Mail、Thunderbird等）が起動し、BCC宛先と本文が自動入力されます。
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleCopyBcc}
+                    className="py-3 px-3 bg-white hover:bg-stone-100 border-2 border-stone-300 text-stone-800 font-bold text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <span>📋</span> BCC宛先アドレスをコピー
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyBody}
+                    className="py-3 px-3 bg-white hover:bg-stone-100 border-2 border-stone-300 text-stone-800 font-bold text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <span>📋</span> 件名と本文をコピー
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </main>
@@ -1926,6 +2426,63 @@ function CemeteryDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* メール文面テンプレート新規作成モーダル */}
+      {isAddingTemplateModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddingTemplateModal(false);
+          }}
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-4 border-stone-800 cursor-default">
+            <h3 className="text-2xl font-extrabold text-stone-900 mb-2">
+              新しい文面テンプレートの追加
+            </h3>
+            <p className="text-stone-600 text-sm mb-5 font-medium">
+              現在編集中の件名・本文をもとに、新しいテンプレートとして名前を付けて保存します。
+            </p>
+
+            <form onSubmit={handleCreateNewEmailTemplate} className="space-y-4">
+              <div>
+                <label htmlFor="new-template-title-input" className="block text-base font-bold text-stone-800 mb-1">
+                  テンプレート名称（例: 年末墓所大掃除のご案内）:
+                </label>
+                <input
+                  id="new-template-title-input"
+                  type="text"
+                  required
+                  value={newTemplateTitleInput}
+                  onChange={(e) => setNewTemplateTitleInput(e.target.value)}
+                  placeholder="時期や行事名を入力してください"
+                  className="w-full bg-white text-stone-900 font-bold px-4 py-3 rounded-xl border-2 border-stone-300 focus:border-blue-600 outline-none text-base"
+                />
+              </div>
+
+              <div className="pt-4 border-t-2 border-stone-200 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingTemplateModal(false)}
+                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newTemplateTitleInput.trim() || isSavingTemplateLoading}
+                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
+                    !newTemplateTitleInput.trim() || isSavingTemplateLoading
+                      ? 'bg-stone-400 cursor-not-allowed'
+                      : 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer'
+                  }`}
+                >
+                  {isSavingTemplateLoading ? '登録中...' : 'テンプレートを保存'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

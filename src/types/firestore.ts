@@ -47,6 +47,17 @@ export interface CemeteryCompany {
   contractTemplateUrl?: string;
   contractTemplateFileName?: string;
   contractTemplateUpdatedAt?: string;
+  // 一斉案内メールテンプレート (お彼岸・お盆・定期お参り等の案内用)
+  emailTemplates?: EmailTemplate[];
+}
+
+export interface EmailTemplate {
+  id: string;
+  title: string;
+  subject: string;
+  body: string;
+  category?: string;
+  updatedAt?: string;
 }
 
 // -------------------------------------------------------------
