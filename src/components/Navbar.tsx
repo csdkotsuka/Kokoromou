@@ -55,13 +55,13 @@ export default function Navbar() {
             </Link>
             <Link
               href="/contact"
-              className="text-sm font-medium text-stone-600 hover:text-emerald-800 transition-colors hidden md:inline"
+              className="text-xs sm:text-sm font-semibold text-emerald-800 hover:text-emerald-900 transition-colors flex items-center gap-1 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-xs"
             >
-              お問い合わせ
+              <span>無料ご相談・お問い合わせ</span>
             </Link>
             <Link
               href="/mypage"
-              className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors"
+              className="text-xs sm:text-sm font-semibold text-stone-700 hover:text-emerald-800 transition-colors hidden md:inline"
             >
               マイページ
             </Link>
@@ -79,7 +79,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/order"
-              className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-900 px-4 py-2 rounded-lg shadow-sm transition-all hover:shadow-md"
+              className="inline-flex items-center justify-center text-xs sm:text-sm font-semibold text-white bg-emerald-800 hover:bg-emerald-900 px-4 py-2 rounded-lg shadow-sm transition-all hover:shadow-md shrink-0"
             >
               お申し込み・お見積り
             </Link>

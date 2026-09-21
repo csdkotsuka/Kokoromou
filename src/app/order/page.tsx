@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS } from '@/mocks/sample-data';
 import { 
   ShieldCheck, 
@@ -23,15 +24,37 @@ import {
   X,
   ChevronDown,
   ChevronUp,
-  UserCheck
+  UserCheck,
+  Mail,
+  Phone,
+  Send,
+  MessageCircle,
+  ArrowRight
 } from 'lucide-react';
 
 function OrderFormContent() {
   const searchParams = useSearchParams();
   const defaultPlanId = searchParams.get('planId') || SAMPLE_SERVICE_PLANS[1].id;
+  const initialMode = searchParams.get('mode') === 'inquiry' ? 'inquiry' : 'order';
+
+  // 注文モード（'order': 正式本申し込み / 'inquiry': 無料事前相談・見積り）
+  const [orderMode, setOrderMode] = useState<'order' | 'inquiry'>(initialMode);
 
   const [selectedPlanId, setSelectedPlanId] = useState<string>(defaultPlanId);
   const [selectedVendorId, setSelectedVendorId] = useState<string>(SAMPLE_VENDORS[0].id);
+
+  // 事前相談用ステート
+  const [inquiryData, setInquiryData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    cemeteryName: '',
+    preferredDate: '',
+    message: '',
+  });
+  const [inquirySubmitting, setInquirySubmitting] = useState(false);
+  const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   // オプションステート
   const [graveCount, setGraveCount] = useState<number>(1);
@@ -62,6 +85,34 @@ function OrderFormContent() {
 
   // 現在スクロール表示中のステップ (1 | 2 | 3 | 4)
   const [activeStep, setActiveStep] = useState<number>(1);
+
+  // 事前相談送信処理
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInquirySubmitting(true);
+    setInquiryError(null);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'customer',
+          name: inquiryData.name,
+          email: inquiryData.email,
+          phone: inquiryData.phone,
+          companyName: inquiryData.cemeteryName ? `対象墓地・霊園: ${inquiryData.cemeteryName}` : '',
+          message: `${inquiryData.cemeteryName ? `【対象霊園・墓地】: ${inquiryData.cemeteryName}\n` : ''}${inquiryData.preferredDate ? `【希望時期】: ${inquiryData.preferredDate}\n` : ''}${inquiryData.message}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '送信に失敗しました');
+      setInquirySuccess(true);
+    } catch (err: any) {
+      setInquiryError(err.message || '送信中にエラーが発生しました');
+    } finally {
+      setInquirySubmitting(false);
+    }
+  };
 
   // 各ステップの入力完了判定
   const isStep1Completed = Boolean(selectedPlanId);
@@ -208,21 +259,233 @@ function OrderFormContent() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       {/* ページ見出し */}
-      <div className="text-center max-w-2xl mx-auto mb-8">
+      <div className="text-center max-w-2xl mx-auto mb-6">
         <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
           <Sparkles className="w-3.5 h-3.5" />
           <span>現場の職人が真心を込めて代行いたします</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900">お墓参り・お掃除代行のお申し込み</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900">
+          {orderMode === 'order' ? 'お墓参り・お掃除代行のお申し込み' : 'お墓参り・お掃除代行の無料事前相談'}
+        </h1>
         <p className="mt-2 text-sm text-stone-600">
-          プラン・基数（複数のお墓）と墓石の特定情報（正面文字・側面建立者名・写真）を入力し、安全に決済いただけます。
+          {orderMode === 'order' 
+            ? 'プラン・基数（複数のお墓）と墓石の特定情報（正面文字・側面建立者名・写真）を入力し、安全に決済いただけます。'
+            : '「うちのお墓でも来てもらえる？」「雑草がひどい」「日程を確認したい」など、お気軽にご相談ください。'}
         </p>
       </div>
 
-      {/* スティッキーステップフロー案内バー（スクロール時にページトップに固定） */}
-      <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/95 backdrop-blur-md border-y border-stone-200 shadow-sm mb-8 transition-all">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+      {/* モード切り替えタブ */}
+      <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-8 bg-stone-200/80 p-1.5 rounded-2xl">
+        <button
+          type="button"
+          onClick={() => setOrderMode('order')}
+          className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
+            orderMode === 'order'
+              ? 'bg-white text-emerald-950 shadow-md border border-emerald-200'
+              : 'text-stone-600 hover:text-stone-900'
+          }`}
+        >
+          <CreditCard className="w-4 h-4 text-emerald-600" />
+          <span>① すぐに本申込み（即時カード決済）</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setOrderMode('inquiry')}
+          className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
+            orderMode === 'inquiry'
+              ? 'bg-white text-emerald-950 shadow-md border border-amber-300'
+              : 'text-stone-600 hover:text-stone-900'
+          }`}
+        >
+          <MessageCircle className="w-4 h-4 text-amber-600" />
+          <span>② まずは無料事前相談・お見積り</span>
+          <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">安心</span>
+        </button>
+      </div>
+
+      {/* 2. 無料事前相談・お見積りモード */}
+      {orderMode === 'inquiry' && (
+        <div className="max-w-3xl mx-auto space-y-6">
+          {inquirySuccess ? (
+            <div className="bg-white rounded-3xl p-8 sm:p-12 border border-stone-200 shadow-xl text-center space-y-5">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle className="w-10 h-10" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black text-stone-900">
+                  事前相談・お見積りを受け付けました
+                </h2>
+                <p className="text-stone-600 text-sm leading-relaxed">
+                  お問い合わせいただき誠にありがとうございます。<br />
+                  現地の職人・担当者にて墓所環境を確認の上、<strong>24時間以内</strong>にメールまたはお電話にて丁寧にご案内いたします。
+                </p>
+              </div>
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 text-left space-y-1">
+                <p className="font-bold">安心のお約束：</p>
+                <p>・正式なお申し込み前に、日程や概算費用・対応可否をしっかり確認いただけます。</p>
+                <p>・ご納得いただけた場合のみ、折り返しメールからそのまま決済・本申し込みに進んでいただけます。</p>
+              </div>
+              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInquirySuccess(false);
+                    setOrderMode('order');
+                  }}
+                  className="px-6 py-3 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition cursor-pointer"
+                >
+                  本申し込みフォームへ進む
+                </button>
+                <Link
+                  href="/"
+                  className="px-6 py-3 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl text-sm transition text-center"
+                >
+                  トップページへ戻る
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-xl space-y-6">
+              <div className="border-b border-stone-100 pb-4">
+                <span className="inline-block px-2.5 py-1 rounded bg-amber-100 text-amber-900 font-bold text-xs mb-2">
+                  費用は一切かかりません（無料）
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-stone-900">
+                  お墓参り・お掃除代行の事前ご相談・お見積り
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-500 mt-1">
+                  「山奥や共同墓地でも来てもらえる？」「雑草や墓石の傷みがひどい」「お盆までに間に合う？」など、気になることを何でもお気軽にご相談ください。
+                </p>
+              </div>
+
+              {/* お電話相談バナー */}
+              <div className="bg-stone-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <Phone className="w-5 h-5 text-amber-400 shrink-0" />
+                  <div>
+                    <span className="text-stone-300 block text-[11px]">お電話での直接ご相談・確認も歓迎しております</span>
+                    <strong className="text-lg text-amber-300 font-black">090-4116-9476</strong>
+                  </div>
+                </div>
+                <span className="text-[10px] text-stone-400 bg-white/10 px-2.5 py-1 rounded">
+                  9:00〜18:00（土日祝も対応）
+                </span>
+              </div>
+
+              {inquiryError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">
+                  ⚠️ {inquiryError}
+                </div>
+              )}
+
+              <form onSubmit={handleInquirySubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-stone-900 mb-1">
+                    お名前 <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={inquiryData.name}
+                    onChange={(e) => setInquiryData({ ...inquiryData, name: e.target.value })}
+                    placeholder="例：山田 太郎"
+                    className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      メールアドレス <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={inquiryData.email}
+                      onChange={(e) => setInquiryData({ ...inquiryData, email: e.target.value })}
+                      placeholder="例：sample@example.com"
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      お電話番号（任意）
+                    </label>
+                    <input
+                      type="tel"
+                      value={inquiryData.phone}
+                      onChange={(e) => setInquiryData({ ...inquiryData, phone: e.target.value })}
+                      placeholder="例：090-0000-0000"
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      お墓の場所・霊園名（分かる範囲で）
+                    </label>
+                    <input
+                      type="text"
+                      value={inquiryData.cemeteryName}
+                      onChange={(e) => setInquiryData({ ...inquiryData, cemeteryName: e.target.value })}
+                      placeholder="例：宝塔寺 旭ヶ丘霊園 / 松山市〇〇町の共同墓地"
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-900 mb-1">
+                      ご希望の実施時期（任意）
+                    </label>
+                    <input
+                      type="text"
+                      value={inquiryData.preferredDate}
+                      onChange={(e) => setInquiryData({ ...inquiryData, preferredDate: e.target.value })}
+                      placeholder="例：お盆まで / 命日の〇月〇日頃 / なるべく早く"
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-900 mb-1">
+                    ご相談・確認したいこと <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={inquiryData.message}
+                    onChange={(e) => setInquiryData({ ...inquiryData, message: e.target.value })}
+                    placeholder="例：数年行けておらず、雑草や木が生えてしまっているため概算費用を知りたいです。写真があります。"
+                    className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 text-sm focus:bg-white focus:border-emerald-600 outline-none font-medium"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={inquirySubmitting}
+                  className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-700 active:scale-98 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:bg-stone-400"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{inquirySubmitting ? '送信中...' : '無料で事前相談・お見積りを送る'}</span>
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 1. 正式お申込みモード */}
+      {orderMode === 'order' && (
+        <>
+          {/* スティッキーステップフロー案内バー（スクロール時にページトップに固定） */}
+          <div className="sticky top-16 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/95 backdrop-blur-md border-y border-stone-200 shadow-sm mb-8 transition-all">
+            <div className="max-w-5xl mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
             {/* ① プラン選択 */}
             <button
               type="button"
@@ -550,6 +813,24 @@ function OrderFormContent() {
                   現場でのお墓の確実な特定のため、<strong>「正面の文字」</strong>に加えて<strong>「側面の建立者名（誰が建てたか）」は必須</strong>とさせていただいております。
                 </p>
               </div>
+            </div>
+
+            {/* 事前相談・特定サポート案内 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 text-xs text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>文字や詳しい場所が分からない場合は、職人による事前特定・無料調査も承っております。</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setOrderMode('inquiry');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="text-xs font-bold text-blue-700 hover:text-blue-900 underline shrink-0 cursor-pointer self-start sm:self-auto"
+              >
+                まずは無料事前相談する →
+              </button>
             </div>
 
             {/* 施主情報 */}
@@ -1014,6 +1295,8 @@ function OrderFormContent() {
           </div>
         </div>
       </form>
+      </>
+      )}
     </div>
   );
 }
