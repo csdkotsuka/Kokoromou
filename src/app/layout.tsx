@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, UserCheck, ShieldCheck, Printer, Mail } from "lucide-react";
+import { FileText, UserCheck, ShieldCheck, Printer, Mail, Building2 } from "lucide-react";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -67,8 +67,22 @@ export default function RootLayout({
                 </Link>
               </div>
 
-              {/* サブリンク（近日削除予定） */}
+              {/* サブリンク（会社概要・仕様書等） */}
               <div className="flex flex-wrap justify-center items-center gap-3">
+                <Link
+                  href="/company"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-300 hover:text-white text-xs font-semibold border border-stone-700/80 transition-colors"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>会社概要・運営元（Creative System Design）</span>
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-300 text-xs font-medium border border-stone-700/60 transition-colors"
+                >
+                  <Mail className="w-3 h-3" />
+                  <span>お問い合わせ</span>
+                </Link>
                 <Link
                   href="/partner-spec"
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-300 text-xs font-medium border border-stone-700/60 transition-colors"

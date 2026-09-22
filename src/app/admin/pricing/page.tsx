@@ -461,11 +461,11 @@ export default function AdminPricingProposalPage() {
                 運営元：Creative System Design（プラットフォーム本部）
               </span>
               <p className="text-stone-600 text-[11px]">
-                〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号
+                〒730-0051 広島県広島市中区大手町1-1-20 相生橋ビル7階 A号室
               </p>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-stone-700 font-bold text-[11px]">
                 <span>📞 お電話: <strong>090-4116-9476</strong></span>
-                <span>🌐 お問い合わせフォーム: <strong className="text-emerald-800">https://kokoromou.inteve-cloud.com/contact</strong></span>
+                <span>🌐 会社概要: <strong className="text-emerald-800">https://kokoromou.inteve-cloud.com/company</strong></span>
               </div>
               <p className="text-[10px] text-stone-500 font-medium">
                 ※提携・導入相談、資料請求、一般的なご質問は、右記QRコードまたはWebフォームより24時間承っております。
