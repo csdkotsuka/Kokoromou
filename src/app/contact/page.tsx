@@ -67,7 +67,7 @@ function ContactFormContent() {
 
       setSubmitted(true);
     } catch (err: any) {
-      setErrorMessage(err.message || '送信中にエラーが発生しました。お電話または再度お試しください。');
+      setErrorMessage(err.message || '送信中にエラーが発生しました。恐れ入りますが、時間をおいて再度お試しください。');
     } finally {
       setSubmitting(false);
     }
@@ -130,21 +130,7 @@ function ContactFormContent() {
         </p>
       </div>
 
-      {/* お急ぎの方向け電話バナー */}
-      <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white p-4 sm:p-5 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-3 text-left">
-          <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center shrink-0">
-            <Phone className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <span className="text-xs text-stone-300 font-bold block">お急ぎ・お電話での直接のご相談</span>
-            <strong className="text-xl sm:text-2xl font-black text-amber-300 tracking-wider">090-4116-9476</strong>
-          </div>
-        </div>
-        <span className="text-xs bg-white/10 px-3 py-1.5 rounded-lg text-stone-300 border border-white/10">
-          受付時間: 9:00〜18:00（土日祝も対応）
-        </span>
-      </div>
+
 
       {/* フォーム本体 */}
       <div className="bg-white rounded-3xl shadow-xl border border-stone-200 p-6 sm:p-10">
