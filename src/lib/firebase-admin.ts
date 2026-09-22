@@ -483,11 +483,12 @@ export async function authenticateAccount(email: string, password?: string) {
         const data = doc.data();
         const effectivePassword = tmpOverriddenPassword || data?.password || sampleMatch?.password;
         if (!password || effectivePassword === password) {
+          const isAdmin = email === 'kotsuka@creativesd.net' || email === 'kokoromou@inteve-cloud.com';
           return {
             id: data?.id || sampleMatch?.id || `acc_${email}`,
             email,
-            role: data?.role || sampleMatch?.role || (email === 'kotsuka@creativesd.net' ? 'admin' : 'cemetery'),
-            name: data?.name || sampleMatch?.name || (email === 'kotsuka@creativesd.net' ? 'Creative System Design（本部統括）' : '管理者'),
+            role: data?.role || sampleMatch?.role || (isAdmin ? 'admin' : 'cemetery'),
+            name: data?.name || sampleMatch?.name || (isAdmin ? 'ココロモウ運営本部' : '管理者'),
             targetId: data?.targetId || sampleMatch?.targetId,
           };
         } else {
@@ -503,11 +504,12 @@ export async function authenticateAccount(email: string, password?: string) {
   // 2. /tmp に記録されたパスワードがある場合（Firestore未接続またはドキュメント未作成時）
   if (tmpOverriddenPassword) {
     if (!password || tmpOverriddenPassword === password) {
+      const isAdmin = email === 'kotsuka@creativesd.net' || email === 'kokoromou@inteve-cloud.com';
       return {
         id: sampleMatch?.id || `acc_${email}`,
         email,
-        role: sampleMatch?.role || (email === 'kotsuka@creativesd.net' ? 'admin' : 'cemetery'),
-        name: sampleMatch?.name || (email === 'kotsuka@creativesd.net' ? 'Creative System Design（本部統括）' : '管理者'),
+        role: sampleMatch?.role || (isAdmin ? 'admin' : 'cemetery'),
+        name: sampleMatch?.name || (isAdmin ? 'ココロモウ運営本部' : '管理者'),
         targetId: sampleMatch?.targetId,
       };
     } else {
@@ -541,12 +543,13 @@ export async function authenticateAccount(email: string, password?: string) {
  */
 export async function updateAccountPassword(email: string, newPassword: string) {
   const sampleMatch = SAMPLE_ACCOUNTS.find((a) => a.email === email);
+  const isAdmin = email === 'kotsuka@creativesd.net' || email === 'kokoromou@inteve-cloud.com';
   const accountData = {
     id: sampleMatch?.id || `acc_${Date.now()}`,
     email,
     password: newPassword,
-    role: sampleMatch?.role || (email === 'kotsuka@creativesd.net' ? 'admin' : 'cemetery'),
-    name: sampleMatch?.name || (email === 'kotsuka@creativesd.net' ? 'Creative System Design（本部統括）' : '管理者'),
+    role: sampleMatch?.role || (isAdmin ? 'admin' : 'cemetery'),
+    name: sampleMatch?.name || (isAdmin ? 'ココロモウ運営本部' : '管理者'),
     targetId: sampleMatch?.targetId,
     updatedAt: new Date().toISOString(),
   };

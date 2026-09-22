@@ -7,7 +7,7 @@ export const SAMPLE_ADMIN_INFO: PlatformAdminInfo = {
   organizationName: 'Creative System Design（プラットフォーム本部）',
   serviceName: 'お墓参り・お掃除代行DXプラットフォーム「ココロモウ」',
   representative: '大塚',
-  email: 'kotsuka@creativesd.net',
+  email: 'kokoromou@inteve-cloud.com',
   phoneNumber: '090-4116-9476',
   address: '〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号',
   platformFeePercent: 20, // 標準手数料 20%
@@ -869,6 +869,14 @@ export const SAMPLE_ACCOUNTS = [
     password: 'admin1234',
     role: 'admin' as const,
     name: 'Creative System Design（本部統括）',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'acc_admin_002',
+    email: 'kokoromou@inteve-cloud.com',
+    password: 'admin1234',
+    role: 'admin' as const,
+    name: 'ココロモウ運営本部（inteve-cloud）',
     createdAt: '2026-01-01T00:00:00Z',
   },
   // 墓地管理会社（3社）

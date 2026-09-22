@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
     await saveOrderToFirestore(newOrder);
 
-    // 本部（Creative System Design / kotsuka@creativesd.net）への注文通知ログ
+    // 本部（kokoromou@inteve-cloud.com）への注文通知ログ
     console.log(`📢 [Admin Notification] New order created (#${orderNumber}). Platform CC notification target: ${SAMPLE_ADMIN_INFO.email} (Representative: ${SAMPLE_ADMIN_INFO.representative})`);
 
     // Stripe APIキーの確認（テスト環境・モック判定）

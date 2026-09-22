@@ -134,6 +134,7 @@ function OrderFormContent() {
     phone: '',
     prefecture: '愛媛県',
     cemeteryName: '',
+    preferredContactMethod: 'email' as 'email' | 'phone',
     preferredDate: '',
     message: '',
   });
@@ -264,8 +265,12 @@ function OrderFormContent() {
           name: inquiryData.name,
           email: inquiryData.email,
           phone: inquiryData.phone,
+          prefecture: inquiryData.prefecture,
+          cemeteryName: inquiryData.cemeteryName,
+          preferredContactMethod: inquiryData.preferredContactMethod,
+          preferredDate: inquiryData.preferredDate,
           companyName: inquiryData.cemeteryName ? `対象墓地・霊園: ${inquiryData.cemeteryName} (${inquiryData.prefecture})` : '',
-          message: `【希望都道府県】: ${inquiryData.prefecture}\n${inquiryData.cemeteryName ? `【対象霊園・墓地】: ${inquiryData.cemeteryName}\n` : ''}${inquiryData.preferredDate ? `【希望時期】: ${inquiryData.preferredDate}\n` : ''}${inquiryData.message}`,
+          message: `【希望都道府県】: ${inquiryData.prefecture}\n${inquiryData.cemeteryName ? `【対象霊園・墓地】: ${inquiryData.cemeteryName}\n` : ''}${inquiryData.preferredDate ? `【希望時期】: ${inquiryData.preferredDate}\n` : ''}【ご希望の連絡方法】: ${inquiryData.preferredContactMethod === 'phone' ? 'お電話でのご連絡を希望' : 'メールでのご連絡'}\n\n${inquiryData.message}`,
         }),
       });
       const data = await res.json();
@@ -483,7 +488,16 @@ function OrderFormContent() {
                 </h2>
                 <p className="text-stone-600 text-sm leading-relaxed">
                   お問い合わせいただき誠にありがとうございます。<br />
-                  現地の職人・担当者にて墓所環境を確認の上、<strong>24時間以内</strong>にメールまたはお電話にて丁寧にご案内いたします。
+                  受付完了の自動返信メールを <strong className="text-emerald-900 font-mono">{inquiryData.email}</strong> 宛てにお送りいたしました。<br />
+                  {inquiryData.preferredContactMethod === 'phone' ? (
+                    <span className="text-amber-800 font-semibold block mt-1">
+                      ※「お電話でのご連絡」をご希望いただきましたので、担当者よりご都合の良い時間帯にお電話（{inquiryData.phone || 'ご登録の番号'}）にて折り返しご連絡いたします。
+                    </span>
+                  ) : (
+                    <span className="text-emerald-800 font-semibold block mt-1">
+                      ※現地の墓所環境を確認の上、<strong>原則24時間以内</strong>にメールにて丁寧にお見積り・日程をご案内いたします。
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 text-left space-y-1">
@@ -524,21 +538,23 @@ function OrderFormContent() {
                 </p>
               </div>
 
-              {/* お電話相談バナー */}
-              <div className="bg-stone-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5">
-                  <Phone className="w-5 h-5 text-amber-400 shrink-0" />
+              {/* 安心のWeb受付バナー（電話番号バナーから刷新） */}
+              <div className="bg-emerald-950 text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border border-emerald-800/60 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-800/60 flex items-center justify-center text-emerald-300 shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
                   <div>
-                    <span className="text-stone-300 block text-[11px]">
-                      {currentCemetery ? currentCemetery.name : '提携霊園管理事務所'} へのお電話でのご相談も歓迎しております
+                    <span className="font-bold text-white text-sm block">
+                      24時間Web受付・専任担当が丁寧にご案内
                     </span>
-                    <strong className="text-lg text-amber-300 font-black">
-                      {currentCemetery ? currentCemetery.phoneNumber : '089-925-8822'}
-                    </strong>
+                    <span className="text-emerald-200/80 text-[11px] block mt-0.5">
+                      無理な営業電話等は一切ございません。お見積り・事前調査は完全無料です。
+                    </span>
                   </div>
                 </div>
-                <span className="text-[10px] text-stone-400 bg-white/10 px-2.5 py-1 rounded">
-                  9:00〜18:00（土日祝も対応）
+                <span className="text-[11px] text-emerald-300 bg-emerald-900/80 border border-emerald-700/50 px-3 py-1 rounded-full font-semibold shrink-0">
+                  自動返信メール即時送付
                 </span>
               </div>
 
@@ -597,10 +613,11 @@ function OrderFormContent() {
 
                   <div>
                     <label className="block text-xs font-bold text-stone-900 mb-1">
-                      お電話番号（任意）
+                      お電話番号 {inquiryData.preferredContactMethod === 'phone' ? <span className="text-rose-500">*（電話連絡希望のため必須）</span> : <span className="text-stone-400">（任意）</span>}
                     </label>
                     <input
                       type="tel"
+                      required={inquiryData.preferredContactMethod === 'phone'}
                       value={inquiryData.phone}
                       onChange={(e) => setInquiryData({ ...inquiryData, phone: e.target.value })}
                       placeholder="例：090-0000-0000"
@@ -609,11 +626,99 @@ function OrderFormContent() {
                   </div>
                 </div>
 
+                {/* ご希望のご連絡方法セレクター */}
+                <div className="pt-1">
+                  <label className="block text-xs font-bold text-stone-900 mb-2">
+                    ご希望のご連絡方法 <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label
+                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex items-center gap-3 ${
+                        inquiryData.preferredContactMethod === 'email'
+                          ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 font-bold'
+                          : 'border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="preferredContactMethod"
+                        value="email"
+                        checked={inquiryData.preferredContactMethod === 'email'}
+                        onChange={() => setInquiryData({ ...inquiryData, preferredContactMethod: 'email' })}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <div>
+                        <div className="text-xs flex items-center gap-1.5 font-bold">
+                          <Mail className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>メールでのご連絡（推奨）</span>
+                        </div>
+                        <span className="text-[10px] text-stone-500 block mt-0.5">
+                          記録が残り、詳細なお見積りや写真確認に便利です
+                        </span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex items-center gap-3 ${
+                        inquiryData.preferredContactMethod === 'phone'
+                          ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 font-bold'
+                          : 'border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="preferredContactMethod"
+                        value="phone"
+                        checked={inquiryData.preferredContactMethod === 'phone'}
+                        onChange={() => setInquiryData({ ...inquiryData, preferredContactMethod: 'phone' })}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <div>
+                        <div className="text-xs flex items-center gap-1.5 font-bold">
+                          <Phone className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>お電話でのご連絡を希望</span>
+                        </div>
+                        <span className="text-[10px] text-stone-500 block mt-0.5">
+                          文字入力が苦手な方・直接お話しされたい方
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                  {inquiryData.preferredContactMethod === 'phone' && (
+                    <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 animate-in fade-in">
+                      <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="leading-relaxed text-[11px]">
+                        <strong>お電話折り返しについて：</strong><br />
+                        担当者の手が空いている時間帯にお電話番号（{inquiryData.phone || '上記のお電話番号'}）へ折り返しいたします。長時間のセールスや無理な営業電話は一切行いませんのでご安心ください。
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-stone-900 mb-1">
                       お墓の場所・霊園名（分かる範囲で）
                     </label>
+                    {/* その都道府県に登録された管理会社・霊園があればサジェスト選択可能 */}
+                    {cemeteryCompanies.filter(c => c.prefecture === inquiryData.prefecture).length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            setInquiryData({ ...inquiryData, cemeteryName: e.target.value });
+                          }
+                        }}
+                        className="w-full mb-2 p-2 rounded-xl border border-stone-200 bg-stone-50 text-xs text-stone-700 outline-none"
+                      >
+                        <option value="">-- {inquiryData.prefecture}の登録霊園から選択（任意） --</option>
+                        {cemeteryCompanies
+                          .filter(c => c.prefecture === inquiryData.prefecture)
+                          .map(c => (
+                            <option key={c.id} value={c.name}>{c.name}</option>
+                          ))}
+                        <option value="その他の地域共同墓地 / 寺院墓地">その他の地域共同墓地 / 寺院墓地</option>
+                      </select>
+                    )}
                     <input
                       type="text"
                       value={inquiryData.cemeteryName}
