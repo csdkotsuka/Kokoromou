@@ -9,7 +9,7 @@ export const SAMPLE_ADMIN_INFO: PlatformAdminInfo = {
   representative: '大塚',
   email: 'kokoromou@inteve-cloud.com',
   phoneNumber: '090-4116-9476',
-  address: '〒790-0931 愛媛県松山市西石井1丁目9番27号 グランジュール505号',
+  address: '〒730-0051 広島県広島市中区大手町1-1-20 相生橋ビル7階 A号室',
   platformFeePercent: 20, // 標準手数料 20%
   stripePlatformAccountId: 'acct_1KokoromouPlatformMain',
   description: '愛媛県松山・中予エリアを中心に、霊園・墓地管理会社と地域の確かな石材・清掃代行業者をつなぐ、安心の代行マッチングおよび決済送金プラットフォーム。',
