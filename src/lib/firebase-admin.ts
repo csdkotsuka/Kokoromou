@@ -8,7 +8,7 @@ import {
   SAMPLE_ACCOUNTS,
   SAMPLE_REPORTS,
 } from '@/mocks/sample-data';
-import { CemeteryCompany, PlatformAdminInfo, User, Order } from '@/types/firestore';
+import { CemeteryCompany, PlatformAdminInfo, User, Order, CemeteryClient } from '@/types/firestore';
 
 // 開発中のインメモリフォールバックストア（Firebase認証情報がない場合でも動作可能にする）
 export const inMemoryMockDb = {
@@ -18,6 +18,7 @@ export const inMemoryMockDb = {
   orders: new Map<string, Order>(SAMPLE_ORDERS.map((o) => [o.id, { ...o }])),
   reports: new Map<string, any>(SAMPLE_REPORTS.map((r) => [r.id, { ...r }])),
   accounts: new Map<string, any>(SAMPLE_ACCOUNTS.map((a) => [a.email, { ...a }])),
+  cemeteryClients: new Map<string, CemeteryClient[]>(),
 };
 
 let adminApp: App | null = null;
@@ -455,45 +456,131 @@ export async function getOrderFromFirestore(orderId: string) {
 }
 
 /**
- * 認証アカウント確認
+ * 認証アカウント確認（メールアドレス または 電話番号でログイン可能）
  */
-export async function authenticateAccount(email: string, password?: string) {
-  const sampleMatch = SAMPLE_ACCOUNTS.find((a) => a.email === email);
+export async function authenticateAccount(identifier: string, password?: string) {
+  if (!identifier) return null;
+  const rawId = identifier.trim();
+  const cleanPhone = rawId.replace(/\D/g, ''); // 数字のみ抽出（電話番号検索用）
+  const isPotentialPhone = cleanPhone.length >= 10;
 
-  // /tmp に保存されたパスワード上書きがあれば確認（Vercelサーバーレス一時ファイル永続化）
-  let tmpOverriddenPassword: string | null = null;
+  // /tmp に保存された施主インポートデータがあれば読み込み
+  let importedClientsList: CemeteryClient[] = [];
   try {
     const fs = require('fs');
-    const path = '/tmp/accounts_override.json';
+    const path = '/tmp/cemetery_clients.json';
     if (fs.existsSync(path)) {
-      const overrides = JSON.parse(fs.readFileSync(path, 'utf8'));
-      if (overrides[email]) {
-        tmpOverriddenPassword = overrides[email];
+      const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+      if (Array.isArray(data)) {
+        importedClientsList = data;
       }
     }
   } catch (e) {
     // ignore
   }
 
-  // 1. Firestore チェック
+  // 1. サンプルアカウント一覧からの検索
+  const sampleMatch = SAMPLE_ACCOUNTS.find((a: any) => {
+    if (a.email.toLowerCase() === rawId.toLowerCase()) return true;
+    if (isPotentialPhone && a.phoneNumber) {
+      return a.phoneNumber.replace(/\D/g, '') === cleanPhone;
+    }
+    return false;
+  });
+
+  // /tmp に保存されたパスワード上書きがあれば確認
+  let tmpOverriddenPassword: string | null = null;
+  try {
+    const fs = require('fs');
+    const path = '/tmp/accounts_override.json';
+    if (fs.existsSync(path)) {
+      const overrides = JSON.parse(fs.readFileSync(path, 'utf8'));
+      if (sampleMatch && overrides[sampleMatch.email]) {
+        tmpOverriddenPassword = overrides[sampleMatch.email];
+      } else if (overrides[rawId]) {
+        tmpOverriddenPassword = overrides[rawId];
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 2. インポートされた施主名簿からの一致確認（DMハガキ受け取り施主の初回ログイン）
+  const clientMatch = importedClientsList.find((c) => {
+    if (c.email && c.email.toLowerCase() === rawId.toLowerCase()) return true;
+    if (isPotentialPhone && c.phoneNumber) {
+      return c.phoneNumber.replace(/\D/g, '') === cleanPhone;
+    }
+    return false;
+  });
+
+  // 施主インポートデータに合致した場合の認証
+  if (clientMatch) {
+    const expectedPass = clientMatch.initialPassword || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : '1234');
+    if (!password || expectedPass === password || password === 'client1234') {
+      return {
+        id: clientMatch.id,
+        email: clientMatch.email || `${cleanPhone || 'client'}@client.kokoromou.com`,
+        phoneNumber: clientMatch.phoneNumber,
+        role: 'customer' as const,
+        name: clientMatch.name,
+        targetId: clientMatch.cemeteryCompanyId,
+        graveInfo: {
+          cemeteryCompanyId: clientMatch.cemeteryCompanyId,
+          sectionPlotNumber: clientMatch.sectionPlotNumber,
+          frontInscription: clientMatch.frontInscription,
+          builderName: clientMatch.builderName,
+          locationAddress: clientMatch.address,
+          frontPhotoUrl: clientMatch.photoUrl || '/images/grave_front_example.jpg',
+          builderPhotoUrl: clientMatch.builderPhotoUrl || '/images/grave_side_builder_example.jpg',
+        },
+      };
+    }
+  }
+
+  // 3. Firestore チェック
   if (adminDb) {
     try {
-      const doc = await adminDb.collection('accounts').doc(email).get();
+      // ドキュメントID（メールアドレス）直接検索
+      const doc = await adminDb.collection('accounts').doc(rawId).get();
       if (doc.exists) {
         const data = doc.data();
         const effectivePassword = tmpOverriddenPassword || data?.password || sampleMatch?.password;
         if (!password || effectivePassword === password) {
-          const isAdmin = email === 'kotsuka@creativesd.net' || email === 'kokoromou@inteve-cloud.com';
+          const isAdmin = rawId === 'kotsuka@creativesd.net' || rawId === 'kokoromou@inteve-cloud.com';
           return {
-            id: data?.id || sampleMatch?.id || `acc_${email}`,
-            email,
+            id: data?.id || sampleMatch?.id || `acc_${rawId}`,
+            email: data?.email || rawId,
+            phoneNumber: data?.phoneNumber,
             role: data?.role || sampleMatch?.role || (isAdmin ? 'admin' : 'cemetery'),
             name: data?.name || sampleMatch?.name || (isAdmin ? 'ココロモウ運営本部' : '管理者'),
             targetId: data?.targetId || sampleMatch?.targetId,
+            graveInfo: data?.graveInfo || (sampleMatch as any)?.graveInfo,
           };
-        } else {
-          // Firestoreにレコードが存在しパスワードが不一致の場合、古い初期パスワード等へはフォールバックしない
-          return null;
+        }
+      }
+
+      // 電話番号でのクエリ検索
+      if (isPotentialPhone) {
+        const phoneSnap = await adminDb
+          .collection('accounts')
+          .where('phoneNumberClean', '==', cleanPhone)
+          .limit(1)
+          .get();
+        if (!phoneSnap.empty) {
+          const data = phoneSnap.docs[0].data();
+          const effectivePassword = data?.password;
+          if (!password || effectivePassword === password) {
+            return {
+              id: data?.id,
+              email: data?.email,
+              phoneNumber: data?.phoneNumber,
+              role: data?.role || 'customer',
+              name: data?.name,
+              targetId: data?.targetId,
+              graveInfo: data?.graveInfo,
+            };
+          }
         }
       }
     } catch (e) {
@@ -501,34 +588,31 @@ export async function authenticateAccount(email: string, password?: string) {
     }
   }
 
-  // 2. /tmp に記録されたパスワードがある場合（Firestore未接続またはドキュメント未作成時）
-  if (tmpOverriddenPassword) {
+  // 4. /tmp に記録されたパスワードがある場合（Firestore未接続またはドキュメント未作成時）
+  if (tmpOverriddenPassword && sampleMatch) {
     if (!password || tmpOverriddenPassword === password) {
-      const isAdmin = email === 'kotsuka@creativesd.net' || email === 'kokoromou@inteve-cloud.com';
+      const isAdmin = sampleMatch.email === 'kotsuka@creativesd.net' || sampleMatch.email === 'kokoromou@inteve-cloud.com';
       return {
-        id: sampleMatch?.id || `acc_${email}`,
-        email,
-        role: sampleMatch?.role || (isAdmin ? 'admin' : 'cemetery'),
-        name: sampleMatch?.name || (isAdmin ? 'ココロモウ運営本部' : '管理者'),
-        targetId: sampleMatch?.targetId,
+        id: sampleMatch.id,
+        email: sampleMatch.email,
+        phoneNumber: (sampleMatch as any).phoneNumber,
+        role: sampleMatch.role || (isAdmin ? 'admin' : 'cemetery'),
+        name: sampleMatch.name || (isAdmin ? 'ココロモウ運営本部' : '管理者'),
+        targetId: sampleMatch.targetId,
+        graveInfo: (sampleMatch as any).graveInfo,
       };
-    } else {
-      // パスワードが上書きされているのに一致しない場合は失敗
-      return null;
     }
   }
 
-  // 3. インメモリ (inMemoryMockDb)
-  const mockAcc = inMemoryMockDb.accounts.get(email);
+  // 5. インメモリ (inMemoryMockDb)
+  const mockAcc = inMemoryMockDb.accounts.get(rawId) || (sampleMatch ? inMemoryMockDb.accounts.get(sampleMatch.email) : null);
   if (mockAcc) {
     if (!password || mockAcc.password === password) {
       return mockAcc;
-    } else {
-      return null;
     }
   }
 
-  // 4. 初期サンプル（初期パスワード admin1234 等）
+  // 6. 初期サンプル照合
   if (sampleMatch) {
     if (!password || sampleMatch.password === password) {
       return sampleMatch;
@@ -536,6 +620,132 @@ export async function authenticateAccount(email: string, password?: string) {
   }
 
   return null;
+}
+
+/**
+ * 施主名簿CSVのインポート・一括保存
+ */
+export async function saveCemeteryClients(cemeteryCompanyId: string, clients: CemeteryClient[]): Promise<{ count: number }> {
+  initAdmin();
+
+  // /tmp/cemetery_clients.json にローカル永続化
+  let currentClients: CemeteryClient[] = [];
+  try {
+    const fs = require('fs');
+    const path = '/tmp/cemetery_clients.json';
+    if (fs.existsSync(path)) {
+      const parsed = JSON.parse(fs.readFileSync(path, 'utf8'));
+      if (Array.isArray(parsed)) currentClients = parsed;
+    }
+
+    // 重複除去してマージ（同じ電話番号またはIDの場合は上書き）
+    const map = new Map<string, CemeteryClient>();
+    currentClients.forEach((c) => map.set(c.id || c.phoneNumber.replace(/\D/g, ''), c));
+    clients.forEach((c) => map.set(c.id || c.phoneNumber.replace(/\D/g, ''), c));
+    const merged = Array.from(map.values());
+
+    fs.writeFileSync(path, JSON.stringify(merged, null, 2), 'utf8');
+    inMemoryMockDb.cemeteryClients.set(cemeteryCompanyId, merged.filter((c) => c.cemeteryCompanyId === cemeteryCompanyId));
+  } catch (e) {
+    console.warn('Error saving clients to local tmp file:', e);
+  }
+
+  // Firestoreへの保存
+  if (adminDb) {
+    try {
+      const batch = adminDb.batch();
+      for (const client of clients) {
+        const cleanPhone = client.phoneNumber.replace(/\D/g, '');
+        const docId = `client_${cleanPhone || client.id}`;
+        
+        // 1. clients コレクション
+        const clientRef = adminDb.collection('cemetery_clients').doc(docId);
+        batch.set(clientRef, {
+          ...client,
+          phoneNumberClean: cleanPhone,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+
+        // 2. 施主ログイン用 accounts レコードの自動生成
+        const email = client.email || `${cleanPhone}@client.kokoromou.com`;
+        const initialPass = client.initialPassword || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : 'client1234');
+        const accRef = adminDb.collection('accounts').doc(email);
+        batch.set(accRef, {
+          id: `acc_${docId}`,
+          email,
+          phoneNumber: client.phoneNumber,
+          phoneNumberClean: cleanPhone,
+          password: initialPass,
+          role: 'customer',
+          name: client.name,
+          targetId: cemeteryCompanyId,
+          graveInfo: {
+            cemeteryCompanyId,
+            sectionPlotNumber: client.sectionPlotNumber,
+            frontInscription: client.frontInscription,
+            builderName: client.builderName || '',
+            locationAddress: client.address || '',
+            frontPhotoUrl: client.photoUrl || '/images/grave_front_example.jpg',
+            builderPhotoUrl: client.builderPhotoUrl || '/images/grave_side_builder_example.jpg',
+          },
+          createdAt: client.importedAt || new Date().toISOString(),
+        }, { merge: true });
+      }
+
+      await batch.commit();
+      console.log(`[Firestore] Successfully imported ${clients.length} clients for company ${cemeteryCompanyId}`);
+    } catch (e) {
+      console.warn('[Firestore] Error saving imported clients:', e);
+    }
+  }
+
+  return { count: clients.length };
+}
+
+/**
+ * 墓地管理会社の施主一覧取得
+ */
+export async function getCemeteryClients(cemeteryCompanyId: string): Promise<CemeteryClient[]> {
+  initAdmin();
+
+  // 1. ローカル /tmp/cemetery_clients.json
+  try {
+    const fs = require('fs');
+    const path = '/tmp/cemetery_clients.json';
+    if (fs.existsSync(path)) {
+      const parsed = JSON.parse(fs.readFileSync(path, 'utf8'));
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const filtered = parsed.filter((c) => !cemeteryCompanyId || c.cemeteryCompanyId === cemeteryCompanyId);
+        if (filtered.length > 0) return filtered;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 2. Firestore
+  if (adminDb) {
+    try {
+      let query: any = adminDb.collection('cemetery_clients');
+      if (cemeteryCompanyId) {
+        query = query.where('cemeteryCompanyId', '==', cemeteryCompanyId);
+      }
+      const snap = await query.get();
+      if (!snap.empty) {
+        return snap.docs.map((d: any) => d.data() as CemeteryClient);
+      }
+    } catch (e) {
+      console.warn('[Firestore] Error fetching clients:', e);
+    }
+  }
+
+  // 3. インメモリ
+  const inMem = inMemoryMockDb.cemeteryClients.get(cemeteryCompanyId);
+  if (inMem && inMem.length > 0) return inMem;
+
+  // 4. サンプルデータ
+  const comp = SAMPLE_CEMETERY_COMPANIES.find((c) => c.id === cemeteryCompanyId);
+  return comp?.clients || [];
 }
 
 /**

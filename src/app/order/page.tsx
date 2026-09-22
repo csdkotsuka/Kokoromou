@@ -170,6 +170,46 @@ function OrderFormContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // マイページやお墓事前登録からのパラメータ自動反映
+  useEffect(() => {
+    const pCemeteryName = searchParams.get('cemeteryName');
+    const pSection = searchParams.get('sectionPlotNumber');
+    const pFront = searchParams.get('frontInscription');
+    const pBuilder = searchParams.get('builderName');
+    const pAddress = searchParams.get('locationAddress');
+    const pPrefilled = searchParams.get('prefilled') === 'true';
+
+    let authName = '';
+    let authEmail = '';
+    try {
+      const cookieMatch = document.cookie.split('; ').find(row => row.startsWith('kokoromou_auth='));
+      if (cookieMatch) {
+        const uData = JSON.parse(decodeURIComponent(cookieMatch.split('=').slice(1).join('=')));
+        authName = uData.name || '';
+        authEmail = uData.email || '';
+      }
+    } catch {}
+
+    if (pPrefilled || pFront || pSection) {
+      setFormData((prev) => ({
+        ...prev,
+        clientName: prev.clientName || authName,
+        clientEmail: prev.clientEmail || authEmail,
+        cemeteryName: pCemeteryName || prev.cemeteryName,
+        sectionPlotNumber: pSection || prev.sectionPlotNumber,
+        frontInscription: pFront || prev.frontInscription,
+        builderName: pBuilder || prev.builderName,
+        locationAddress: pAddress || prev.locationAddress,
+      }));
+    } else if (authName || authEmail) {
+      setFormData((prev) => ({
+        ...prev,
+        clientName: prev.clientName || authName,
+        clientEmail: prev.clientEmail || authEmail,
+      }));
+    }
+  }, [searchParams]);
+
   // 現在スクロール表示中のステップ (1: 霊園 | 2: プラン | 3: 基数広さ | 4: 提携業者 | 5: 墓石施主情報)
   const [activeStep, setActiveStep] = useState<number>(1);
 

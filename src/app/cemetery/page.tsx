@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CemeteryCompany, User, Order, VendorContract, EmailTemplate } from '@/types/firestore';
+import { CemeteryCompany, User, Order, VendorContract, EmailTemplate, CemeteryClient } from '@/types/firestore';
+import QRCode from 'qrcode';
 import {
   SAMPLE_CEMETERY_COMPANIES,
   SAMPLE_VENDORS,
@@ -21,6 +22,20 @@ function CemeteryDashboard() {
   const [vendors, setVendors] = useState<User[]>(SAMPLE_VENDORS);
   const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
   const [loading, setLoading] = useState(false);
+
+  // 施主名簿CSVインポートステート
+  const [importedClients, setImportedClients] = useState<CemeteryClient[]>([]);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [parsedPreviewClients, setParsedPreviewClients] = useState<CemeteryClient[]>([]);
+  const [csvFileName, setCsvFileName] = useState('');
+  const [importLoading, setImportLoading] = useState(false);
+  const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
+
+  // パーソナライズ案内DM印刷モーダルステート
+  const [showDmModal, setShowDmModal] = useState(false);
+  const [dmPrintLayout, setDmPrintLayout] = useState<'postcard' | 'a4'>('postcard');
+  const [qrCodeUrls, setQrCodeUrls] = useState<Record<string, string>>({});
+  const [targetPrintClients, setTargetPrintClients] = useState<any[]>([]);
 
   // 会社情報 編集モーダル状態
   const [isEditingCompany, setIsEditingCompany] = useState(false);
@@ -97,11 +112,28 @@ function CemeteryDashboard() {
         setViewingContract(null);
         setIsUploadingTemplate(false);
         setIsAddingTemplateModal(false);
+        setShowImportModal(false);
+        setShowDmModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // 施主名簿データの読み込み
+  const loadClientsData = async (cid = companyId) => {
+    try {
+      const res = await fetch(`/api/cemetery/clients?companyId=${cid}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.clients) {
+          setImportedClients(data.clients);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load clients:', e);
+    }
+  };
 
   // 初期データ読み込み（APIから最新情報を取得、フォールバックあり）
   useEffect(() => {
@@ -124,12 +156,13 @@ function CemeteryDashboard() {
           const data = await ordRes.json();
           if (data.orders?.length) setOrders(data.orders);
         }
+        await loadClientsData(companyId);
       } catch (e) {
         console.warn('API fetch error, using local fallback:', e);
       }
     }
     loadData();
-  }, []);
+  }, [companyId]);
 
   const currentCompany = companies.find((c) => c.id === companyId) || companies[0];
 
@@ -225,41 +258,90 @@ function CemeteryDashboard() {
       currentCompany?.cemeteryNames?.some((name) => o.graveInfo?.cemeteryName?.includes(name))
   );
 
-  // 施主様（顧客）の集約名簿リスト
+  // 施主様（顧客）の集約名簿リスト（注文履歴 ＋ CSV取り込み施主を統合）
   const clientsSummary = useMemo(() => {
     const map = new Map<string, {
       id: string;
       email: string;
       name: string;
       phone?: string;
+      phoneNumber?: string;
+      postalCode?: string;
+      address?: string;
       frontInscription: string;
       builderName: string;
       sectionPlotNumber: string;
       cemeteryName: string;
+      initialPassword?: string;
+      photoUrl?: string;
+      builderPhotoUrl?: string;
+      notes?: string;
       lastOrderDate: string;
       orderCount: number;
       lastPlanName: string;
     }>();
 
+    // 1. 管理会社に紐付く事前登録施主データ（CSVインポート施主）
+    const allCompanyClients = [
+      ...(currentCompany?.clients || []),
+      ...importedClients,
+    ];
+
+    allCompanyClients.forEach((c) => {
+      const key = (c.phoneNumber || c.email || c.id).replace(/\D/g, '') || c.id;
+      if (!map.has(key)) {
+        map.set(key, {
+          id: c.id,
+          email: c.email || '',
+          name: c.name || '施主様',
+          phone: c.phoneNumber || '',
+          phoneNumber: c.phoneNumber || '',
+          postalCode: c.postalCode || '',
+          address: c.address || '',
+          frontInscription: c.frontInscription || '',
+          builderName: c.builderName || '',
+          sectionPlotNumber: c.sectionPlotNumber || '',
+          cemeteryName: currentCompany?.name || '管理霊園',
+          initialPassword: c.initialPassword || (c.phoneNumber ? c.phoneNumber.replace(/\D/g, '').slice(-4) : 'client1234'),
+          photoUrl: c.photoUrl || '/images/grave_front_example.jpg',
+          builderPhotoUrl: c.builderPhotoUrl || '/images/grave_side_builder_example.jpg',
+          notes: c.notes || '',
+          lastOrderDate: c.lastOrderDate || '',
+          orderCount: c.orderCount || 0,
+          lastPlanName: '',
+        });
+      }
+    });
+
+    // 2. 過去の注文履歴から集約マージ
     companyOrders.forEach((o) => {
-      const emailKey = o.clientEmail || `no_email_${o.clientId || o.id}`;
-      const existing = map.get(emailKey);
+      const phoneKey = (o.clientPhone || '').replace(/\D/g, '');
+      const key = phoneKey || o.clientEmail || `no_email_${o.clientId || o.id}`;
+      const existing = map.get(key);
       if (!existing) {
-        map.set(emailKey, {
+        map.set(key, {
           id: o.clientId || o.id,
           email: o.clientEmail || '',
           name: o.clientName || '施主様',
+          phone: o.clientPhone || '',
+          phoneNumber: o.clientPhone || '',
+          postalCode: '',
+          address: o.graveInfo?.locationAddress || '',
           frontInscription: o.graveInfo?.frontInscription || '',
           builderName: o.graveInfo?.builderName || '',
           sectionPlotNumber: o.graveInfo?.sectionPlotNumber || '',
           cemeteryName: o.graveInfo?.cemeteryName || '',
+          initialPassword: 'client1234',
+          photoUrl: '/images/grave_front_example.jpg',
+          builderPhotoUrl: '/images/grave_side_builder_example.jpg',
+          notes: '',
           lastOrderDate: o.createdAt || '',
           orderCount: 1,
           lastPlanName: o.servicePlanName || '',
         });
       } else {
         existing.orderCount += 1;
-        if (new Date(o.createdAt) > new Date(existing.lastOrderDate)) {
+        if (new Date(o.createdAt) > new Date(existing.lastOrderDate || 0)) {
           existing.lastOrderDate = o.createdAt;
           existing.lastPlanName = o.servicePlanName || existing.lastPlanName;
         }
@@ -267,7 +349,241 @@ function CemeteryDashboard() {
     });
 
     return Array.from(map.values());
-  }, [companyOrders]);
+  }, [currentCompany, importedClients, companyOrders]);
+
+  // 見本CSVダウンロード
+  const handleDownloadSampleCsv = () => {
+    const headers = [
+      '施主氏名',
+      '電話番号',
+      '郵便番号',
+      '住所',
+      'メールアドレス',
+      '区画番号',
+      '正面文字',
+      '建立者名',
+      '初期パスワード',
+      '備考',
+    ];
+    const sampleRows = [
+      [
+        '山田 太郎',
+        '090-1234-5678',
+        '790-0001',
+        '愛媛県松山市一番町1-2-3 メゾン松山301',
+        'client@example.com',
+        '東区 5列 12番',
+        '山田家先祖代々之墓',
+        '昭和五十年八月 山田太郎建之',
+        'client1234',
+        '大楠の木の隣。水汲み場から徒歩1分。',
+      ],
+      [
+        '田中 花子',
+        '090-9876-5432',
+        '790-0842',
+        '愛媛県松山市道後湯之町5-12',
+        'tanaka@example.com',
+        '南区 2列 05番',
+        '田中家之墓',
+        '平成十年十月 田中一郎建之',
+        'client1234',
+        '高齢のため坂道の上り下りが困難。定期的にお参り希望。',
+      ],
+      [
+        '佐藤 健一',
+        '080-3333-5555',
+        '150-0002',
+        '東京都渋谷区渋谷2-21-1 渋谷ヒカリエ17F',
+        'sato@example.com',
+        '北区 8列 19番',
+        '南無阿弥陀仏 佐藤家',
+        '平成十五年春 佐藤健一建之',
+        'client1234',
+        '東京在住の遠方施主。春・秋彼岸とお盆に代行希望。',
+      ],
+    ];
+
+    const csvContent =
+      '\uFEFF' +
+      [
+        headers.join(','),
+        ...sampleRows.map((row) =>
+          row.map((val) => `"${(val || '').replace(/"/g, '""')}"`).join(',')
+        ),
+      ].join('\r\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ココロモウ_施主名簿CSV取込フォーマット見本_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // CSVファイル選択・パース
+  const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
+      if (lines.length <= 1) {
+        alert('CSVファイルにデータ行が含まれていません');
+        return;
+      }
+
+      // カンマ区切り＆クォート対応パーサー
+      const parseCsvLine = (line: string): string[] => {
+        const result: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      };
+
+      const parsed: CemeteryClient[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        if (cols.length < 2 || !cols[0]) continue;
+
+        const name = cols[0] || '施主様';
+        const phone = cols[1] || '';
+        const postal = cols[2] || '';
+        const address = cols[3] || '';
+        const email = cols[4] || '';
+        const plot = cols[5] || '';
+        const front = cols[6] || '';
+        const builder = cols[7] || '';
+        const cleanPhone = phone.replace(/\D/g, '');
+        const pass = cols[8] || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : 'client1234');
+        const notes = cols[9] || '';
+
+        parsed.push({
+          id: `csv_${Date.now()}_${i}`,
+          cemeteryCompanyId: companyId,
+          name,
+          phoneNumber: phone,
+          postalCode: postal,
+          address,
+          email,
+          sectionPlotNumber: plot,
+          frontInscription: front,
+          builderName: builder,
+          initialPassword: pass,
+          photoUrl: '/images/grave_front_example.jpg',
+          builderPhotoUrl: '/images/grave_side_builder_example.jpg',
+          notes,
+          importedAt: new Date().toISOString(),
+          orderCount: 0,
+          lastOrderDate: '',
+        });
+      }
+
+      setParsedPreviewClients(parsed);
+    };
+    reader.readAsText(file, 'utf-8');
+  };
+
+  // CSV一括インポート実行
+  const handleExecuteImport = async () => {
+    if (parsedPreviewClients.length === 0) return;
+    setImportLoading(true);
+    try {
+      const res = await fetch('/api/cemetery/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId,
+          clients: parsedPreviewClients,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'インポートに失敗しました');
+
+      setImportSuccessMsg(
+        `🎉 ${data.count}件の施主データをインポートしました！施主アカウント・お墓情報が自動生成されました。`
+      );
+      await loadClientsData(companyId);
+
+      setTimeout(() => {
+        setShowImportModal(false);
+        setParsedPreviewClients([]);
+        setCsvFileName('');
+        setImportSuccessMsg(null);
+      }, 1500);
+    } catch (err: any) {
+      alert(err.message || 'インポート処理中にエラーが発生しました');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  // パーソナライズ案内DM印刷モーダルを開く
+  const handleOpenDmModal = async (specificClients?: any[]) => {
+    const list =
+      specificClients ||
+      (selectedClientEmails.length > 0
+        ? clientsSummary.filter((c) => selectedClientEmails.includes(c.email))
+        : clientsSummary);
+
+    if (list.length === 0) {
+      alert('印刷対象の施主様が登録されていません');
+      return;
+    }
+
+    setTargetPrintClients(list);
+
+    // QRコードの一括生成
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const newQrMap: Record<string, string> = {};
+
+    for (const c of list) {
+      const cleanPhone = (c.phoneNumber || c.phone || '').replace(/\D/g, '');
+      const pass = c.initialPassword || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : 'client1234');
+      const loginUrl = `${origin}/mypage/login?phone=${encodeURIComponent(
+        c.phoneNumber || c.phone || ''
+      )}&pass=${encodeURIComponent(pass)}&auto=true`;
+
+      try {
+        const qrData = await QRCode.toDataURL(loginUrl, {
+          width: 180,
+          margin: 1,
+          color: { dark: '#064e3b', light: '#ffffff' },
+        });
+        newQrMap[c.id] = qrData;
+      } catch (e) {
+        console.warn('QR generation error for client:', c.id, e);
+      }
+    }
+
+    setQrCodeUrls(newQrMap);
+    setShowDmModal(true);
+  };
 
   // 初期テンプレートの生成・同期
   useEffect(() => {
@@ -1262,39 +1578,64 @@ function CemeteryDashboard() {
 
         {/* 4. 施主様（顧客）名簿 ＆ 次回お参り・点検ご案内メール作成 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
-          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div>
               <span className="text-base font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
-                顧客管理台帳 ＆ 案内メール配信
+                顧客台帳 ＆ 最強オンボーディングDM発行
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-                施主様名簿 ＆ 次回お参り時期のご案内（{clientsSummary.length}名）
+                施主様名簿 ＆ 案内DM・メール一括配信（{clientsSummary.length}名登録中）
               </h2>
               <p className="text-stone-600 text-base font-medium mt-1">
-                過去に当霊園でお申込みいただいた施主様へ、「そろそろ次回のお墓参り時期ですよ」のご案内メールを一括作成・送信できます
+                手元の顧客台帳CSVを取り込めばアカウントとお墓情報が自動生成。専用QRコード付き案内DM（ハガキ/用紙）を一括発行できます。
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(true)}
+                className="px-4 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+              >
+                <span>📁</span> 施主名簿CSV一括取り込み
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenDmModal()}
+                className="px-4 py-3 bg-blue-700 hover:bg-blue-800 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+              >
+                <span>📮</span> パーソナライズ案内DM印刷（QRコード付）
+              </button>
               <button
                 type="button"
                 onClick={() => setIsAddingTemplateModal(true)}
-                className="px-5 py-3 bg-stone-800 hover:bg-stone-900 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                className="px-4 py-3 bg-stone-800 hover:bg-stone-900 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
               >
-                <span>➕</span> 新しい文面テンプレートを追加
+                <span>➕</span> メール文面追加
               </button>
             </div>
           </div>
 
-          {/* 💡 送信方式の解説パネル（管理会社様の混乱・返信見落としを防ぐための案内） */}
-          <div className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 mb-8 text-stone-800 space-y-2">
-            <div className="flex items-center gap-2 text-amber-900 font-extrabold text-lg">
-              <span className="text-xl">💡</span>
-              <span>ご案内メールは、霊園様の普段のメールソフト（Outlook・Gmail等）の「BCC」で送信します</span>
+          {/* 💡 最強オンボーディング戦略と送信方式の解説パネル */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-emerald-50/90 border-2 border-emerald-300 rounded-2xl p-5 text-stone-800 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-lg">
+                <span className="text-xl">🚀</span>
+                <span>摩擦ゼロ！成約率を跳ね上げるパーソナライズ案内DM</span>
+              </div>
+              <p className="text-sm text-stone-700 leading-relaxed">
+                施主様のお墓の写真や区画番号、ログインID（電話番号）が<strong>すでに設定された状態の案内DM（ハガキ/A4）</strong>を印刷できます。施主様はスマホでQRコードを読み込み、<strong>「日程とプランを選ぶだけ」</strong>でお墓参り・清掃代行の注文が完了します。
+              </p>
             </div>
-            <p className="text-sm text-stone-700 leading-relaxed">
-              施主様から「次回もお願いしたい」「日程を変更したい」などの<strong>返信があった際、システム内で送信してしまうと霊園事務所の普段の受信トレイに届かず、見落とし事故の原因</strong>となります。<br className="hidden sm:inline" />
-              そのため、本画面で宛先と文面を整えたら、<strong>霊園様のメールソフトのBCC宛先として一発起動・送信</strong>できるよう設計されています。送信控えもご自身のPCに確実に残り安心です。
-            </p>
+
+            <div className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 text-stone-800 space-y-2">
+              <div className="flex items-center gap-2 text-amber-900 font-extrabold text-lg">
+                <span className="text-xl">💡</span>
+                <span>案内メールは、霊園様のメールソフト（Outlook・Gmail等）のBCCで送信</span>
+              </div>
+              <p className="text-sm text-stone-700 leading-relaxed">
+                施主様からの「次回もお願いしたい」「希望日を変更したい」などの返信を霊園事務所の普段の受信トレイで確実に受け取れるよう、<strong>メールソフトのBCC宛先として一発起動・送信</strong>できます。
+              </p>
+            </div>
           </div>
 
           {/* コピー通知トースト */}
@@ -1345,10 +1686,7 @@ function CemeteryDashboard() {
                     return (
                       <div
                         key={client.id}
-                        onClick={() => {
-                          if (hasEmail) handleToggleClientEmail(client.email);
-                        }}
-                        className={`p-4 rounded-2xl border-2 transition cursor-pointer select-none ${
+                        className={`p-4 rounded-2xl border-2 transition select-none ${
                           isChecked
                             ? 'bg-blue-50/70 border-blue-400 shadow-xs'
                             : 'bg-stone-50/80 border-stone-200 hover:border-stone-300'
@@ -1358,33 +1696,52 @@ function CemeteryDashboard() {
                           <input
                             type="checkbox"
                             checked={isChecked}
-                            disabled={!hasEmail}
-                            onChange={() => handleToggleClientEmail(client.email)}
+                            onChange={() => handleToggleClientEmail(client.email || client.id)}
                             className="w-6 h-6 mt-0.5 text-blue-600 rounded cursor-pointer shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
                               <span className="font-extrabold text-stone-900 text-lg">
                                 {client.name} 様
                               </span>
-                              <span className="text-xs font-bold px-2.5 py-1 bg-stone-200 text-stone-800 rounded-lg shrink-0">
-                                利用回数: {client.orderCount}回
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold px-2.5 py-1 bg-stone-200 text-stone-800 rounded-lg shrink-0">
+                                  利用回数: {client.orderCount}回
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenDmModal([client]);
+                                  }}
+                                  className="text-xs font-bold px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg shrink-0 transition flex items-center gap-1 cursor-pointer"
+                                >
+                                  <span>📮</span> DMハガキ印刷
+                                </button>
+                              </div>
                             </div>
 
-                            <div className="text-sm text-stone-600 mt-1 font-medium">
+                            <div className="text-sm text-stone-700 mt-1 font-medium">
                               正面文字:「<strong className="text-stone-900">{client.frontInscription || '未登録'}</strong>」様墓
                               {client.sectionPlotNumber && (
-                                <span className="ml-2">（区画: {client.sectionPlotNumber}）</span>
+                                <span className="ml-2 font-bold text-stone-900">（区画: {client.sectionPlotNumber}）</span>
+                              )}
+                              {client.builderName && (
+                                <span className="text-xs text-stone-500 block sm:inline sm:ml-2">建立者: {client.builderName}</span>
                               )}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-2 text-xs text-stone-500">
+                            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-2 text-xs text-stone-600">
+                              {(client.phoneNumber || client.phone) && (
+                                <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                  📞 {client.phoneNumber || client.phone}
+                                </span>
+                              )}
                               <span className="truncate">
                                 ✉️ {client.email ? (
                                   <strong className="text-stone-700">{client.email}</strong>
                                 ) : (
-                                  <span className="text-rose-500 font-bold">メールアドレス未登録</span>
+                                  <span className="text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded">メール未登録（DM送付対象）</span>
                                 )}
                               </span>
                               {lastDate && (
@@ -1393,6 +1750,12 @@ function CemeteryDashboard() {
                                 </span>
                               )}
                             </div>
+
+                            {client.address && (
+                              <div className="text-xs text-stone-500 mt-1 truncate">
+                                🏠 {client.postalCode ? `〒${client.postalCode} ` : ''}{client.address}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2487,6 +2850,362 @@ function CemeteryDashboard() {
         </div>
       )}
 
+      {/* 5. 施主名簿CSV一括取り込みモーダル */}
+      {showImportModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowImportModal(false);
+          }}
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto cursor-pointer"
+        >
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-800 cursor-default my-8 space-y-6">
+            <div className="flex items-start justify-between border-b-2 border-stone-200 pb-4">
+              <div>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+                  最強オンボーディング機能
+                </span>
+                <h3 className="text-2xl font-extrabold text-stone-900 mt-1">
+                  施主台帳CSV一括取り込み
+                </h3>
+                <p className="text-stone-600 text-sm mt-1">
+                  霊園・お寺でお持ちの施主様名簿（CSV・エクセル）を取り込むと、全員分の専用アカウント・お墓データが一瞬で自動生成されます。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="w-10 h-10 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 text-xl font-bold flex items-center justify-center cursor-pointer transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* テンプレート案内 & ダウンロード */}
+            <div className="bg-stone-50 border-2 border-stone-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="font-extrabold text-stone-900 text-base flex items-center gap-1.5">
+                  <span>📄</span> CSVフォーマット見本
+                </h4>
+                <p className="text-xs text-stone-600 mt-0.5">
+                  氏名、電話番号、郵便番号、住所、区画番号、正面文字、初期PWなどが入ったExcel対応CSVです。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadSampleCsv}
+                className="px-4 py-2.5 bg-white hover:bg-stone-100 border-2 border-emerald-600 text-emerald-800 font-bold text-sm rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <span>⬇️</span> 見本CSVをダウンロード
+              </button>
+            </div>
+
+            {/* ファイル選択エリア */}
+            <div className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-2xl p-6 text-center bg-stone-50/50 transition">
+              <input
+                type="file"
+                id="csv-file-input"
+                accept=".csv,text/csv"
+                onChange={handleCsvFileUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="csv-file-input"
+                className="cursor-pointer block space-y-2"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-2xl shadow-xs">
+                  📁
+                </div>
+                <div className="text-base font-bold text-stone-900">
+                  {csvFileName ? (
+                    <span className="text-emerald-800">選択中: {csvFileName}</span>
+                  ) : (
+                    <span>クリックしてCSVファイルを選択</span>
+                  )}
+                </div>
+                <p className="text-xs text-stone-500">
+                  カンマ区切りテキスト（.csv）形式に対応しています（UTF-8 / Shift-JIS）
+                </p>
+              </label>
+            </div>
+
+            {/* 取り込みプレビュー */}
+            {parsedPreviewClients.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-stone-900 text-base flex items-center gap-2">
+                    <span>👀</span> 取り込みプレビュー（{parsedPreviewClients.length}名）
+                  </h4>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
+                    正常に解析されました
+                  </span>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto border-2 border-stone-200 rounded-xl">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-stone-100 text-stone-700 font-bold sticky top-0 border-b border-stone-200">
+                      <tr>
+                        <th className="p-2.5">氏名</th>
+                        <th className="p-2.5">電話番号（ID）</th>
+                        <th className="p-2.5">区画番号</th>
+                        <th className="p-2.5">正面文字</th>
+                        <th className="p-2.5">住所</th>
+                        <th className="p-2.5">初期PW</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-200">
+                      {parsedPreviewClients.map((client, idx) => (
+                        <tr key={idx} className="hover:bg-emerald-50/50 font-medium text-stone-800">
+                          <td className="p-2.5 font-bold text-stone-900">{client.name} 様</td>
+                          <td className="p-2.5">{client.phoneNumber}</td>
+                          <td className="p-2.5">{client.sectionPlotNumber || '-'}</td>
+                          <td className="p-2.5">{client.frontInscription || '-'}</td>
+                          <td className="p-2.5 max-w-[180px] truncate">{client.address || '-'}</td>
+                          <td className="p-2.5 font-mono text-emerald-800 font-bold">{client.initialPassword}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* 完了通知 */}
+            {importSuccessMsg && (
+              <div className="p-4 bg-emerald-100 border-2 border-emerald-500 text-emerald-950 font-bold rounded-2xl text-center">
+                {importSuccessMsg}
+              </div>
+            )}
+
+            {/* フッターアクション */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-stone-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowImportModal(false);
+                  setParsedPreviewClients([]);
+                  setCsvFileName('');
+                }}
+                className="px-5 py-3 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer"
+              >
+                閉じる
+              </button>
+              <button
+                type="button"
+                disabled={parsedPreviewClients.length === 0 || importLoading}
+                onClick={handleExecuteImport}
+                className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+              >
+                <span>{importLoading ? 'インポート実行中...' : `この内容で一括登録する（${parsedPreviewClients.length}件）`}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. パーソナライズ案内DM（ハガキ/差込用紙）印刷プレビューモーダル */}
+      {showDmModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDmModal(false);
+          }}
+          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm overflow-y-auto cursor-pointer"
+        >
+          <div className="bg-stone-100 rounded-3xl max-w-5xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-900 cursor-default my-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-stone-300 pb-4 no-print">
+              <div>
+                <span className="text-xs font-bold text-blue-900 bg-blue-100 px-3 py-1 rounded-full">
+                  印刷プレビュー（全{targetPrintClients.length}名）
+                </span>
+                <h3 className="text-2xl font-extrabold text-stone-900 mt-1 flex items-center gap-2">
+                  <span>📮</span> パーソナライズ案内DM（ハガキ・差込用紙）
+                </h3>
+                <p className="text-stone-600 text-xs mt-1">
+                  差出人名義: <strong>{currentCompany?.name} 管理事務所</strong>（施主様専用QRコード自動印字済み）
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* 印刷レイアウト切替 */}
+                <div className="flex bg-white rounded-xl p-1 border-2 border-stone-300 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setDmPrintLayout('postcard')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      dmPrintLayout === 'postcard'
+                        ? 'bg-blue-700 text-white'
+                        : 'text-stone-700 hover:bg-stone-100'
+                    }`}
+                  >
+                    ハガキ版（100×148mm）
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDmPrintLayout('a4')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      dmPrintLayout === 'a4'
+                        ? 'bg-blue-700 text-white'
+                        : 'text-stone-700 hover:bg-stone-100'
+                    }`}
+                  >
+                    A4封書用紙版
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
+                >
+                  <span>🖨️</span> 印刷する（PDF保存も可）
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDmModal(false)}
+                  className="w-9 h-9 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold flex items-center justify-center cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* 印刷対象DMシート群 */}
+            <div id="printable-dm-container" className="space-y-8 max-h-[70vh] overflow-y-auto p-2">
+              {targetPrintClients.map((client, idx) => {
+                const cleanPhone = (client.phoneNumber || client.phone || '').replace(/\D/g, '');
+                const pass = client.initialPassword || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : 'client1234');
+                const qrUrl = qrCodeUrls[client.id];
+
+                return (
+                  <div
+                    key={client.id || idx}
+                    className="dm-page bg-white rounded-3xl p-6 sm:p-8 border-2 border-stone-300 shadow-md space-y-6 break-after-page"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                      {/* 左側：表面（宛名面＆差出人） */}
+                      <div className="md:col-span-5 bg-stone-50 rounded-2xl p-5 border border-stone-300 flex flex-col justify-between min-h-[360px]">
+                        <div>
+                          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+                            <span className="text-[11px] font-bold text-stone-500 tracking-wider">
+                              郵便はがき / 案内在中
+                            </span>
+                            <div className="flex gap-1">
+                              <span className="w-5 h-7 border border-stone-400 inline-block text-[10px] text-center leading-7">〒</span>
+                              <span className="text-xs font-bold font-mono tracking-widest text-stone-800 py-1">
+                                {client.postalCode || '790-0000'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* 宛先 */}
+                          <div className="py-6 space-y-2">
+                            <p className="text-xs text-stone-600">
+                              {client.address || `${currentCompany?.locationAddress} 周辺`}
+                            </p>
+                            <p className="text-2xl font-extrabold text-stone-900 tracking-wider pt-2">
+                              {client.name} <span className="text-lg font-bold">様</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 差出人情報（霊園名義） */}
+                        <div className="pt-4 border-t border-stone-200 text-xs text-stone-600 space-y-1">
+                          <p className="font-extrabold text-stone-900 text-sm">
+                            {currentCompany?.name} 管理事務所
+                          </p>
+                          <p>〒790-0001 {currentCompany?.locationAddress}</p>
+                          <p>電話番号: {currentCompany?.phoneNumber}</p>
+                        </div>
+                      </div>
+
+                      {/* 右側：裏面（パーソナライズ案内面＆個別QRコード） */}
+                      <div className="md:col-span-7 bg-emerald-950 text-white rounded-2xl p-6 flex flex-col justify-between space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between border-b border-emerald-800 pb-2">
+                            <span className="text-xs font-bold text-emerald-300 tracking-wider">
+                              {currentCompany?.name} 公認
+                            </span>
+                            <span className="text-[10px] bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded-full font-bold">
+                              施主様専用アカウント開設済
+                            </span>
+                          </div>
+
+                          <h4 className="text-xl font-extrabold text-white leading-snug">
+                            お墓のオンライン管理・お参り代行サービス<br />
+                            開設のご案内
+                          </h4>
+
+                          <p className="text-xs text-emerald-200 leading-relaxed">
+                            {client.name} 様のお墓情報（区画番号・正面写真）は、<strong>すでに管理事務所により事前登録が完了</strong>しております。
+                          </p>
+
+                          {/* 登録済みお墓情報バナー */}
+                          <div className="bg-emerald-900/80 border border-emerald-700 rounded-xl p-3 grid grid-cols-12 gap-3 items-center">
+                            <div className="col-span-4 aspect-video rounded-lg bg-emerald-950 overflow-hidden relative border border-emerald-600">
+                              <img
+                                src={client.photoUrl || '/images/grave_front_example.jpg'}
+                                alt="お墓写真"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="col-span-8 text-xs text-emerald-100 space-y-0.5">
+                              <p className="font-bold text-white text-sm">
+                                「{client.frontInscription || '山田家先祖代々之墓'}」様墓
+                              </p>
+                              <p className="text-emerald-300">
+                                区画: <strong>{client.sectionPlotNumber || '登録済み'}</strong>
+                              </p>
+                              {client.builderName && (
+                                <p className="text-[11px] text-emerald-400">建立者: {client.builderName}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* ログイン情報 & QRコード */}
+                        <div className="bg-white text-stone-900 rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-md">
+                          <div className="space-y-1 flex-1">
+                            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md inline-block">
+                              初回ログイン情報
+                            </span>
+                            <p className="text-xs text-stone-700">
+                              ログインID: <strong className="font-mono text-sm text-emerald-900">{client.phoneNumber || cleanPhone}</strong>
+                            </p>
+                            <p className="text-xs text-stone-700">
+                              初期パスワード: <strong className="font-mono text-sm text-emerald-900">{pass}</strong>
+                            </p>
+                            <p className="text-[10px] text-stone-500 pt-1 leading-tight">
+                              右のQRコードをスマホで読み取ると、ID・PWが自動入力された状態でマイページが開きます。
+                            </p>
+                          </div>
+
+                          {/* QRコード表示 */}
+                          <div className="w-24 h-24 shrink-0 bg-white p-1 border-2 border-emerald-700 rounded-xl flex items-center justify-center">
+                            {qrUrl ? (
+                              <img
+                                src={qrUrl}
+                                alt="専用ログインQRコード"
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <span className="text-[10px] text-stone-400">生成中...</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* フッター誘導 */}
+                        <div className="text-[10px] text-emerald-300 text-center border-t border-emerald-800/80 pt-2 font-medium">
+                          ① QRコード読取 ➔ ② お墓の現状写真を確認 ➔ ③ 日付・プランを選んで予約完了
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 印刷・PDF保存専用CSSスタイル */}
       <style jsx global>{`
         @media print {
@@ -2494,26 +3213,31 @@ function CemeteryDashboard() {
             visibility: hidden;
           }
           #printable-contract-container,
-          #printable-contract-container * {
+          #printable-contract-container *,
+          #printable-dm-container,
+          #printable-dm-container * {
             visibility: visible;
           }
-          #printable-contract-container {
+          #printable-contract-container,
+          #printable-dm-container {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
             margin: 0;
-            padding: 15mm;
+            padding: 0;
             background: white !important;
             color: #000 !important;
           }
+          .dm-page {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+            break-after: page;
+            page-break-after: always;
+            margin-bottom: 20mm;
+          }
           .no-print {
             display: none !important;
-          }
-          .no-print-bg {
-            background: none !important;
-            position: static !important;
-            padding: 0 !important;
           }
         }
       `}</style>

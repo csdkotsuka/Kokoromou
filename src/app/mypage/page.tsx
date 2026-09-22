@@ -76,19 +76,30 @@ export default function CustomerMyPage() {
     );
   }
 
-  // 登録済みのお墓情報（複数基対応・特定写真あり）
+  // 登録済みのお墓情報（ログインユーザー情報またはデフォルト）
+  const userGrave = (authUser as any)?.graveInfo;
   const registeredGrave = {
-    cemeteryName: '宝塔寺 旭ヶ丘霊園',
-    sectionPlotNumber: '東区 5列 12番',
-    locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
-    frontInscription: '山田家先祖代々之墓',
-    builderName: '昭和五十年八月 山田太郎建之',
-    frontPhoto: '/images/grave_front_example.jpg',
-    builderPhoto: '/images/grave_side_builder_example.jpg',
+    cemeteryName: userGrave?.cemeteryName || '宝塔寺 旭ヶ丘霊園',
+    sectionPlotNumber: userGrave?.sectionPlotNumber || '東区 5列 12番',
+    locationAddress: userGrave?.locationAddress || '愛媛県松山市朝日ヶ丘1丁目',
+    frontInscription: userGrave?.frontInscription || '山田家先祖代々之墓',
+    builderName: userGrave?.builderName || '昭和五十年八月 山田太郎建之',
+    frontPhoto: userGrave?.frontPhotoUrl || '/images/grave_front_example.jpg',
+    builderPhoto: userGrave?.builderPhotoUrl || '/images/grave_side_builder_example.jpg',
     graveCount: 1,
     plotSize: 'standard', // 標準(~1坪)
-    landmarks: '東区入口の階段を上がってすぐ右、大楠の木の隣。隣接墓地は「加藤家」です。',
+    landmarks: userGrave?.landmarks || '区画・お墓情報は霊園管理事務所より事前登録済みです。',
+    cemeteryCompanyId: userGrave?.cemeteryCompanyId || (authUser as any)?.targetId || 'cem_comp_001',
   };
+
+  // 予約ページへのパラメータ付きURL（お墓情報入力不要のフリクションレス導線）
+  const quickOrderUrl = `/order?planId=plan_standard_service&cemeteryId=${encodeURIComponent(
+    registeredGrave.cemeteryCompanyId
+  )}&cemeteryName=${encodeURIComponent(registeredGrave.cemeteryName)}&sectionPlotNumber=${encodeURIComponent(
+    registeredGrave.sectionPlotNumber
+  )}&frontInscription=${encodeURIComponent(registeredGrave.frontInscription)}&builderName=${encodeURIComponent(
+    registeredGrave.builderName
+  )}&locationAddress=${encodeURIComponent(registeredGrave.locationAddress)}&prefilled=true`;
 
   // 進行中の依頼ステータス（最新注文）
   const currentOrder = {
@@ -143,7 +154,8 @@ export default function CustomerMyPage() {
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-1">
-                {authUser?.email} • 2026年9月登録
+                {(authUser as any)?.phoneNumber ? `連絡先: ${(authUser as any).phoneNumber} • ` : ''}
+                {authUser?.email}
               </p>
             </div>
           </div>
@@ -151,17 +163,17 @@ export default function CustomerMyPage() {
           {/* 次回ワンクリック再予約ボタン */}
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-2.5">
             <Link
-              href={`/order?planId=plan_standard_service`}
+              href={quickOrderUrl}
               className="inline-flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all text-sm group"
             >
               <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-              <span>次回のお参り・清掃を予約する</span>
+              <span>このお墓でお参り・清掃を予約する</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-3 rounded-xl transition-all text-sm"
+              className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-3 rounded-xl transition-all text-sm cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>ログアウト</span>

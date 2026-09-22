@@ -50,6 +50,28 @@ export interface CemeteryCompany {
   contractTemplateUpdatedAt?: string;
   // 一斉案内メールテンプレート (お彼岸・お盆・定期お参り等の案内用)
   emailTemplates?: EmailTemplate[];
+  // 一括CSV取り込みされた施主台帳データ
+  clients?: CemeteryClient[];
+}
+
+export interface CemeteryClient {
+  id: string; // 例: "client_xxx"
+  cemeteryCompanyId: string; // 所属霊園・管理会社ID
+  name: string; // 施主氏名
+  phoneNumber: string; // 電話番号（ログインIDとしても使用）
+  postalCode?: string; // 郵便番号
+  address?: string; // 住所（DMハガキ送付先）
+  email?: string; // メールアドレス
+  sectionPlotNumber: string; // 区画番号（例: 東区 5列 12番）
+  frontInscription: string; // 正面文字（例: 山田家先祖代々之墓）
+  builderName?: string; // 建立者名（例: 昭和五十年八月 山田太郎建之）
+  initialPassword?: string; // 初期パスワード
+  photoUrl?: string; // お墓の正面写真URL
+  builderPhotoUrl?: string; // 墓石側面・建立者写真URL
+  notes?: string; // 備考
+  importedAt: string; // インポート日時 (ISO 8601)
+  lastOrderDate?: string; // 最終利用日
+  orderCount?: number; // 利用回数
 }
 
 export interface EmailTemplate {
@@ -65,15 +87,17 @@ export interface EmailTemplate {
 // 3. ユーザー情報 (users コレクション)
 // -------------------------------------------------------------
 export type UserRole = 'client' | 'vendor' | 'admin';
-export type AccountRole = 'admin' | 'cemetery' | 'vendor';
+export type AccountRole = 'admin' | 'cemetery' | 'vendor' | 'customer';
 
 export interface UserAccount {
   id: string;
   email: string;
+  phoneNumber?: string; // 施主ログイン用電話番号
   password?: string; // 簡易認証・シード用パスワード
   role: AccountRole;
   name: string;
   targetId?: string; // cemeteryCompanyId (cem_comp_xxx) または vendorId (vendor_xxx)
+  graveInfo?: Partial<GraveInfo>; // 施主アカウントに紐づく事前登録お墓情報
   createdAt: string;
 }
 
@@ -161,6 +185,7 @@ export interface Order {
   clientId: string; // 施主ユーザーID
   clientName: string;
   clientEmail: string;
+  clientPhone?: string;
 
   // 墓地管理会社（霊園管理元）
   cemeteryCompanyId?: string;

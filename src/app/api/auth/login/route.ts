@@ -4,28 +4,29 @@ import { authenticateAccount, updateAccountPassword } from '@/lib/firebase-admin
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, clientStoredPassword } = body;
+    const { email, phone, identifier: rawIdentifier, password, clientStoredPassword } = body;
+    const identifier = (rawIdentifier || phone || email || '').trim();
 
-    if (!email) {
-      return NextResponse.json({ error: 'メールアドレスを入力してください' }, { status: 400 });
+    if (!identifier) {
+      return NextResponse.json({ error: 'メールアドレスまたはお電話番号を入力してください' }, { status: 400 });
     }
 
     // クライアント側で保存された新パスワードがあり、現在の入力と一致する場合は即時サーバー同期
-    if (clientStoredPassword && password && clientStoredPassword === password) {
+    if (clientStoredPassword && password && clientStoredPassword === password && email) {
       await updateAccountPassword(email, password);
     }
 
-    let account = await authenticateAccount(email, password);
+    let account = await authenticateAccount(identifier, password);
 
     // 認証失敗時でも、clientStoredPassword と入力が一致していればリカバリー同期
-    if (!account && clientStoredPassword && password && clientStoredPassword === password) {
+    if (!account && clientStoredPassword && password && clientStoredPassword === password && email) {
       await updateAccountPassword(email, password);
-      account = await authenticateAccount(email, password);
+      account = await authenticateAccount(identifier, password);
     }
 
     if (!account) {
       return NextResponse.json(
-        { error: 'メールアドレスまたはパスワードが正しくありません' },
+        { error: 'ログイン情報（メールアドレス/電話番号）またはパスワードが正しくありません' },
         { status: 401 }
       );
     }
