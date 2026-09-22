@@ -449,12 +449,12 @@ function CustomerMyPageContent() {
 
         {/* フッターナビゲーション */}
         <div className="text-center pt-6">
-          <Link
+          <a
             href="/"
-            className="text-xs text-stone-500 hover:text-stone-800 underline font-medium"
+            className="text-sm text-stone-600 hover:text-stone-900 underline font-bold cursor-pointer inline-flex items-center gap-1.5"
           >
-            ← ココロモウ トップページへ戻る
-          </Link>
+            <span>←</span> ココロモウ トップページへ戻る
+          </a>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CemeteryCompany, User, Order, VendorContract, EmailTemplate, CemeteryClient } from '@/types/firestore';
+import { CemeteryCompany, User, Order, VendorContract, EmailTemplate, CemeteryClient, Report } from '@/types/firestore';
 import QRCode from 'qrcode';
 import {
   SAMPLE_CEMETERY_COMPANIES,
@@ -21,6 +21,7 @@ function CemeteryDashboard() {
   const [companies, setCompanies] = useState<CemeteryCompany[]>(SAMPLE_CEMETERY_COMPANIES);
   const [vendors, setVendors] = useState<User[]>(SAMPLE_VENDORS);
   const [orders, setOrders] = useState<Order[]>(SAMPLE_ORDERS);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
 
   // 文字サイズ切り替えステート（標準・大・特大）
@@ -50,10 +51,11 @@ function CemeteryDashboard() {
   const [importLoading, setImportLoading] = useState(false);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
 
-  // 施主お墓写真・情報 編集モーダルステート
+  // 施主お墓写真・情報 編集モーダルステート（正面と側面・建立者の2枚対応）
   const [editingClient, setEditingClient] = useState<CemeteryClient | null>(null);
   const [editGraveForm, setEditGraveForm] = useState({
-    photoUrl: '',
+    photoUrl: '', // 正面写真
+    builderPhotoUrl: '', // 側面・建立者写真
     sectionPlotNumber: '',
     frontInscription: '',
     builderName: '',
@@ -61,6 +63,9 @@ function CemeteryDashboard() {
     email: '',
   });
   const [isSavingGraveInfo, setIsSavingGraveInfo] = useState(false);
+
+  // 顧客名簿の初回自動選択フラグ（解除ボタンや個別チェックを上書きしない）
+  const hasInitializedSelectionRef = useRef(false);
 
   // パーソナライズ案内DM印刷モーダルステート
   const [showDmModal, setShowDmModal] = useState(false);
@@ -172,10 +177,11 @@ function CemeteryDashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [cemRes, venRes, ordRes] = await Promise.all([
+        const [cemRes, venRes, ordRes, repRes] = await Promise.all([
           fetch('/api/cemetery-companies'),
           fetch('/api/vendors'),
           fetch('/api/orders'),
+          fetch('/api/reports'),
         ]);
         if (cemRes.ok) {
           const data = await cemRes.json();
@@ -188,6 +194,10 @@ function CemeteryDashboard() {
         if (ordRes.ok) {
           const data = await ordRes.json();
           if (data.orders?.length) setOrders(data.orders);
+        }
+        if (repRes.ok) {
+          const data = await repRes.json();
+          if (data.reports?.length) setReports(data.reports);
         }
         await loadClientsData(companyId);
       } catch (e) {
@@ -312,6 +322,7 @@ function CemeteryDashboard() {
       lastOrderDate: string;
       orderCount: number;
       lastPlanName: string;
+      latestAfterPhotoUrl?: string;
     }>();
 
     // 1. 管理会社に紐付く事前登録施主データ（CSVインポート施主）
@@ -381,8 +392,28 @@ function CemeteryDashboard() {
       }
     });
 
-    return Array.from(map.values());
-  }, [currentCompany, importedClients, companyOrders]);
+    // 3. 作業代行業者の完了レポート写真と連動（最新の清掃完了写真）
+    const clientList = Array.from(map.values());
+    clientList.forEach((cl) => {
+      const matchedOrders = companyOrders.filter(
+        (o) =>
+          (o.clientId === cl.id || (o.clientPhone && o.clientPhone.replace(/\D/g, '') === (cl.phoneNumber || '').replace(/\D/g, ''))) &&
+          (o.status === 'completed' || o.reportId)
+      );
+      if (matchedOrders.length > 0) {
+        const sorted = [...matchedOrders].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        const latestOrd = sorted[0];
+        const rep = reports.find((r) => r.orderId === latestOrd.id || r.id === latestOrd.reportId);
+        if (rep && rep.afterPhotos && rep.afterPhotos.length > 0) {
+          cl.latestAfterPhotoUrl = rep.afterPhotos[0].url;
+        }
+      }
+    });
+
+    return clientList;
+  }, [currentCompany, importedClients, companyOrders, reports]);
 
   // 見本CSVダウンロード
   const handleDownloadSampleCsv = () => {
@@ -667,15 +698,18 @@ function CemeteryDashboard() {
     }
   }, [currentCompany?.id]);
 
-  // 顧客名簿の初期選択（全顧客を自動選択）
+  // 顧客名簿の初期選択（初回データ読み込み完了時に1回だけ全顧客を自動選択。以降の解除や手動チェックを上書きしない）
   useEffect(() => {
-    const allIds = clientsSummary.map((c) => c.id);
-    setSelectedClientIds(allIds);
-    const validEmails = clientsSummary
-      .map((c) => c.email)
-      .filter((email) => email && email.includes('@'));
-    setSelectedClientEmails(validEmails);
-  }, [clientsSummary]);
+    if (!hasInitializedSelectionRef.current && clientsSummary.length > 0) {
+      const allIds = clientsSummary.map((c) => c.id);
+      setSelectedClientIds(allIds);
+      const validEmails = clientsSummary
+        .map((c) => c.email)
+        .filter((email) => email && email.includes('@'));
+      setSelectedClientEmails(validEmails);
+      hasInitializedSelectionRef.current = true;
+    }
+  }, [clientsSummary.length]);
 
   // 施主名簿 全選択・全解除
   const handleToggleSelectAllClients = () => {
@@ -710,11 +744,12 @@ function CemeteryDashboard() {
     });
   };
 
-  // 施主お墓情報・写真の編集モーダルを開く
+  // 施主お墓情報・写真の編集モーダルを開く（正面・側面写真対応）
   const handleOpenEditClient = (client: any) => {
     setEditingClient(client as CemeteryClient);
     setEditGraveForm({
       photoUrl: client.photoUrl || '/images/grave_front_example.jpg',
+      builderPhotoUrl: client.builderPhotoUrl || '/images/grave_side_builder_example.jpg',
       sectionPlotNumber: client.sectionPlotNumber || '',
       frontInscription: client.frontInscription || '',
       builderName: client.builderName || '',
@@ -735,6 +770,7 @@ function CemeteryDashboard() {
         cemeteryCompanyId: editingClient.cemeteryCompanyId || companyId || currentCompany?.id || 'cem_comp_default',
         importedAt: editingClient.importedAt || new Date().toISOString(),
         photoUrl: editGraveForm.photoUrl,
+        builderPhotoUrl: editGraveForm.builderPhotoUrl,
         sectionPlotNumber: editGraveForm.sectionPlotNumber,
         frontInscription: editGraveForm.frontInscription,
         builderName: editGraveForm.builderName,
@@ -757,9 +793,14 @@ function CemeteryDashboard() {
       if (!res.ok) throw new Error('施主情報の更新に失敗しました');
 
       // ステート反映
-      setImportedClients((prev) =>
-        prev.map((c) => (c.id === updatedClient.id ? updatedClient : c))
-      );
+      setImportedClients((prev) => {
+        const found = prev.some((c) => c.id === updatedClient.id);
+        if (found) {
+          return prev.map((c) => (c.id === updatedClient.id ? updatedClient : c));
+        } else {
+          return [...prev, updatedClient];
+        }
+      });
 
       setEditingClient(null);
       alert(`${updatedClient.name} 様のお墓情報を更新・保存しました！`);
@@ -1231,9 +1272,12 @@ function CemeteryDashboard() {
   };
 
   return (
-    <div className={`min-h-screen bg-stone-100 text-slate-900 pb-24 ${
-      fontSize === 'standard' ? 'text-base' : fontSize === 'large' ? 'text-lg' : 'text-xl'
-    }`}>
+    <div 
+      style={{
+        zoom: fontSize === 'standard' ? 1 : fontSize === 'large' ? 1.12 : 1.25,
+      }}
+      className="min-h-screen bg-stone-100 text-slate-900 pb-24 transition-all duration-150"
+    >
       {/* ⚠️ 本部管理者から来た場合のみ表示する戻りバー */}
       {fromSource === 'admin' && (
         <aside aria-label="管理者プレビュー案内" className="bg-amber-500 text-slate-950 font-bold px-6 py-3 shadow-md flex items-center justify-between">
@@ -1241,12 +1285,12 @@ function CemeteryDashboard() {
             <span className="text-2xl">⚠️</span>
             <span>【本部管理者プレビュー】現在、本部権限で墓地管理会社の画面を表示しています</span>
           </div>
-          <Link
+          <a
             href="/admin"
             className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-base rounded-xl font-bold transition shadow"
           >
             ← 本部統括画面に戻る
-          </Link>
+          </a>
         </aside>
       )}
 
@@ -1296,6 +1340,14 @@ function CemeteryDashboard() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {/* トップページへ戻るリンク */}
+            <a
+              href="/"
+              className="px-4 py-2.5 bg-stone-700 hover:bg-stone-600 text-white text-base font-bold rounded-xl border border-stone-500 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <span>🏠</span> トップへ
+            </a>
+
             {/* 操作説明書リンク */}
             <Link
               href="/cemetery/manual"
@@ -1898,27 +1950,70 @@ function CemeteryDashboard() {
                               </div>
                             </div>
 
-                            {/* お墓情報 ＆ 写真プレビュー */}
-                            <div className="flex items-center gap-3 mt-2 bg-white/80 p-2.5 rounded-xl border border-stone-200">
-                              <div
-                                onClick={() => handleOpenEditClient(client)}
-                                className="w-14 h-14 rounded-lg bg-stone-100 border border-stone-300 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center"
-                                title="クリックしてお墓写真を編集"
-                              >
-                                {client.photoUrl ? (
-                                  <img
-                                    src={client.photoUrl}
-                                    alt="お墓写真"
-                                    className="w-full h-full object-cover group-hover:opacity-80 transition"
-                                  />
-                                ) : (
-                                  <span className="text-[10px] text-stone-400 font-bold text-center leading-tight">
-                                    写真<br />未登録
+                            {/* お墓写真（正面・側面・作業完了後） ＆ 情報プレビュー */}
+                            <div className="flex items-center gap-3 mt-2 bg-white/80 p-2.5 rounded-xl border border-stone-200 flex-wrap sm:flex-nowrap">
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {/* 正面写真 */}
+                                <div
+                                  onClick={() => handleOpenEditClient(client)}
+                                  className="w-14 h-14 rounded-lg bg-stone-100 border border-stone-300 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center shadow-2xs"
+                                  title="正面写真（クリックで編集）"
+                                >
+                                  {client.photoUrl ? (
+                                    <img
+                                      src={client.photoUrl}
+                                      alt="正面写真"
+                                      className="w-full h-full object-cover group-hover:opacity-80 transition"
+                                    />
+                                  ) : (
+                                    <span className="text-[10px] text-stone-400 font-bold text-center leading-tight">
+                                      正面<br />未登録
+                                    </span>
+                                  )}
+                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[8px] font-bold text-center py-0.5">
+                                    正面
                                   </span>
+                                </div>
+
+                                {/* 側面写真 */}
+                                <div
+                                  onClick={() => handleOpenEditClient(client)}
+                                  className="w-14 h-14 rounded-lg bg-stone-100 border border-stone-300 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center shadow-2xs"
+                                  title="側面建立者写真（クリックで編集）"
+                                >
+                                  {client.builderPhotoUrl ? (
+                                    <img
+                                      src={client.builderPhotoUrl}
+                                      alt="側面写真"
+                                      className="w-full h-full object-cover group-hover:opacity-80 transition"
+                                    />
+                                  ) : (
+                                    <span className="text-[10px] text-stone-400 font-bold text-center leading-tight">
+                                      側面<br />未登録
+                                    </span>
+                                  )}
+                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[8px] font-bold text-center py-0.5">
+                                    側面
+                                  </span>
+                                </div>
+
+                                {/* 代行業者作業後の最新写真（実績がある場合） */}
+                                {client.latestAfterPhotoUrl && (
+                                  <div
+                                    onClick={() => handleOpenEditClient(client)}
+                                    className="w-14 h-14 rounded-lg bg-emerald-50 border-2 border-emerald-500 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center shadow-2xs"
+                                    title="提携業者清掃後写真（最新実績）"
+                                  >
+                                    <img
+                                      src={client.latestAfterPhotoUrl}
+                                      alt="清掃後写真"
+                                      className="w-full h-full object-cover group-hover:opacity-80 transition"
+                                    />
+                                    <span className="absolute bottom-0 inset-x-0 bg-emerald-800 text-white text-[8px] font-bold text-center py-0.5">
+                                      清掃済
+                                    </span>
+                                  </div>
                                 )}
-                                <span className="absolute inset-0 bg-black/40 text-white text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                                  変更
-                                </span>
                               </div>
 
                               <div className="text-xs text-stone-700 min-w-0 flex-1 space-y-0.5 font-medium">
@@ -3234,27 +3329,45 @@ function CemeteryDashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveGraveInfo} className="space-y-4 text-xs sm:text-sm">
-              {/* 写真アップロード・プレビュー枠 */}
-              <div className="bg-stone-50 p-4 rounded-2xl border-2 border-stone-200 space-y-3">
-                <label className="block font-bold text-stone-800">
-                  お墓の正面写真（DMハガキ・マイページに掲載されます）
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="w-24 h-24 rounded-xl bg-stone-200 border-2 border-stone-300 overflow-hidden shrink-0 flex items-center justify-center">
-                    {editGraveForm.photoUrl ? (
-                      <img
-                        src={editGraveForm.photoUrl}
-                        alt="お墓写真"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-stone-400 font-bold text-center">写真なし</span>
-                    )}
-                  </div>
-                  <div className="space-y-2 flex-1">
-                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black rounded-xl text-xs shadow-xs cursor-pointer transition">
-                      <span>📷 写真を選択 / カメラで撮影</span>
+            <form onSubmit={handleSaveGraveInfo} className="space-y-5 text-xs sm:text-sm">
+              {/* お墓特定用写真（正面写真 ＆ 側面建立者写真の2枚） */}
+              <div className="bg-stone-50 p-4 rounded-2xl border-2 border-stone-200 space-y-4">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+                  <span className="font-extrabold text-stone-900 text-sm flex items-center gap-1.5">
+                    <span>🪦</span> お墓特定用 写真登録（DMハガキ・マイページ掲載）
+                  </span>
+                  <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">
+                    正面 ＋ 側面の2枚でお墓を100%特定
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* ① 正面写真 */}
+                  <div className="bg-white p-3 rounded-xl border border-stone-200 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-stone-800 text-xs flex items-center gap-1">
+                        <span className="w-4 h-4 rounded-full bg-emerald-700 text-white text-[10px] font-black inline-flex items-center justify-center">1</span>
+                        正面写真（正面文字）
+                      </label>
+                      <span className="text-[10px] text-stone-400 font-medium">特定必須</span>
+                    </div>
+
+                    <div className="w-full h-32 rounded-xl bg-stone-100 border-2 border-dashed border-stone-300 overflow-hidden flex items-center justify-center relative">
+                      {editGraveForm.photoUrl ? (
+                        <img
+                          src={editGraveForm.photoUrl}
+                          alt="正面写真"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs text-stone-400 font-bold text-center">
+                          正面写真<br />未登録
+                        </span>
+                      )}
+                    </div>
+
+                    <label className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-900 text-white font-bold rounded-xl text-xs shadow-xs cursor-pointer transition">
+                      <span>📷 正面を撮影 / 選択</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -3274,8 +3387,8 @@ function CemeteryDashboard() {
                         }}
                       />
                     </label>
-                    <div className="flex items-center gap-2 text-[11px] text-stone-500">
-                      <span>またはサンプル写真:</span>
+
+                    <div className="text-right">
                       <button
                         type="button"
                         onClick={() =>
@@ -3284,25 +3397,105 @@ function CemeteryDashboard() {
                             photoUrl: '/images/grave_front_example.jpg',
                           }))
                         }
-                        className="text-blue-700 underline font-bold"
+                        className="text-[10px] text-blue-700 underline font-bold"
                       >
-                        正面標準
+                        正面見本写真
                       </button>
+                    </div>
+                  </div>
+
+                  {/* ② 側面写真 */}
+                  <div className="bg-white p-3 rounded-xl border border-stone-200 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-stone-800 text-xs flex items-center gap-1">
+                        <span className="w-4 h-4 rounded-full bg-emerald-700 text-white text-[10px] font-black inline-flex items-center justify-center">2</span>
+                        側面写真（建立者名）
+                      </label>
+                      <span className="text-[10px] text-stone-400 font-medium">誤認防止用</span>
+                    </div>
+
+                    <div className="w-full h-32 rounded-xl bg-stone-100 border-2 border-dashed border-stone-300 overflow-hidden flex items-center justify-center relative">
+                      {editGraveForm.builderPhotoUrl ? (
+                        <img
+                          src={editGraveForm.builderPhotoUrl}
+                          alt="側面写真"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs text-stone-400 font-bold text-center">
+                          側面写真<br />未登録
+                        </span>
+                      )}
+                    </div>
+
+                    <label className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-stone-800 hover:bg-stone-900 text-white font-bold rounded-xl text-xs shadow-xs cursor-pointer transition">
+                      <span>📷 側面を撮影 / 選択</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setEditGraveForm((prev) => ({
+                                ...prev,
+                                builderPhotoUrl: reader.result as string,
+                              }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    <div className="text-right">
                       <button
                         type="button"
                         onClick={() =>
                           setEditGraveForm((prev) => ({
                             ...prev,
-                            photoUrl: '/images/grave_after.jpg',
+                            builderPhotoUrl: '/images/grave_side_builder_example.jpg',
                           }))
                         }
-                        className="text-blue-700 underline font-bold"
+                        className="text-[10px] text-blue-700 underline font-bold"
                       >
-                        清掃済写真
+                        側面見本写真
                       </button>
                     </div>
                   </div>
                 </div>
+
+                {/* ③ 代行業者による作業完了写真（実績がある場合） */}
+                {(() => {
+                  const matchedClient = clientsSummary.find((c) => c.id === editingClient.id);
+                  if (matchedClient?.latestAfterPhotoUrl) {
+                    return (
+                      <div className="bg-emerald-50 border-2 border-emerald-400 rounded-xl p-3 flex items-center gap-3">
+                        <div className="w-16 h-16 rounded-lg bg-stone-200 overflow-hidden shrink-0 border border-emerald-600">
+                          <img
+                            src={matchedClient.latestAfterPhotoUrl}
+                            alt="作業完了写真"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="text-xs space-y-0.5 min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 bg-emerald-800 text-white font-black text-[10px] rounded">
+                              ✓ 作業代行実績あり
+                            </span>
+                            <span className="font-bold text-emerald-950">提携業者による最新清掃・お供花写真</span>
+                          </div>
+                          <p className="text-emerald-900 text-[11px] leading-tight">
+                            代行業者が現地作業完了時に撮影・提出した最新写真です。施主様のマイページにもリアルタイムで共有されています。
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3557,91 +3750,113 @@ function CemeteryDashboard() {
                   </div>
                 );
 
-                // ハガキ裏面（案内面）JSX生成
+                // ハガキ裏面（案内面）JSX生成：余白を抑え、正面写真＆側面写真を特大配置した実用レイアウト
                 const renderPostcardBack = () => (
                   <div
-                    className="postcard-sheet bg-white text-stone-900 rounded-2xl shadow-xl mx-auto p-5 flex flex-col justify-between border-2 border-emerald-800/80 relative overflow-hidden"
+                    className="postcard-sheet bg-white text-stone-900 rounded-2xl shadow-xl mx-auto p-3 flex flex-col justify-between border-2 border-emerald-800/80 relative overflow-hidden"
                     style={{ width: '100mm', minHeight: '148mm', height: '148mm', boxSizing: 'border-box' }}
                   >
-                    {/* 上部ヘッダー：格式あるグリーン帯 */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between pb-1.5 border-b-2 border-emerald-800">
-                        <span className="text-[9px] font-extrabold text-emerald-900 tracking-wider bg-emerald-100 px-2 py-0.5 rounded">
+                    {/* 上部ヘッダー：格式あるグリーン帯 ＆ 案内文 */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between pb-1 border-b-2 border-emerald-800">
+                        <span className="text-[9px] font-black text-emerald-950 tracking-wider bg-emerald-100 px-2 py-0.5 rounded">
                           {currentCompany?.name} 公認
                         </span>
-                        <span className="text-[9px] font-bold text-stone-500">
-                          施主様専用案内
+                        <span className="text-[9px] font-bold text-stone-600">
+                          {client.name} 様 専用案内状
                         </span>
                       </div>
 
-                      <div className="text-center pt-0.5">
-                        <h3 className="text-sm font-black text-emerald-950 tracking-tight leading-snug">
-                          オンラインお墓管理・お参り代行ページ<br />開設のご案内
+                      <div className="text-center">
+                        <h3 className="text-xs font-black text-emerald-950 tracking-tight leading-snug">
+                          オンラインお墓管理・お参り清掃代行のご案内
                         </h3>
-                        <p className="text-[9px] text-stone-600 mt-1 leading-tight">
-                          {client.name} 様のお墓情報は、すでに霊園管理事務所にて事前登録が完了しております。
+                        <p className="text-[8px] text-stone-600 leading-tight">
+                          施主様のお墓情報と写真は当管理事務所にてすでに事前登録済みです。
                         </p>
                       </div>
 
-                      {/* 登録済みお墓バナー（写真 ＋ 区画 ＋ 正面文字） */}
-                      <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2 flex items-center gap-2.5 shadow-2xs">
-                        <div className="w-16 h-14 rounded-lg bg-stone-200 overflow-hidden relative shrink-0 border border-emerald-600/30">
-                          <img
-                            src={client.photoUrl || '/images/grave_front_example.jpg'}
-                            alt="お墓写真"
-                            className="w-full h-full object-cover"
-                          />
+                      {/* ★ 正面写真 ＆ 側面写真の2枚横並び特大エリア（裏面の主役） */}
+                      <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                        {/* 左：正面写真 */}
+                        <div className="border border-stone-300 rounded-lg overflow-hidden bg-stone-100 relative">
+                          <div className="h-20 w-full overflow-hidden">
+                            <img
+                              src={client.photoUrl || '/images/grave_front_example.jpg'}
+                              alt="正面写真"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="bg-stone-900/80 text-white text-[8px] font-bold px-1.5 py-0.5 text-center truncate">
+                            【正面】{client.frontInscription ? `「${client.frontInscription}」` : '正面文字'}
+                          </div>
                         </div>
-                        <div className="text-[10px] min-w-0 flex-1 space-y-0.5">
-                          <p className="font-extrabold text-stone-900 text-xs truncate">
-                            「{client.frontInscription || '山田家先祖代々之墓'}」様墓
-                          </p>
-                          <p className="text-emerald-900 font-bold">
-                            区画: {client.sectionPlotNumber || '登録済み'}
-                          </p>
-                          {client.builderName && (
-                            <p className="text-[9px] text-stone-500 truncate">建立者: {client.builderName}</p>
-                          )}
+
+                        {/* 右：側面写真 */}
+                        <div className="border border-stone-300 rounded-lg overflow-hidden bg-stone-100 relative">
+                          <div className="h-20 w-full overflow-hidden">
+                            <img
+                              src={client.builderPhotoUrl || '/images/grave_side_builder_example.jpg'}
+                              alt="側面写真"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="bg-stone-900/80 text-white text-[8px] font-bold px-1.5 py-0.5 text-center truncate">
+                            【側面】{client.builderName ? client.builderName : '建立者名'}
+                          </div>
                         </div>
+                      </div>
+
+                      {/* 登録情報バー（区画番号・正面彫刻・建立者名） */}
+                      <div className="bg-emerald-50/90 border border-emerald-300 rounded-lg px-2 py-1 flex items-center justify-between text-[9px]">
+                        <span className="font-extrabold text-emerald-950">
+                          区画: <strong className="text-emerald-900 text-[10px]">{client.sectionPlotNumber || '登録済'}</strong>
+                        </span>
+                        <span className="text-stone-600 truncate max-w-[130px]">
+                          建立: {client.builderName || '確認済'}
+                        </span>
+                        <span className="bg-emerald-700 text-white text-[8px] font-bold px-1.5 py-0.2 rounded">
+                          特定完了
+                        </span>
                       </div>
                     </div>
 
                     {/* 中央：QRコード & ログイン情報 */}
-                    <div className="bg-stone-50 border border-stone-300 rounded-xl p-2 flex items-center justify-between gap-2 shadow-xs">
-                      <div className="space-y-0.5 flex-1">
-                        <span className="text-[8px] font-extrabold bg-emerald-800 text-white px-1.5 py-0.5 rounded inline-block">
-                          初回ログイン情報（スマホ読取で自動入力）
+                    <div className="bg-stone-50 border-2 border-stone-200 rounded-xl p-1.5 flex items-center justify-between gap-1.5 shadow-2xs">
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <span className="text-[7.5px] font-black bg-emerald-800 text-white px-1.5 py-0.5 rounded inline-block">
+                          初回ログインID・パスワード
                         </span>
-                        <p className="text-[10px] text-stone-800">
-                          ログインID: <strong className="font-mono text-xs text-emerald-900">{client.phoneNumber || cleanPhone}</strong>
+                        <p className="text-[9px] text-stone-800 truncate">
+                          ID: <strong className="font-mono text-emerald-950 font-bold">{client.phoneNumber || cleanPhone}</strong>
                         </p>
-                        <p className="text-[10px] text-stone-800">
-                          初期パスワード: <strong className="font-mono text-xs text-emerald-900">{pass}</strong>
+                        <p className="text-[9px] text-stone-800 truncate">
+                          PASS: <strong className="font-mono text-emerald-950 font-bold">{pass}</strong>
                         </p>
-                        <p className="text-[8px] text-stone-500 pt-0.5 leading-tight">
-                          右のQRコードをスマホのカメラで読み取ると、お墓の写真・区画が登録された専用画面が開きます。
+                        <p className="text-[7.5px] text-stone-500 leading-tight">
+                          ※QRをかざすだけで自動ログインしてお墓が開きます。
                         </p>
                       </div>
 
                       {/* QRコード */}
-                      <div className="w-18 h-18 bg-white p-1 border border-stone-300 rounded-lg shrink-0 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-white p-1 border border-stone-300 rounded-lg shrink-0 flex items-center justify-center">
                         {qrUrl ? (
                           <img src={qrUrl} alt="専用QRコード" className="w-full h-full object-contain" />
                         ) : (
-                          <span className="text-[8px] text-stone-400">QR読込中</span>
+                          <span className="text-[8px] text-stone-400">生成中</span>
                         )}
                       </div>
                     </div>
 
-                    {/* 下部：3ステップ利用案内 & お問い合わせ */}
+                    {/* 下部：簡単3ステップ案内 & 管理所案内 */}
                     <div className="space-y-1 pt-1 border-t border-stone-200 text-center">
-                      <div className="grid grid-cols-3 gap-1 text-[8px] font-bold text-stone-700">
-                        <div className="bg-stone-100 py-1 rounded">① QRコード読取</div>
-                        <div className="bg-stone-100 py-1 rounded">② お墓を確認</div>
-                        <div className="bg-emerald-100 text-emerald-900 py-1 rounded">③ 日程・プラン選ぶだけ</div>
+                      <div className="grid grid-cols-3 gap-1 text-[7.5px] font-bold text-stone-700">
+                        <div className="bg-stone-100 py-0.5 rounded">① QR読取</div>
+                        <div className="bg-stone-100 py-0.5 rounded">② お墓確認</div>
+                        <div className="bg-emerald-100 text-emerald-900 py-0.5 rounded">③ プラン選ぶだけ</div>
                       </div>
-                      <p className="text-[8px] text-stone-500">
-                        写真撮影や区画番号の入力は不要です。お問い合わせ: {currentCompany?.phoneNumber}
+                      <p className="text-[8px] text-stone-600 font-medium">
+                        お電話注文も承ります: <strong>{currentCompany?.phoneNumber}</strong>（{currentCompany?.name}）
                       </p>
                     </div>
                   </div>
@@ -3768,14 +3983,35 @@ function CemeteryDashboard() {
                           </div>
 
                           <div className="grid grid-cols-12 gap-5 items-center">
-                            <div className="col-span-4 aspect-4/3 rounded-xl overflow-hidden border-2 border-stone-300 bg-stone-100 relative">
-                              <img
-                                src={client.photoUrl || '/images/grave_front_example.jpg'}
-                                alt="お墓写真"
-                                className="w-full h-full object-cover"
-                              />
+                            {/* お墓特定写真2枚（正面・側面） */}
+                            <div className="col-span-5 grid grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <div className="aspect-4/3 rounded-xl overflow-hidden border-2 border-stone-300 bg-stone-100 relative">
+                                  <img
+                                    src={client.photoUrl || '/images/grave_front_example.jpg'}
+                                    alt="正面写真"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-bold text-center py-0.5">
+                                    正面写真
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="aspect-4/3 rounded-xl overflow-hidden border-2 border-stone-300 bg-stone-100 relative">
+                                  <img
+                                    src={client.builderPhotoUrl || '/images/grave_side_builder_example.jpg'}
+                                    alt="側面写真"
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-bold text-center py-0.5">
+                                    側面（建立者名）
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="col-span-8 space-y-2 text-xs">
+
+                            <div className="col-span-7 space-y-2 text-xs">
                               <div className="text-lg font-black text-stone-900 font-serif">
                                 正面文字:「{client.frontInscription || '山田家先祖代々之墓'}」様墓
                               </div>
@@ -3788,7 +4024,7 @@ function CemeteryDashboard() {
                                 </div>
                               </div>
                               {client.builderName && (
-                                <p className="text-stone-500">建立者名: {client.builderName}</p>
+                                <p className="text-stone-600 font-bold">建立者名: {client.builderName}</p>
                               )}
                               {client.notes && (
                                 <p className="text-stone-500 text-[11px]">備考: {client.notes}</p>
