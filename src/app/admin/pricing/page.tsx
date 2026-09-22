@@ -198,11 +198,11 @@ export default function AdminPricingProposalPage() {
             </div>
           </div>
 
-          {/* 霊園管理会社様が得られる5大メリット */}
+          {/* 霊園管理会社様が得られる6大メリット */}
           <div>
             <h2 className="text-base font-extrabold text-stone-900 mb-3 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-700"></span>
-              <span>霊園・寺院管理会社様が得られる「5大メリット」</span>
+              <span>霊園・寺院管理会社様が得られる「6大メリット」</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl space-y-1">
@@ -245,9 +245,19 @@ export default function AdminPricingProposalPage() {
                 </p>
               </div>
 
+              <div className="sm:col-span-2 bg-emerald-50/90 border-2 border-emerald-500/60 p-3 rounded-xl text-stone-900 space-y-1 shadow-2xs">
+                <div className="font-extrabold text-emerald-950 text-sm flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>⑤【最強オンボーディング戦略】施主名簿CSV取り込み ＆ パーソナライズ案内DM自動発行</span>
+                </div>
+                <p className="text-emerald-900 text-xs leading-relaxed">
+                  霊園の施主台帳（住所・お名前・区画番号）をCSVで一括取り込むだけで、<strong>施主様専用QRコード付き案内ハガキ・封書を一発印刷！</strong> 施主様は「写真撮影・区画入力」の手間が一切不要で、QRコードから1クリックで注文可能。成約率（コンバージョン）を劇的に高めます。
+                </p>
+              </div>
+
               <div className="sm:col-span-2 bg-amber-50/80 border border-amber-300 p-3 rounded-xl text-stone-800 space-y-1">
                 <div className="font-extrabold text-amber-950 text-sm flex items-center gap-1.5">
-                  <span>⑤</span>
+                  <span>⑥</span>
                   <span>税務上も極めてクリーン（宗教法人の収益事業課税リスクなし）</span>
                 </div>
                 <p className="text-stone-700 leading-relaxed">
@@ -322,6 +332,10 @@ export default function AdminPricingProposalPage() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>取次ぎ・日程調整・写真報告の完全自動化</strong>（電話ゼロ）</span>
                   </li>
+                  <li className="flex items-center gap-2 text-emerald-950 font-bold bg-emerald-100/60 p-1.5 rounded-lg border border-emerald-300">
+                    <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span><strong>施主名簿CSV一括取込 ＆ 個別案内DM自動印刷</strong>（ハガキ・封書）</span>
+                  </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span><strong>顧客管理名簿台帳 ＆ 履歴集約機能</strong></span>
@@ -392,6 +406,10 @@ export default function AdminPricingProposalPage() {
                   </li>
                   <li className="flex items-center gap-2 text-stone-400">
                     <span className="w-4 text-center font-bold">−</span>
+                    <span>施主名簿CSV取込・個別案内DM印刷（※有料プラン限定）</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-stone-400">
+                    <span className="w-4 text-center font-bold">−</span>
                     <span>顧客管理台帳・一括メール送信（※有料オプション）</span>
                   </li>
                 </ul>
@@ -421,16 +439,16 @@ export default function AdminPricingProposalPage() {
               </div>
               <div className="bg-white p-3 rounded-xl border border-stone-200 space-y-1">
                 <span className="font-extrabold text-emerald-800 block text-xs">STEP 2</span>
-                <strong className="block text-stone-900 font-bold">チラシ・ポスターの設置</strong>
+                <strong className="block text-stone-900 font-bold">DM一括発送 ＆ ポスター設置</strong>
                 <p className="text-stone-600 text-[11px] leading-relaxed">
-                  管理事務所の窓口や掲示板へ、専用QRコード付き案内ポスター・リーフレットを設置。
+                  施主名簿CSVを取り込み専用案内ハガキを印刷・発送。窓口や掲示板へ案内ポスターを設置。
                 </p>
               </div>
               <div className="bg-white p-3 rounded-xl border border-stone-200 space-y-1">
                 <span className="font-extrabold text-emerald-800 block text-xs">STEP 3</span>
                 <strong className="block text-stone-900 font-bold">自動受付スタート</strong>
                 <p className="text-stone-600 text-[11px] leading-relaxed">
-                  施主様からのご依頼はすべて自動化。管理所は進捗画面で確認するだけで業務完了。
+                  施主様はハガキのQRから1クリックで注文。管理所は進捗画面で確認するだけで業務完了。
                 </p>
               </div>
             </div>

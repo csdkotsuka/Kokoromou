@@ -924,7 +924,7 @@ export const SAMPLE_ACCOUNTS = [
   {
     id: 'acc_admin_001',
     email: 'kotsuka@creativesd.net',
-    password: 'admin1234',
+    password: process.env.ADMIN_PASSWORD || 'admin1234',
     role: 'admin' as const,
     name: 'Creative System Design（本部統括）',
     createdAt: '2026-01-01T00:00:00Z',
@@ -932,7 +932,7 @@ export const SAMPLE_ACCOUNTS = [
   {
     id: 'acc_admin_002',
     email: 'kokoromou@inteve-cloud.com',
-    password: 'admin1234',
+    password: process.env.ADMIN_PASSWORD || 'admin1234',
     role: 'admin' as const,
     name: 'ココロモウ運営本部（inteve-cloud）',
     createdAt: '2026-01-01T00:00:00Z',

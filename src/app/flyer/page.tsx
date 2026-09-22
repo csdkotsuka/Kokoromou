@@ -22,8 +22,9 @@ import {
 } from 'lucide-react';
 
 export default function FlyerPage() {
-  const [activeTab, setActiveTab] = useState<'poster' | 'leaflet'>('poster');
+  const [activeTab, setActiveTab] = useState<'poster' | 'leaflet' | 'dm'>('poster');
   const [leafletSide, setLeafletSide] = useState<'outside' | 'inside'>('outside');
+  const [dmFormat, setDmFormat] = useState<'postcard' | 'letter'>('postcard');
 
   return (
     <div className="bg-stone-100 min-h-screen pb-20 text-stone-900 font-sans">
@@ -39,37 +40,48 @@ export default function FlyerPage() {
               <span>サイトへ戻る</span>
             </Link>
             <span className="text-stone-300">|</span>
-            <span className="text-sm font-bold text-stone-900">販促チラシ・リーフレット</span>
+            <span className="text-sm font-bold text-stone-900">販促ツール・案内DM発行</span>
             <span className="text-[11px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded-full">
-              ✨ 完成版デザイン
+              ✨ 3大ツール対応
             </span>
           </div>
 
           {/* 切り替えタブ */}
-          <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl">
+          <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('poster')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeTab === 'poster'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              ① 縦置きポスター・A4チラシ
+              ① ポスター・A4チラシ
             </button>
             <button
               onClick={() => setActiveTab('leaflet')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeTab === 'leaflet'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              ② A4両面三つ折りリーフレット
+              ② 三つ折りリーフレット
+            </button>
+            <button
+              onClick={() => setActiveTab('dm')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                activeTab === 'dm'
+                  ? 'bg-emerald-700 text-white shadow-sm ring-2 ring-emerald-400'
+                  : 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>③ 施主専用案内DM（ハガキ・封書）</span>
             </button>
           </div>
 
-          {/* ダウンロードボタン */}
+          {/* ダウンロード／アクションボタン */}
           <div className="flex items-center gap-2">
             {activeTab === 'poster' ? (
               <a
@@ -80,7 +92,7 @@ export default function FlyerPage() {
                 <Download className="w-4 h-4" />
                 <span>PDFをダウンロード (A4縦)</span>
               </a>
-            ) : (
+            ) : activeTab === 'leaflet' ? (
               <a
                 href="/pdf/kokoromou_leaflet_trifold.pdf"
                 download="kokoromou_leaflet_trifold.pdf"
@@ -89,6 +101,14 @@ export default function FlyerPage() {
                 <Download className="w-4 h-4" />
                 <span>PDFをダウンロード (両面三つ折り)</span>
               </a>
+            ) : (
+              <Link
+                href="/cemetery"
+                className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-black transition-all shadow-sm"
+              >
+                <Printer className="w-4 h-4" />
+                <span>霊園管理画面で一括印刷する →</span>
+              </Link>
             )}
           </div>
         </div>
@@ -613,6 +633,242 @@ export default function FlyerPage() {
                     <span className="text-[11px] font-bold block">Web・お電話で簡単お申し込み</span>
                     <span className="text-[8.5px] text-emerald-100">スマホから3分で完了 / クレジットカード決済対応</span>
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. 施主専用個別案内DM（ハガキ・封書）プレビュー */}
+        {activeTab === 'dm' && (
+          <div className="space-y-8">
+            {/* オンボーディング説明カード */}
+            <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-stone-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg relative overflow-hidden">
+              <div className="relative z-10 space-y-3 max-w-3xl">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 text-stone-950 font-black text-xs rounded-full">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  ★ 霊園公認・成約率No.1の最強オンボーディング機能
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                  施主名簿CSVを取り込むだけで、写真・区画情報入り案内DMを全自動一括印刷！
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                  施主様が代行を頼もうとした時、最も離脱しやすいのが<strong>「区画番号が分からない」「お墓の正面・側面の写真を探してアップロードするのが面倒」</strong>というステップです。
+                  ココロモウのDM発行機能なら、霊園台帳から自動で個別QRコードを発行。施主様は<strong>「QRを読み取るだけでお墓がセットされた注文画面が開き、日付とプランを選ぶだけ」</strong>で完了します。
+                </p>
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/cemetery"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-stone-950 text-xs sm:text-sm font-black rounded-xl shadow-md transition active:scale-95"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>霊園管理画面でCSVを取り込んで印刷する →</span>
+                  </Link>
+                  <span className="text-xs text-stone-400">
+                    ※ハガキ（100×148mm）およびA4封書レター（210×297mm）両対応
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 書式切り替えセレクター */}
+            <div className="flex items-center justify-center gap-3 bg-white p-2 rounded-2xl border border-stone-200 shadow-2xs max-w-md mx-auto">
+              <button
+                onClick={() => setDmFormat('postcard')}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                  dmFormat === 'postcard'
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900 bg-stone-50'
+                }`}
+              >
+                📮 ハガキ版（100×148mm・両面）
+              </button>
+              <button
+                onClick={() => setDmFormat('letter')}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                  dmFormat === 'letter'
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900 bg-stone-50'
+                }`}
+              >
+                📄 A4封書案内状（210×297mm）
+              </button>
+            </div>
+
+            {/* ハガキ版プレビュー */}
+            {dmFormat === 'postcard' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center max-w-5xl mx-auto">
+                {/* 表面（宛名面）プレビュー */}
+                <div className="w-full max-w-[360px] bg-white rounded-2xl border-2 border-stone-300 shadow-xl p-6 flex flex-col justify-between aspect-[100/148] text-stone-900 relative">
+                  <div>
+                    {/* 上部: 料金別納 ＆ 郵便番号 */}
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-14 h-14 border border-stone-400 rounded-full flex flex-col items-center justify-center text-[9px] font-bold leading-tight text-stone-600">
+                        <span>料金別納</span>
+                        <span>郵便</span>
+                      </div>
+                      <div className="flex items-center gap-1 border border-rose-300 px-2.5 py-1.5 rounded bg-rose-50/40">
+                        <span className="text-[10px] text-rose-800 font-bold">〒</span>
+                        <div className="flex gap-1 text-sm font-black tracking-widest text-stone-800">
+                          <span>790</span>
+                          <span>-</span>
+                          <span>0001</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 宛先住所・宛名 */}
+                    <div className="pl-4 space-y-3 my-6">
+                      <p className="text-xs text-stone-600 font-medium leading-relaxed">
+                        愛媛県松山市一番町4丁目1-2<br />
+                        サクラマンション 302号室
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-lg font-black text-stone-900 tracking-wider">
+                          山田 太郎 <span className="text-sm font-medium text-stone-600">様</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 差出人（霊園公認名義） */}
+                  <div className="pt-4 border-t border-stone-200 text-[10px] text-stone-600 space-y-0.5">
+                    <span className="text-emerald-800 font-bold block text-[11px]">
+                      【差出人・お問い合わせ】
+                    </span>
+                    <strong className="block text-stone-800 text-xs">宝塔寺旭ヶ丘霊園 管理事務所</strong>
+                    <span>お墓参り・お掃除代行 公認DX受付センター（ココロモウ）</span>
+                  </div>
+                  <div className="absolute top-2 right-2 bg-stone-100 text-stone-500 text-[9px] px-2 py-0.5 rounded font-bold">
+                    表面（宛名面）
+                  </div>
+                </div>
+
+                {/* 裏面（案内面）プレビュー */}
+                <div className="w-full max-w-[360px] bg-white rounded-2xl border-2 border-emerald-600 shadow-xl p-5 flex flex-col justify-between aspect-[100/148] text-stone-900 relative">
+                  <div>
+                    {/* ヘッダー緑帯 */}
+                    <div className="bg-emerald-800 text-white px-3 py-2 rounded-xl text-center mb-3 shadow-xs">
+                      <span className="text-[9px] text-emerald-200 font-bold block tracking-wider">
+                        【霊園公認】施主様へ大切なお知らせ
+                      </span>
+                      <strong className="text-xs sm:text-sm font-black tracking-tight block">
+                        お墓参り・清掃代行のご案内
+                      </strong>
+                    </div>
+
+                    {/* 事前セットされたお墓情報バナー */}
+                    <div className="bg-stone-50 rounded-xl p-2.5 border border-stone-200 mb-3 flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-lg bg-stone-200 overflow-hidden shrink-0 border border-stone-300">
+                        <img
+                          src="/images/grave_before.jpg"
+                          alt="お墓写真"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="text-[10px] space-y-0.5 leading-tight">
+                        <span className="bg-emerald-100 text-emerald-900 font-bold px-1.5 py-0.5 rounded text-[9px] inline-block">
+                          事前登録済み墓所
+                        </span>
+                        <p className="font-extrabold text-stone-900 text-[11px]">
+                          区画：東3区 12番
+                        </p>
+                        <p className="text-stone-500">正面文字：先祖代々之墓</p>
+                      </div>
+                    </div>
+
+                    {/* ログインID・初期パスワード */}
+                    <div className="bg-amber-50/80 border border-amber-300 rounded-xl p-2 text-center text-[10px] mb-3">
+                      <span className="text-amber-900 font-bold block text-[9px]">
+                        ★ 専用ログイン情報（入力不要で自動ログイン）
+                      </span>
+                      <div className="flex justify-around items-center pt-1 font-mono font-bold text-stone-800">
+                        <span>ID: 090-XXXX-5678</span>
+                        <span>PW: ym1234</span>
+                      </div>
+                    </div>
+
+                    {/* QRコード ＆ 3ステップ */}
+                    <div className="flex items-center gap-3 bg-stone-50 p-2 rounded-xl border border-stone-200">
+                      <div className="w-16 h-16 bg-white p-1 rounded-lg border border-stone-300 shrink-0 flex items-center justify-center">
+                        <QrCode className="w-14 h-14 text-stone-900" />
+                      </div>
+                      <div className="text-[9px] text-stone-600 space-y-1">
+                        <strong className="text-emerald-900 block font-bold text-[10px]">
+                          スマホでQRを読み取るだけ！
+                        </strong>
+                        <ol className="list-decimal list-inside space-y-0.5">
+                          <li>カメラでQRを読み取り</li>
+                          <li>日付とプランを選択</li>
+                          <li>作業前後の写真をスマホでお届け</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 text-center">
+                    <span className="text-[9px] text-stone-400">
+                      お電話でも受付中：089-911-8800（ココロモウ総合受付）
+                    </span>
+                  </div>
+
+                  <div className="absolute top-2 right-2 bg-emerald-100 text-emerald-900 text-[9px] px-2 py-0.5 rounded font-bold">
+                    裏面（案内面）
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* A4封書レター版プレビュー */}
+            {dmFormat === 'letter' && (
+              <div className="max-w-2xl mx-auto bg-white rounded-3xl border-2 border-stone-300 shadow-xl p-8 sm:p-12 text-stone-900 space-y-6">
+                <div className="flex justify-between items-start border-b-2 border-stone-800 pb-4">
+                  <div>
+                    <span className="text-xs font-bold text-emerald-800 tracking-wider block">
+                      【宝塔寺旭ヶ丘霊園 管理事務所 公認案内状】
+                    </span>
+                    <h3 className="text-lg font-black text-stone-900 mt-1">
+                      施主様へ：お墓参り・清掃代行オンライン受付開始のお知らせ
+                    </h3>
+                  </div>
+                  <span className="text-xs text-stone-500 font-medium">拝啓 時下ますますご清祥のこととお慶び申し上げます。</span>
+                </div>
+
+                <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs text-stone-700 leading-relaxed space-y-2">
+                  <p>
+                    日頃より当霊園の護持管理にご協力を賜り、厚く御礼申し上げます。<br />
+                    遠方にお住まいの施主様や、ご高齢によりご自身でのお参りが難しくなられた施主様のご要望にお応えし、当霊園では公認の**「お墓参り・お掃除代行システム（ココロモウ）」**を正式導入いたしました。
+                  </p>
+                  <p>
+                    施主様の手間を省くため、<strong>お墓の区画番号およびお写真は当管理所にてすでに事前登録を完了</strong>しております。
+                  </p>
+                </div>
+
+                {/* お墓情報とQR */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200">
+                  <div className="space-y-2 text-xs">
+                    <span className="text-xs font-bold text-emerald-900 block">■ 事前登録済み墓所情報</span>
+                    <p className="text-stone-800 font-bold text-sm">山田 太郎 様 （東3区 12番）</p>
+                    <p className="text-stone-600 text-xs">正面文字：先祖代々之墓</p>
+                    <div className="pt-2">
+                      <span className="text-[11px] text-stone-500 block">専用ログインID / 初期PW</span>
+                      <span className="font-mono font-bold text-stone-800 text-xs">ID: 090-XXXX-5678 / PW: ym1234</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-emerald-200 text-center space-y-1">
+                    <QrCode className="w-20 h-20 text-stone-900" />
+                    <span className="text-[10px] font-bold text-emerald-900">右記QRから1クリックで注文可能</span>
+                  </div>
+                </div>
+
+                <div className="text-center pt-2">
+                  <Link
+                    href="/cemetery"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-sm rounded-xl shadow-md transition cursor-pointer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>霊園管理画面でこの案内状を一括印刷する</span>
+                  </Link>
                 </div>
               </div>
             )}

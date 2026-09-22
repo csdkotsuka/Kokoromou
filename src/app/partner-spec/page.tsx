@@ -17,7 +17,8 @@ import {
   Building2,
   Cpu,
   BookOpen,
-  Briefcase
+  Briefcase,
+  Sparkles
 } from 'lucide-react';
 
 export const metadata = {
@@ -310,11 +311,65 @@ export default function PartnerSpecPage() {
             </div>
           </section>
 
-          {/* 3. 業務・データフロー */}
+          {/* 3. 【新機能】施主名簿CSV一括連携 ＆ パーソナライズ案内DM発行アーキテクチャ */}
+          <section className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-emerald-600/30 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[11px] font-black px-4 py-1 rounded-bl-xl shadow-xs">
+              ★ 最強オンボーディング機能
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm">
+                3
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-extrabold text-stone-900">
+                  施主名簿CSV一括連携 ＆ パーソナライズ案内DM発行アーキテクチャ
+                </h2>
+                <span className="text-xs text-stone-500 font-medium">
+                  離脱率を極小化し、施主様の成約率を最大化するオンボーディング自動化
+                </span>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-6">
+              代行サービスで最も離脱が発生しやすい「区画番号が分からない」「墓石の写真撮影・アップロードが面倒」という課題を根本解決。霊園の既存台帳CSVをインポートするだけで、施主ごとに写真・区画情報が事前紐付けされた個別案内状（ハガキ・A4封書）を瞬時に一括印刷できます。
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mb-6">
+              <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2">
+                <span className="font-extrabold text-emerald-800 text-xs block">① CSV一括インポート</span>
+                <p className="text-stone-700 leading-relaxed">
+                  霊園管理画面から施主名簿（お名前・住所・区画番号・電話番号）のCSVを取り込むと、システムが施主アカウントとお墓情報をバックグラウンドで自動一括生成。
+                </p>
+              </div>
+              <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2">
+                <span className="font-extrabold text-emerald-800 text-xs block">② パーソナライズDM自動生成</span>
+                <p className="text-stone-700 leading-relaxed">
+                  宛名面（料金別納・7桁郵便枠）と案内面（個別QRコード・初期PW・お墓写真・区画番号）が完全に揃ったハガキおよびA4封書用紙をワンクリックで一括印刷。
+                </p>
+              </div>
+              <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2">
+                <span className="font-extrabold text-emerald-800 text-xs block">③ QR読み取りで即注文</span>
+                <p className="text-stone-700 leading-relaxed">
+                  施主様がスマホでQRコードを読み取ると、すでに自分のお墓写真と区画番号がセットされた画面が開きます。あとは日付とプランを選ぶだけで完了！
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block font-bold">提携パートナー様へのメリット</strong>
+                <span>
+                  施主様の「登録の面倒くささ」を霊園側で事前に解消してあげることで、チラシ単体配布と比較して数倍〜数十倍のコンバージョン率を達成。安定した代行依頼の継続受注に繋がります。
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* 4. 業務・データフロー */}
           <section className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
-                3
+                4
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-stone-900">業務フローとステータス連携</h2>
             </div>
@@ -365,11 +420,11 @@ export default function PartnerSpecPage() {
             </div>
           </section>
 
-          {/* 4. 現場での操作性・端末要件 */}
+          {/* 5. 現場での操作性・端末要件 */}
           <section className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
-                4
+                5
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-stone-900">現場での操作性・端末環境</h2>
             </div>
@@ -398,11 +453,11 @@ export default function PartnerSpecPage() {
             </div>
           </section>
 
-          {/* 5. セキュリティ・情報保護基準 */}
+          {/* 6. セキュリティ・情報保護基準 */}
           <section className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
-                5
+                6
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-stone-900">セキュリティ & 個人情報保護基準</h2>
             </div>
@@ -432,11 +487,11 @@ export default function PartnerSpecPage() {
             </div>
           </section>
 
-          {/* 6. よくある質問 (FAQ) */}
+          {/* 7. よくある質問 (FAQ) */}
           <section className="bg-white rounded-2xl p-6 sm:p-8 border border-stone-200 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
-                6
+                7
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-stone-900">提携業者様からの技術・運用FAQ</h2>
             </div>

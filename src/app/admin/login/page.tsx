@@ -26,6 +26,7 @@ export default function AdminLoginPage() {
       const stored = localStorage.getItem('kokoromou_admin_custom_pwd');
       if (stored) {
         setHasCustomPwd(true);
+        setPassword(stored);
       }
     }
   }, []);

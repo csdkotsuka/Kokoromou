@@ -3069,146 +3069,334 @@ function CemeteryDashboard() {
             </div>
 
             {/* 印刷対象DMシート群 */}
-            <div id="printable-dm-container" className="space-y-8 max-h-[70vh] overflow-y-auto p-2">
+            <div id="printable-dm-container" className="space-y-12 max-h-[75vh] overflow-y-auto p-4 bg-stone-200/60 rounded-2xl">
               {targetPrintClients.map((client, idx) => {
                 const cleanPhone = (client.phoneNumber || client.phone || '').replace(/\D/g, '');
                 const pass = client.initialPassword || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : 'client1234');
                 const qrUrl = qrCodeUrls[client.id];
+                const postalDigits = (client.postalCode || '7900001').replace(/\D/g, '').padEnd(7, ' ');
 
-                return (
-                  <div
-                    key={client.id || idx}
-                    className="dm-page bg-white rounded-3xl p-6 sm:p-8 border-2 border-stone-300 shadow-md space-y-6 break-after-page"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                      {/* 左側：表面（宛名面＆差出人） */}
-                      <div className="md:col-span-5 bg-stone-50 rounded-2xl p-5 border border-stone-300 flex flex-col justify-between min-h-[360px]">
+                if (dmPrintLayout === 'postcard') {
+                  // ==================== ハガキ版（表面＆裏面を別ページとして改ページ出力） ====================
+                  return (
+                    <div key={client.id || idx} className="space-y-8">
+                      {/* --- ハガキ表面（宛名面: 100mm × 148mm） --- */}
+                      <div className="postcard-sheet bg-white text-stone-900 rounded-2xl shadow-xl mx-auto p-7 flex flex-col justify-between border border-stone-300 relative overflow-hidden"
+                        style={{ width: '100mm', minHeight: '148mm', height: '148mm', boxSizing: 'border-box' }}
+                      >
+                        {/* 上部ヘッダー：料金別納郵便 & 郵便番号7桁赤枠 */}
                         <div>
-                          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
-                            <span className="text-[11px] font-bold text-stone-500 tracking-wider">
-                              郵便はがき / 案内在中
-                            </span>
-                            <div className="flex gap-1">
-                              <span className="w-5 h-7 border border-stone-400 inline-block text-[10px] text-center leading-7">〒</span>
-                              <span className="text-xs font-bold font-mono tracking-widest text-stone-800 py-1">
-                                {client.postalCode || '790-0000'}
-                              </span>
+                          <div className="flex items-start justify-between">
+                            {/* 料金別納郵便マーク */}
+                            <div className="w-13 h-13 border-2 border-stone-800 rounded-full flex flex-col items-center justify-center p-0.5 text-center leading-tight">
+                              <span className="text-[7px] font-bold border-b border-stone-700 w-full pb-0.5">料金別納</span>
+                              <span className="text-[7px] font-bold pt-0.5">郵便</span>
+                            </div>
+
+                            {/* 郵便番号赤枠（3桁 - 4桁） */}
+                            <div className="flex items-center gap-1 pt-1">
+                              <div className="flex gap-0.5">
+                                {[0, 1, 2].map((i) => (
+                                  <div key={i} className="w-5 h-7 border-2 border-rose-500 rounded-xs flex items-center justify-center font-mono font-bold text-sm text-stone-900">
+                                    {postalDigits[i] || ''}
+                                  </div>
+                                ))}
+                              </div>
+                              <span className="text-rose-500 font-bold text-xs">-</span>
+                              <div className="flex gap-0.5">
+                                {[3, 4, 5, 6].map((i) => (
+                                  <div key={i} className="w-5 h-7 border-2 border-rose-500 rounded-xs flex items-center justify-center font-mono font-bold text-sm text-stone-900">
+                                    {postalDigits[i] || ''}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
 
-                          {/* 宛先 */}
-                          <div className="py-6 space-y-2">
-                            <p className="text-xs text-stone-600">
+                          {/* 宛先住所 */}
+                          <div className="mt-8 pl-6 pr-2 space-y-1">
+                            <p className="text-xs text-stone-700 font-medium leading-relaxed">
                               {client.address || `${currentCompany?.locationAddress} 周辺`}
                             </p>
-                            <p className="text-2xl font-extrabold text-stone-900 tracking-wider pt-2">
-                              {client.name} <span className="text-lg font-bold">様</span>
+                          </div>
+
+                          {/* 宛名（施主氏名・様） */}
+                          <div className="mt-4 pl-8 pr-2">
+                            <h2 className="text-2xl font-black text-stone-900 tracking-wider flex items-baseline gap-2 font-serif">
+                              <span>{client.name}</span>
+                              <span className="text-lg font-bold text-stone-800">様</span>
+                            </h2>
+                            <p className="text-[10px] text-stone-400 mt-1">
+                              （お墓区画: {client.sectionPlotNumber || '登録済'} / 「{client.frontInscription || '山田家先祖代々之墓'}」様）
                             </p>
                           </div>
                         </div>
 
-                        {/* 差出人情報（霊園名義） */}
-                        <div className="pt-4 border-t border-stone-200 text-xs text-stone-600 space-y-1">
-                          <p className="font-extrabold text-stone-900 text-sm">
-                            {currentCompany?.name} 管理事務所
+                        {/* 下部：差出人情報（霊園管理事務所） */}
+                        <div className="pt-3 border-t-2 border-stone-300 text-[10px] text-stone-700 space-y-0.5">
+                          <p className="font-extrabold text-stone-900 text-xs">
+                            差出人：{currentCompany?.name} 管理事務所
                           </p>
                           <p>〒790-0001 {currentCompany?.locationAddress}</p>
-                          <p>電話番号: {currentCompany?.phoneNumber}</p>
+                          <p className="font-mono">TEL: {currentCompany?.phoneNumber}</p>
+                          <p className="text-[9px] text-stone-500 pt-0.5">
+                            ※本状は当霊園に墓所をお持ちの施主様へ大切なお知らせをお届けしております。
+                          </p>
                         </div>
                       </div>
 
-                      {/* 右側：裏面（パーソナライズ案内面＆個別QRコード） */}
-                      <div className="md:col-span-7 bg-emerald-950 text-white rounded-2xl p-6 flex flex-col justify-between space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between border-b border-emerald-800 pb-2">
-                            <span className="text-xs font-bold text-emerald-300 tracking-wider">
+                      {/* --- ハガキ裏面（案内面: 100mm × 148mm） --- */}
+                      <div className="postcard-sheet bg-white text-stone-900 rounded-2xl shadow-xl mx-auto p-5 flex flex-col justify-between border-2 border-emerald-800/80 relative overflow-hidden"
+                        style={{ width: '100mm', minHeight: '148mm', height: '148mm', boxSizing: 'border-box' }}
+                      >
+                        {/* 上部ヘッダー：格式あるグリーン帯 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between pb-1.5 border-b-2 border-emerald-800">
+                            <span className="text-[9px] font-extrabold text-emerald-900 tracking-wider bg-emerald-100 px-2 py-0.5 rounded">
                               {currentCompany?.name} 公認
                             </span>
-                            <span className="text-[10px] bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded-full font-bold">
-                              施主様専用アカウント開設済
+                            <span className="text-[9px] font-bold text-stone-500">
+                              施主様専用案内
                             </span>
                           </div>
 
-                          <h4 className="text-xl font-extrabold text-white leading-snug">
-                            お墓のオンライン管理・お参り代行サービス<br />
-                            開設のご案内
-                          </h4>
+                          <div className="text-center pt-0.5">
+                            <h3 className="text-sm font-black text-emerald-950 tracking-tight leading-snug">
+                              オンラインお墓管理・お参り代行ページ<br />開設のご案内
+                            </h3>
+                            <p className="text-[9px] text-stone-600 mt-1 leading-tight">
+                              {client.name} 様のお墓情報は、すでに霊園管理事務所にて事前登録が完了しております。
+                            </p>
+                          </div>
 
-                          <p className="text-xs text-emerald-200 leading-relaxed">
-                            {client.name} 様のお墓情報（区画番号・正面写真）は、<strong>すでに管理事務所により事前登録が完了</strong>しております。
-                          </p>
-
-                          {/* 登録済みお墓情報バナー */}
-                          <div className="bg-emerald-900/80 border border-emerald-700 rounded-xl p-3 grid grid-cols-12 gap-3 items-center">
-                            <div className="col-span-4 aspect-video rounded-lg bg-emerald-950 overflow-hidden relative border border-emerald-600">
+                          {/* 登録済みお墓バナー（写真 ＋ 区画 ＋ 正面文字） */}
+                          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-2 flex items-center gap-2.5 shadow-2xs">
+                            <div className="w-16 h-14 rounded-lg bg-stone-200 overflow-hidden relative shrink-0 border border-emerald-600/30">
                               <img
                                 src={client.photoUrl || '/images/grave_front_example.jpg'}
                                 alt="お墓写真"
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            <div className="col-span-8 text-xs text-emerald-100 space-y-0.5">
-                              <p className="font-bold text-white text-sm">
+                            <div className="text-[10px] min-w-0 flex-1 space-y-0.5">
+                              <p className="font-extrabold text-stone-900 text-xs truncate">
                                 「{client.frontInscription || '山田家先祖代々之墓'}」様墓
                               </p>
-                              <p className="text-emerald-300">
-                                区画: <strong>{client.sectionPlotNumber || '登録済み'}</strong>
+                              <p className="text-emerald-900 font-bold">
+                                区画: {client.sectionPlotNumber || '登録済み'}
                               </p>
                               {client.builderName && (
-                                <p className="text-[11px] text-emerald-400">建立者: {client.builderName}</p>
+                                <p className="text-[9px] text-stone-500 truncate">建立者: {client.builderName}</p>
                               )}
                             </div>
                           </div>
                         </div>
 
-                        {/* ログイン情報 & QRコード */}
-                        <div className="bg-white text-stone-900 rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-md">
-                          <div className="space-y-1 flex-1">
-                            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md inline-block">
-                              初回ログイン情報
+                        {/* 中央：QRコード & ログイン情報 */}
+                        <div className="bg-stone-50 border border-stone-300 rounded-xl p-2 flex items-center justify-between gap-2 shadow-xs">
+                          <div className="space-y-0.5 flex-1">
+                            <span className="text-[8px] font-extrabold bg-emerald-800 text-white px-1.5 py-0.5 rounded inline-block">
+                              初回ログイン情報（スマホ読取で自動入力）
                             </span>
-                            <p className="text-xs text-stone-700">
-                              ログインID: <strong className="font-mono text-sm text-emerald-900">{client.phoneNumber || cleanPhone}</strong>
+                            <p className="text-[10px] text-stone-800">
+                              ログインID: <strong className="font-mono text-xs text-emerald-900">{client.phoneNumber || cleanPhone}</strong>
                             </p>
-                            <p className="text-xs text-stone-700">
-                              初期パスワード: <strong className="font-mono text-sm text-emerald-900">{pass}</strong>
+                            <p className="text-[10px] text-stone-800">
+                              初期パスワード: <strong className="font-mono text-xs text-emerald-900">{pass}</strong>
                             </p>
-                            <p className="text-[10px] text-stone-500 pt-1 leading-tight">
-                              右のQRコードをスマホで読み取ると、ID・PWが自動入力された状態でマイページが開きます。
+                            <p className="text-[8px] text-stone-500 pt-0.5 leading-tight">
+                              右のQRコードをスマホのカメラで読み取ると、お墓の写真・区画が登録された専用画面が開きます。
                             </p>
                           </div>
 
-                          {/* QRコード表示 */}
-                          <div className="w-24 h-24 shrink-0 bg-white p-1 border-2 border-emerald-700 rounded-xl flex items-center justify-center">
+                          {/* QRコード */}
+                          <div className="w-18 h-18 bg-white p-1 border border-stone-300 rounded-lg shrink-0 flex items-center justify-center">
                             {qrUrl ? (
-                              <img
-                                src={qrUrl}
-                                alt="専用ログインQRコード"
-                                className="w-full h-full object-contain"
-                              />
+                              <img src={qrUrl} alt="専用QRコード" className="w-full h-full object-contain" />
                             ) : (
-                              <span className="text-[10px] text-stone-400">生成中...</span>
+                              <span className="text-[8px] text-stone-400">QR読込中</span>
                             )}
                           </div>
                         </div>
 
-                        {/* フッター誘導 */}
-                        <div className="text-[10px] text-emerald-300 text-center border-t border-emerald-800/80 pt-2 font-medium">
-                          ① QRコード読取 ➔ ② お墓の現状写真を確認 ➔ ③ 日付・プランを選んで予約完了
+                        {/* 下部：3ステップ利用案内 & お問い合わせ */}
+                        <div className="space-y-1 pt-1 border-t border-stone-200 text-center">
+                          <div className="grid grid-cols-3 gap-1 text-[8px] font-bold text-stone-700">
+                            <div className="bg-stone-100 py-1 rounded">① QRコード読取</div>
+                            <div className="bg-stone-100 py-1 rounded">② お墓を確認</div>
+                            <div className="bg-emerald-100 text-emerald-900 py-1 rounded">③ 日程・プラン選ぶだけ</div>
+                          </div>
+                          <p className="text-[8px] text-stone-500">
+                            写真撮影や区画番号の入力は不要です。お問い合わせ: {currentCompany?.phoneNumber}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
+                  );
+                } else {
+                  // ==================== A4封書用紙版（公式案内状レター・三つ折り対応） ====================
+                  return (
+                    <div
+                      key={client.id || idx}
+                      className="a4-sheet bg-white text-stone-900 rounded-2xl shadow-xl mx-auto p-10 flex flex-col justify-between border border-stone-300 space-y-6"
+                      style={{ width: '210mm', minHeight: '297mm', boxSizing: 'border-box' }}
+                    >
+                      {/* 上部：公式レターヘッダー */}
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between border-b-2 border-stone-300 pb-3">
+                          <div>
+                            <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded">
+                              {currentCompany?.name} 公式ご案内状
+                            </span>
+                            <h2 className="text-2xl font-black text-stone-900 mt-2 font-serif">
+                              {client.name} 様
+                            </h2>
+                            <p className="text-xs text-stone-600 mt-0.5">
+                              〒{client.postalCode || '790-0001'} {client.address || `${currentCompany?.locationAddress} 周辺`}
+                            </p>
+                          </div>
+
+                          <div className="text-right text-xs text-stone-600 space-y-1">
+                            <p className="font-mono text-stone-500">
+                              発行日: {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </p>
+                            <p className="font-extrabold text-stone-900 text-sm">{currentCompany?.name}</p>
+                            <p>所在地: {currentCompany?.locationAddress}</p>
+                            <p className="font-mono">電話番号: {currentCompany?.phoneNumber}</p>
+                          </div>
+                        </div>
+
+                        {/* 表題 */}
+                        <div className="text-center py-2">
+                          <h3 className="text-xl font-extrabold text-emerald-950 border-b-2 border-emerald-800 pb-2 inline-block px-8">
+                            オンラインお墓管理・お参り清掃代行サービス 開設のお知らせ
+                          </h3>
+                        </div>
+
+                        {/* 挨拶文 */}
+                        <div className="text-xs text-stone-700 leading-relaxed space-y-2 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                          <p>拝啓　時下ますますご清栄のこととお慶び申し上げます。平素は当霊園の護持・運営に格別のご理解を賜り、厚く御礼申し上げます。</p>
+                          <p>
+                            さて、近年「遠方にお住まいで墓参りが難しい」「猛暑や高齢のため足腰に不安があり、定期的な草刈りや墓石の清掃が困難」というご相談を多数いただいております。
+                            つきましては、当霊園公認の認定作業パートナーによる「お墓参り・清掃代行サービス」をオンラインから手軽にご利用いただける専用ポータルを開設いたしました。
+                          </p>
+                          <p className="font-bold text-emerald-900">
+                            施主様のお手間を省くため、お墓の正面写真・区画番号・建立者名等の基本情報は、当管理事務所にてすでに事前登録を済ませております。
+                          </p>
+                        </div>
+
+                        {/* 事前登録済みお墓情報 */}
+                        <div className="border-2 border-emerald-800 rounded-2xl p-5 bg-white space-y-3">
+                          <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+                            <span className="font-extrabold text-sm text-emerald-950 flex items-center gap-2">
+                              <span>🪦</span> {client.name} 様の事前登録お墓情報（ご確認）
+                            </span>
+                            <span className="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">
+                              写真・区画特定済み（再入力不要）
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-12 gap-5 items-center">
+                            <div className="col-span-4 aspect-4/3 rounded-xl overflow-hidden border-2 border-stone-300 bg-stone-100 relative">
+                              <img
+                                src={client.photoUrl || '/images/grave_front_example.jpg'}
+                                alt="お墓写真"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="col-span-8 space-y-2 text-xs">
+                              <div className="text-lg font-black text-stone-900 font-serif">
+                                正面文字:「{client.frontInscription || '山田家先祖代々之墓'}」様墓
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-stone-700 font-medium">
+                                <div className="bg-stone-50 p-2 rounded-lg border border-stone-200">
+                                  区画番号: <strong className="text-emerald-900">{client.sectionPlotNumber || '東区 5列 12番'}</strong>
+                                </div>
+                                <div className="bg-stone-50 p-2 rounded-lg border border-stone-200">
+                                  霊園名: <strong>{currentCompany?.name}</strong>
+                                </div>
+                              </div>
+                              {client.builderName && (
+                                <p className="text-stone-500">建立者名: {client.builderName}</p>
+                              )}
+                              {client.notes && (
+                                <p className="text-stone-500 text-[11px]">備考: {client.notes}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 専用QRコードとログイン案内 */}
+                        <div className="bg-gradient-to-r from-emerald-900 to-emerald-950 text-white rounded-2xl p-5 flex items-center justify-between gap-6 shadow-md">
+                          <div className="space-y-2 flex-1">
+                            <span className="text-xs font-bold bg-emerald-700 text-emerald-100 px-3 py-1 rounded-full inline-block">
+                              専用QRコード（スマホをかざすだけで完了）
+                            </span>
+                            <p className="text-sm font-bold text-white">
+                              スマホのカメラで右のQRコードを読み取るだけで、ログイン情報とお墓情報が自動的にセットされた画面が開きます。
+                            </p>
+                            <div className="bg-white/10 p-2.5 rounded-xl text-xs space-y-1 font-mono">
+                              <p>施主様ログインID: <strong className="text-amber-300 text-sm">{client.phoneNumber || cleanPhone}</strong></p>
+                              <p>初期パスワード: <strong className="text-amber-300 text-sm">{pass}</strong></p>
+                            </div>
+                          </div>
+
+                          <div className="w-28 h-28 bg-white p-2 rounded-2xl shadow-md shrink-0 flex items-center justify-center">
+                            {qrUrl ? (
+                              <img src={qrUrl} alt="専用ログインQRコード" className="w-full h-full object-contain" />
+                            ) : (
+                              <span className="text-xs text-stone-400">生成中...</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 簡単3ステップ注文案内 */}
+                        <div className="border-2 border-stone-200 rounded-2xl p-4 bg-stone-50">
+                          <h4 className="text-xs font-extrabold text-stone-900 mb-2.5 text-center">
+                            【わずか3ステップ】スマホでカンタン予約・完了報告
+                          </h4>
+                          <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                            <div className="bg-white p-2.5 rounded-xl border border-stone-200">
+                              <div className="font-bold text-emerald-800 mb-1">STEP 1</div>
+                              <p className="text-[11px] text-stone-600">上記QRコードをスマホで読み取り</p>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-stone-200">
+                              <div className="font-bold text-emerald-800 mb-1">STEP 2</div>
+                              <p className="text-[11px] text-stone-600">自分のお墓写真を確認しプラン選択</p>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-xl border border-stone-200">
+                              <div className="font-bold text-emerald-800 mb-1">STEP 3</div>
+                              <p className="text-[11px] text-stone-600">希望日を指定して完了！写真レポート納品</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 下部フッター */}
+                      <div className="pt-3 border-t-2 border-stone-300 text-center text-xs text-stone-500">
+                        ご不明な点やWeb操作が難しい施主様は、管理事務所（TEL: {currentCompany?.phoneNumber}）までお気軽にお電話ください。
+                      </div>
+                    </div>
+                  );
+                }
               })}
             </div>
           </div>
         </div>
       )}
 
-      {/* 印刷・PDF保存専用CSSスタイル */}
+      {/* 印刷・PDF保存専用CSSスタイル（ハガキ＆A4両対応） */}
       <style jsx global>{`
         @media print {
+          @page {
+            margin: 0;
+            size: auto;
+          }
+          body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           body * {
             visibility: hidden;
           }
@@ -3223,18 +3411,33 @@ function CemeteryDashboard() {
             position: absolute;
             left: 0;
             top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 0;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
             background: white !important;
             color: #000 !important;
           }
-          .dm-page {
+          .postcard-sheet {
+            width: 100mm !important;
+            min-height: 148mm !important;
+            height: 148mm !important;
             box-shadow: none !important;
-            border: 1px solid #ccc !important;
+            border: 1px solid #ddd !important;
             break-after: page;
             page-break-after: always;
-            margin-bottom: 20mm;
+            margin: 0 auto 10mm auto !important;
+            box-sizing: border-box !important;
+          }
+          .a4-sheet {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            break-after: page;
+            page-break-after: always;
+            margin: 0 auto !important;
+            padding: 15mm 18mm !important;
+            box-sizing: border-box !important;
           }
           .no-print {
             display: none !important;

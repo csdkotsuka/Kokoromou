@@ -490,6 +490,9 @@ export async function authenticateAccount(identifier: string, password?: string)
 
   // /tmp に保存されたパスワード上書きがあれば確認
   let tmpOverriddenPassword: string | null = null;
+  if (sampleMatch?.role === 'admin' && process.env.ADMIN_PASSWORD) {
+    tmpOverriddenPassword = process.env.ADMIN_PASSWORD;
+  }
   try {
     const fs = require('fs');
     const path = '/tmp/accounts_override.json';
