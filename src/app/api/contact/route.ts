@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { SAMPLE_ADMIN_INFO } from '@/mocks/sample-data';
+import { Resend } from 'resend';
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(req: Request) {
   try {
@@ -29,38 +32,45 @@ export async function POST(req: Request) {
     const isAreaRequest = type === 'area_request';
     const contactMethodLabel = preferredContactMethod === 'phone' ? '📞 お電話でのご連絡を希望' : '📧 メールでのご連絡';
     const adminEmail = SAMPLE_ADMIN_INFO.email || 'kokoromou@inteve-cloud.com';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'ココロモウ運営本部 <onboarding@resend.dev>';
 
-    // 1. 自社（ココロモウ運営本部）宛ての通知メール本文
+    // お問い合わせ種別の日本語ラベル
+    const inquiryTypeLabel = 
+      type === 'cemetery' ? '霊園・墓地管理所（提携・導入相談）' :
+      type === 'partner' ? '石材店・清掃代行業者（新規提携申請）' :
+      type === 'area_request' ? '未対応エリア・霊園のリクエスト' :
+      type === 'order' ? '代行プラン・ご注文に関する相談' : '一般・その他のお問い合わせ';
+
+    // 1. 自社（ココロモウ運営本部: kokoromou@inteve-cloud.com）宛ての通知メール本文
+    const adminSubject = `【ココロモウ受付】[${inquiryTypeLabel}] ${companyName ? `${companyName} ` : ''}${name}様より`;
     const adminNotificationEmail = {
       to: adminEmail,
-      from: 'noreply@kokoromou.com',
-      subject: `【ココロモウ事前相談受付】${name}様より（希望連絡: ${preferredContactMethod === 'phone' ? '電話折り返し希望' : 'メール'}）`,
+      from: fromEmail,
+      subject: adminSubject,
       body: `ココロモウ運営本部 各位
 
-Webフォームより新しい事前相談・お見積り依頼を受付いたしました。
-内容をご確認の上、対応をお願いいたします。
+Webフォームより新しいお問い合わせ・ご相談を受付いたしました。
+内容をご確認の上、ご対応をお願いいたします。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-■ お客様情報
+■ お問い合わせ種別
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【お名前】: ${name} 様
+【種別】: ${inquiryTypeLabel}
+${companyName ? `【貴社名・寺院霊園名】: ${companyName}\n` : ''}【お名前】: ${name} 様
 【メールアドレス】: ${email}
 【お電話番号】: ${phone || '未記入'}
 【ご希望の連絡方法】: ${contactMethodLabel}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-■ ご相談内容・希望墓地
+■ ご相談内容・対象霊園情報
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【都道府県】: ${prefecture || '未選択'}
-【対象霊園・墓地】: ${cemeteryName || '未指定・相談希望'}
-${preferredDate ? `【ご希望時期】: ${preferredDate}\n` : ''}
-【ご相談・ご要望詳細】:
+${prefecture ? `【都道府県】: ${prefecture}\n` : ''}${cemeteryName ? `【対象霊園・墓地】: ${cemeteryName}\n` : ''}${preferredDate ? `【ご希望時期】: ${preferredDate}\n` : ''}【お問い合わせ・ご相談詳細】:
 ${message}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${preferredContactMethod === 'phone' 
-  ? '⚠️ 【要対応】お客様はお電話での折り返し連絡をご希望です。手の空いている時間帯にお電話（' + (phone || '電話番号確認') + '）にてご連絡をお願いいたします。'
-  : '💡 お客様はメールでのご連絡をご希望です。本メールまたは管理システムよりご回答をお願いいたします。'
+  ? '⚠️ 【要対応】お客様はお電話での折り返し連絡をご希望です。お電話（' + (phone || '電話番号確認') + '）にてご連絡をお願いいたします。'
+  : '💡 お客様宛てにメールで直接ご返信いただく場合は、本メールにそのまま「返信」していただけます（Reply-To設定済み）。'
 }
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 お墓参り・お掃除代行DXプラットフォーム「ココロモウ」
@@ -110,6 +120,44 @@ Webサイト：https://kokoromou.vercel.app
 `,
     };
 
+    // Resend を使用した実際のメール送信処理
+    let adminEmailSent = false;
+    let autoReplyEmailSent = false;
+
+    if (resend) {
+      // ① ココロモウ運営本部（kokoromou@inteve-cloud.com）宛てに通知メールを送信
+      try {
+        const adminRes = await resend.emails.send({
+          from: fromEmail,
+          to: adminEmail,
+          replyTo: email, // お客様のメールアドレス。メールソフトで「返信」すれば直接お客様へ届きます
+          subject: adminNotificationEmail.subject,
+          text: adminNotificationEmail.body,
+        });
+        console.log(`✅ [Resend] Admin notification email sent successfully to ${adminEmail}:`, adminRes);
+        adminEmailSent = true;
+      } catch (mailErr: any) {
+        console.error(`❌ [Resend] Failed to send admin notification to ${adminEmail}:`, mailErr);
+      }
+
+      // ② お客様宛てに自動返信メールを送信（ドメイン認証済み、またはテスト可能アドレスの場合）
+      try {
+        const replyRes = await resend.emails.send({
+          from: fromEmail,
+          to: email,
+          replyTo: adminEmail,
+          subject: autoReplyEmail.subject,
+          text: autoReplyEmail.body,
+        });
+        console.log(`✅ [Resend] Auto-reply sent successfully to customer ${email}:`, replyRes);
+        autoReplyEmailSent = true;
+      } catch (replyErr: any) {
+        console.warn(`⚠️ [Resend] Auto-reply to customer ${email} skipped or restricted:`, replyErr?.message || replyErr);
+      }
+    } else {
+      console.warn('⚠️ [Resend] RESEND_API_KEY is not configured in environment variables.');
+    }
+
     const inquiryData = {
       id: `inq_${Date.now()}`,
       type: type || 'general',
@@ -125,13 +173,13 @@ Webサイト：https://kokoromou.vercel.app
       notifyTo: adminEmail,
       adminNotificationEmail,
       autoReplyEmail,
-      autoReplySent: true, // 自動返信生成完了
+      adminEmailSent,
+      autoReplySent: autoReplyEmailSent,
       createdAt: new Date().toISOString(),
       status: 'unread',
     };
 
-    console.log(`📩 [New Inquiry/Request Received]: type=${inquiryData.type}, notifyTo=${adminEmail}, contactMethod=${preferredContactMethod}`);
-    console.log(`📤 [Auto-Reply Prepared to Customer]: ${email}`);
+    console.log(`📩 [New Inquiry/Request Received]: type=${inquiryData.type}, notifyTo=${adminEmail}, contactMethod=${preferredContactMethod}, resendActive=${!!resend}`);
 
     // Firestoreへの永続化
     if (adminDb) {
@@ -154,7 +202,8 @@ Webサイト：https://kokoromou.vercel.app
           ? '事前相談を受け付けました。自動返信メールをお送りいたしました。担当者よりお電話にてご連絡差し上げます。'
           : '事前相談を受け付けました。自動返信メールをお送りいたしました。担当者よりメールにて丁寧にご案内いたします。',
       inquiryId: inquiryData.id,
-      autoReplySent: true,
+      adminEmailSent,
+      autoReplySent: autoReplyEmailSent,
       preferredContactMethod,
     });
   } catch (error: any) {
