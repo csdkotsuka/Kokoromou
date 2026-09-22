@@ -123,38 +123,55 @@ Webサイト：https://kokoromou.vercel.app
     // Resend を使用した実際のメール送信処理
     let adminEmailSent = false;
     let autoReplyEmailSent = false;
+    let adminMailError: any = null;
+    let autoReplyMailError: any = null;
 
     if (resend) {
       // ① ココロモウ運営本部（kokoromou@inteve-cloud.com）宛てに通知メールを送信
       try {
-        const adminRes = await resend.emails.send({
+        const { data: adminData, error: adminErr } = await resend.emails.send({
           from: fromEmail,
           to: adminEmail,
           replyTo: email, // お客様のメールアドレス。メールソフトで「返信」すれば直接お客様へ届きます
           subject: adminNotificationEmail.subject,
           text: adminNotificationEmail.body,
         });
-        console.log(`✅ [Resend] Admin notification email sent successfully to ${adminEmail}:`, adminRes);
-        adminEmailSent = true;
+
+        if (adminErr) {
+          adminMailError = adminErr;
+          console.error(`❌ [Resend Error - Admin Notification]:`, adminErr);
+        } else {
+          console.log(`✅ [Resend Success - Admin Notification sent to ${adminEmail}]:`, adminData);
+          adminEmailSent = true;
+        }
       } catch (mailErr: any) {
-        console.error(`❌ [Resend] Failed to send admin notification to ${adminEmail}:`, mailErr);
+        adminMailError = mailErr?.message || mailErr;
+        console.error(`❌ [Resend Exception - Admin Notification]:`, mailErr);
       }
 
       // ② お客様宛てに自動返信メールを送信（ドメイン認証済み、またはテスト可能アドレスの場合）
       try {
-        const replyRes = await resend.emails.send({
+        const { data: replyData, error: replyErr } = await resend.emails.send({
           from: fromEmail,
           to: email,
           replyTo: adminEmail,
           subject: autoReplyEmail.subject,
           text: autoReplyEmail.body,
         });
-        console.log(`✅ [Resend] Auto-reply sent successfully to customer ${email}:`, replyRes);
-        autoReplyEmailSent = true;
+
+        if (replyErr) {
+          autoReplyMailError = replyErr;
+          console.warn(`⚠️ [Resend Restricted - Auto-reply]:`, replyErr);
+        } else {
+          console.log(`✅ [Resend Success - Auto-reply sent to ${email}]:`, replyData);
+          autoReplyEmailSent = true;
+        }
       } catch (replyErr: any) {
-        console.warn(`⚠️ [Resend] Auto-reply to customer ${email} skipped or restricted:`, replyErr?.message || replyErr);
+        autoReplyMailError = replyErr?.message || replyErr;
+        console.warn(`⚠️ [Resend Exception - Auto-reply]:`, replyErr);
       }
     } else {
+      adminMailError = 'RESEND_API_KEY environment variable is not configured on the server.';
       console.warn('⚠️ [Resend] RESEND_API_KEY is not configured in environment variables.');
     }
 
@@ -175,11 +192,12 @@ Webサイト：https://kokoromou.vercel.app
       autoReplyEmail,
       adminEmailSent,
       autoReplySent: autoReplyEmailSent,
+      adminMailError: adminMailError ? String(adminMailError?.message || adminMailError) : null,
       createdAt: new Date().toISOString(),
       status: 'unread',
     };
 
-    console.log(`📩 [New Inquiry/Request Received]: type=${inquiryData.type}, notifyTo=${adminEmail}, contactMethod=${preferredContactMethod}, resendActive=${!!resend}`);
+    console.log(`📩 [Inquiry Log]: id=${inquiryData.id}, type=${inquiryData.type}, notifyTo=${adminEmail}, resendKeySet=${!!process.env.RESEND_API_KEY}, adminEmailSent=${adminEmailSent}`);
 
     // Firestoreへの永続化
     if (adminDb) {
@@ -202,8 +220,14 @@ Webサイト：https://kokoromou.vercel.app
           ? '事前相談を受け付けました。自動返信メールをお送りいたしました。担当者よりお電話にてご連絡差し上げます。'
           : '事前相談を受け付けました。自動返信メールをお送りいたしました。担当者よりメールにて丁寧にご案内いたします。',
       inquiryId: inquiryData.id,
-      adminEmailSent,
-      autoReplySent: autoReplyEmailSent,
+      emailDelivery: {
+        resendConfigured: !!process.env.RESEND_API_KEY,
+        adminTarget: adminEmail,
+        adminSent: adminEmailSent,
+        adminError: adminMailError ? (adminMailError.message || adminMailError) : null,
+        autoReplySent: autoReplyEmailSent,
+        autoReplyError: autoReplyMailError ? (autoReplyMailError.message || autoReplyMailError) : null,
+      },
       preferredContactMethod,
     });
   } catch (error: any) {
@@ -213,4 +237,47 @@ Webサイト：https://kokoromou.vercel.app
       { status: 500 }
     );
   }
+}
+
+/**
+ * Resend接続状態の診断用 GET エンドポイント
+ * https://kokoromou.vercel.app/api/contact でブラウザから直接診断可能
+ */
+export async function GET(req: Request) {
+  const adminEmail = SAMPLE_ADMIN_INFO.email || 'kokoromou@inteve-cloud.com';
+  const hasKey = !!process.env.RESEND_API_KEY;
+  const keyPrefix = hasKey ? `${process.env.RESEND_API_KEY?.substring(0, 7)}...` : 'NONE';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'ココロモウ運営本部 <onboarding@resend.dev>';
+
+  const url = new URL(req.url);
+  const triggerTest = url.searchParams.get('test') === 'true';
+
+  let testResult: any = null;
+
+  if (triggerTest && resend) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
+        to: adminEmail,
+        subject: `【ココロモウ Resendテスト送信】診断チェック（${new Date().toLocaleString('ja-JP')}）`,
+        text: `このメールはココロモウのResend設定診断テストメールです。\n正常に届いていれば設定完了です！\n送信先: ${adminEmail}`,
+      });
+      testResult = { data, error };
+    } catch (err: any) {
+      testResult = { exception: err.message || err };
+    }
+  }
+
+  return NextResponse.json({
+    status: 'ok',
+    resendConfigured: hasKey,
+    resendKeyPrefix: keyPrefix,
+    fromEmail,
+    adminTargetEmail: adminEmail,
+    testTriggered: triggerTest,
+    testResult,
+    note: triggerTest 
+      ? 'Test email execution finished. Check testResult field for details.' 
+      : 'Add ?test=true to trigger a test email to admin target address.',
+  });
 }
