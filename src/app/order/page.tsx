@@ -73,10 +73,13 @@ function OrderFormContent() {
         if (cemeteryRes.ok) {
           const cData = await cemeteryRes.json();
           if (cData.success && Array.isArray(cData.companies) && isMounted) {
-            setCemeteryCompanies(cData.companies);
+            const validCompanies = (cData.companies.length > 0 && cData.companies.some((c: any) => c.prefecture === '愛媛県'))
+              ? cData.companies
+              : SAMPLE_CEMETERY_COMPANIES;
+            setCemeteryCompanies(validCompanies);
             // 選択中の管理会社が削除されていた場合や初期化時の調整
-            if (cData.companies.length > 0) {
-              const inPref = cData.companies.filter((c: any) => c.prefecture === selectedPrefecture);
+            if (validCompanies.length > 0) {
+              const inPref = validCompanies.filter((c: any) => c.prefecture === selectedPrefecture);
               if (inPref.length > 0) {
                 const stillExists = inPref.some((c: any) => c.id === selectedCemeteryId);
                 if (!stillExists) {
@@ -95,7 +98,8 @@ function OrderFormContent() {
         if (vendorRes.ok) {
           const vData = await vendorRes.json();
           if (vData.success && Array.isArray(vData.vendors) && isMounted) {
-            setVendorsList(vData.vendors);
+            const validVendors = vData.vendors.length > 0 ? vData.vendors : SAMPLE_VENDORS;
+            setVendorsList(validVendors);
           }
         }
       } catch (err) {

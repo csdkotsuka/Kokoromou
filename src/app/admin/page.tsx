@@ -195,40 +195,41 @@ export default function AdminDashboardPage() {
   }, []);
 
   // サーバーAPIから最新データを読み込み
-  React.useEffect(() => {
-    async function fetchServerData() {
-      try {
-        const [cemRes, venRes, ordRes, admRes, fbRes] = await Promise.all([
-          fetch('/api/cemetery-companies'),
-          fetch('/api/vendors'),
-          fetch('/api/orders'),
-          fetch('/api/admin-info'),
-          fetch('/api/admin/firebase-status'),
-        ]);
-        if (cemRes.ok) {
-          const data = await cemRes.json();
-          if (data.companies?.length) setCemeteryCompanies(data.companies);
-        }
-        if (venRes.ok) {
-          const data = await venRes.json();
-          if (data.vendors?.length) setVendors(data.vendors);
-        }
-        if (ordRes.ok) {
-          const data = await ordRes.json();
-          if (data.orders?.length) setOrders(data.orders);
-        }
-        if (admRes.ok) {
-          const data = await admRes.json();
-          if (data.adminInfo) setAdminInfo(data.adminInfo);
-        }
-        if (fbRes.ok) {
-          const fbData = await fbRes.json();
-          if (fbData.status) setFirebaseStatus(fbData.status);
-        }
-      } catch (e) {
-        console.warn('API fetch error, using local fallback:', e);
+  const fetchServerData = async () => {
+    try {
+      const [cemRes, venRes, ordRes, admRes, fbRes] = await Promise.all([
+        fetch('/api/cemetery-companies'),
+        fetch('/api/vendors'),
+        fetch('/api/orders'),
+        fetch('/api/admin-info'),
+        fetch('/api/admin/firebase-status'),
+      ]);
+      if (cemRes.ok) {
+        const data = await cemRes.json();
+        if (data.companies?.length) setCemeteryCompanies(data.companies);
       }
+      if (venRes.ok) {
+        const data = await venRes.json();
+        if (data.vendors?.length) setVendors(data.vendors);
+      }
+      if (ordRes.ok) {
+        const data = await ordRes.json();
+        if (data.orders?.length) setOrders(data.orders);
+      }
+      if (admRes.ok) {
+        const data = await admRes.json();
+        if (data.adminInfo) setAdminInfo(data.adminInfo);
+      }
+      if (fbRes.ok) {
+        const fbData = await fbRes.json();
+        if (fbData.status) setFirebaseStatus(fbData.status);
+      }
+    } catch (e) {
+      console.warn('API fetch error, using local fallback:', e);
     }
+  };
+
+  React.useEffect(() => {
     fetchServerData();
     fetchBackups();
   }, []);
@@ -281,7 +282,7 @@ export default function AdminDashboardPage() {
 
   // Firebase（Firestore）へ初期データを投入する
   const handleSeedFirestore = async () => {
-    if (!confirm('Firebase（Firestore）に現在設定されている初期マスターデータ（本部情報・墓地管理会社・代行業者・注文・ログインアカウント）を投入します。よろしいですか？')) {
+    if (!confirm('Firebase（Firestore）に四国4県（愛媛・香川・徳島・高知）の墓地管理会社（11社）・提携代行業者（12社）・本部情報・ログインアカウントを含むマスターデータを一括投入します。よろしいですか？')) {
       return;
     }
     setIsSeeding(true);
@@ -293,12 +294,14 @@ export default function AdminDashboardPage() {
         setSeedResultMsg({
           text: `✅ Firestoreへ書き込み成功！ [墓地管理会社: ${data.details.cemeteryCompaniesCount}件 / 代行業者: ${data.details.vendorsCount}件 / 注文: ${data.details.ordersCount}件 / 認証アカウント: ${data.details.accountsCount}件] (${data.details.statusMessage})`,
         });
-        // ステータス再取得
+        // ステータス再取得および画面データのリフレッシュ
         const fbRes = await fetch('/api/admin/firebase-status');
         if (fbRes.ok) {
           const fbData = await fbRes.json();
           setFirebaseStatus(fbData.status);
         }
+        await fetchServerData();
+        await fetchBackups();
       } else {
         setSeedResultMsg({ text: `❌ 投入失敗: ${data.error}`, isError: true });
       }
@@ -491,7 +494,7 @@ export default function AdminDashboardPage() {
               className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition cursor-pointer"
             >
               <span>🔥</span>
-              <span>{isSeeding ? 'Firestoreへ投入中...' : 'Firebaseに初期データを投入'}</span>
+              <span>{isSeeding ? 'Firestoreへ投入中...' : 'Firebaseに四国4県ダミーデータを投入'}</span>
             </button>
 
             {/* 墓地管理会社プレビュー */}

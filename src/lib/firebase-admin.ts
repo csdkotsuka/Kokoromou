@@ -222,14 +222,14 @@ export async function seedInitialDataToFirestore() {
   batch.set(adminRef, { ...SAMPLE_ADMIN_INFO, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
   results.adminInfo = true;
 
-  // 2. 墓地管理会社（3社）
+  // 2. 墓地管理会社（四国4県 11社）
   for (const company of SAMPLE_CEMETERY_COMPANIES) {
     const docRef = adminDb.collection('cemetery_companies').doc(company.id);
     batch.set(docRef, { ...company, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     results.cemeteryCompaniesCount++;
   }
 
-  // 3. 作業代行業者（6社）
+  // 3. 作業代行業者（四国4県 12社）
   for (const vendor of SAMPLE_VENDORS) {
     const docRef = adminDb.collection('vendors').doc(vendor.id);
     batch.set(docRef, { ...vendor, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
@@ -243,7 +243,7 @@ export async function seedInitialDataToFirestore() {
     results.ordersCount++;
   }
 
-  // 5. ログイン用アカウント（9アカウント）
+  // 5. ログイン用アカウント（四国各社・管理者・顧客アカウント）
   for (const acc of SAMPLE_ACCOUNTS) {
     const docRef = adminDb.collection('accounts').doc(acc.email);
     batch.set(docRef, { ...acc, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
@@ -295,7 +295,24 @@ export async function getCemeteryCompanies(): Promise<CemeteryCompany[]> {
   if (adminDb) {
     try {
       const snapshot = await adminDb.collection('cemetery_companies').get();
-      return snapshot.docs.map((d) => d.data() as CemeteryCompany);
+      if (!snapshot.empty) {
+        const list = snapshot.docs.map((d) => d.data() as CemeteryCompany);
+        // 愛媛県の管理会社が1件以上含まれていればそのまま返す
+        if (list.some((c) => c.prefecture === '愛媛県')) {
+          return list;
+        }
+      }
+      // Firestoreが空または愛媛県のデータが消えている場合、オートシードして復旧
+      console.info('[Firestore] cemetery_companies collection is empty or missing Ehime. Auto-seeding initial data...');
+      try {
+        await seedInitialDataToFirestore();
+        const seededSnap = await adminDb.collection('cemetery_companies').get();
+        if (!seededSnap.empty) {
+          return seededSnap.docs.map((d) => d.data() as CemeteryCompany);
+        }
+      } catch (seedErr) {
+        console.warn('[Firestore] Auto-seed failed, falling back to inMemoryMockDb:', seedErr);
+      }
     } catch (e) {
       console.warn('[Firestore] Error fetching cemetery_companies:', e);
     }
@@ -325,7 +342,20 @@ export async function getVendors(): Promise<User[]> {
   if (adminDb) {
     try {
       const snapshot = await adminDb.collection('vendors').get();
-      return snapshot.docs.map((d) => d.data() as User);
+      if (!snapshot.empty) {
+        return snapshot.docs.map((d) => d.data() as User);
+      }
+      // Firestoreが空の場合はオートシード
+      console.info('[Firestore] vendors collection is empty. Auto-seeding initial data...');
+      try {
+        await seedInitialDataToFirestore();
+        const seededSnap = await adminDb.collection('vendors').get();
+        if (!seededSnap.empty) {
+          return seededSnap.docs.map((d) => d.data() as User);
+        }
+      } catch (seedErr) {
+        console.warn('[Firestore] Auto-seed failed for vendors:', seedErr);
+      }
     } catch (e) {
       console.warn('[Firestore] Error fetching vendors:', e);
     }
