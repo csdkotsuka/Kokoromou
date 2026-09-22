@@ -1455,7 +1455,7 @@ function CemeteryDashboard() {
 
         {/* 2. 提携している作業代行業者一覧 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
-          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div>
               <span className="text-base font-bold text-blue-800 bg-blue-100 px-3 py-1 rounded-full">
                 現場の職人・パートナー
@@ -1467,25 +1467,25 @@ function CemeteryDashboard() {
                 当霊園での作業が認定されているパートナー業者です
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="xl:ml-auto flex items-center justify-end gap-2.5 flex-nowrap overflow-x-auto max-w-full pb-1 xl:pb-0 shrink-0">
               <button
                 type="button"
                 onClick={() => handleDownloadTemplatePdf(null)}
-                className="px-5 py-3.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                className="px-3.5 py-2.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
               >
                 <span>📥</span> 契約書PDFテンプレートをDL
               </button>
               <button
                 type="button"
                 onClick={() => setIsAddingNewVendor(true)}
-                className="px-5 py-3.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
               >
                 <span>➕</span> 新規代行業者・便利屋さんを追加
               </button>
               <button
                 type="button"
                 onClick={handleOpenVendorEdit}
-                className="px-5 py-3.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                className="px-3.5 py-2.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
               >
                 <span>🤝</span> 提携の追加・解除（{affiliatedVendors.length}社）
               </button>
@@ -1782,25 +1782,25 @@ function CemeteryDashboard() {
                 手元の顧客台帳CSVを取り込めばアカウントとお墓情報が自動生成。専用QRコード付き案内DM（ハガキ/用紙）を一括発行できます。
               </p>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="xl:ml-auto flex items-center justify-end gap-2.5 flex-wrap shrink-0">
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
-                className="px-4 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <span>📁</span> 施主名簿CSV一括取り込み
               </button>
               <button
                 type="button"
                 onClick={() => handleOpenDmModal()}
-                className="px-4 py-3 bg-blue-700 hover:bg-blue-800 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <span>📮</span> パーソナライズ案内DM印刷（QRコード付）
               </button>
               <button
                 type="button"
                 onClick={() => setIsAddingTemplateModal(true)}
-                className="px-4 py-3 bg-stone-800 hover:bg-stone-900 text-white text-base font-bold rounded-2xl shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                className="px-3.5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <span>➕</span> メール文面追加
               </button>
@@ -1840,21 +1840,21 @@ function CemeteryDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* 左側: 施主様（顧客）一覧名簿（右側と高さを揃えた完全枠線ボックス） */}
             <div className="lg:col-span-6 bg-stone-50 rounded-2xl p-5 sm:p-6 border-2 border-stone-300 flex flex-col justify-between h-full">
-              {/* ヘッダー部（固定表示） */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200 shrink-0">
-                <div>
-                  <span className="font-extrabold text-stone-900 text-lg flex items-center gap-1.5">
+              {/* ヘッダー部（固定表示・1行右揃え） */}
+              <div className="flex items-center justify-between gap-2 pb-3 border-b border-stone-200 shrink-0">
+                <div className="flex items-baseline gap-1.5 sm:gap-2 shrink-0">
+                  <span className="font-extrabold text-stone-900 text-base sm:text-lg flex items-center gap-1 whitespace-nowrap">
                     <span>👥</span> 対象の施主様を選択
                   </span>
-                  <span className="text-xs text-stone-600 font-bold block mt-0.5">
-                    現在: <strong className="text-blue-700 text-sm">{selectedClientIds.length}</strong> / {clientsSummary.length} 名選択中
+                  <span className="text-xs text-stone-600 font-bold whitespace-nowrap">
+                    (<strong className="text-blue-700">{selectedClientIds.length}</strong>/{clientsSummary.length}名)
                   </span>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="ml-auto flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={handleToggleSelectAllClients}
-                    className="px-3.5 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer shadow-2xs"
+                    className="px-2.5 sm:px-3 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer shadow-2xs whitespace-nowrap"
                   >
                     {selectedClientIds.length === clientsSummary.length ? 'すべての選択を解除' : '全員を選択する'}
                   </button>
@@ -1865,9 +1865,9 @@ function CemeteryDashboard() {
                         const targets = clientsSummary.filter((c) => selectedClientIds.includes(c.id));
                         handleOpenDmModal(targets);
                       }}
-                      className="px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer"
+                      className="px-2.5 sm:px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer whitespace-nowrap"
                     >
-                      <span>📮</span> 選択した{selectedClientIds.length}名分をDM印刷
+                      <span>📮</span> DM印刷（{selectedClientIds.length}名）
                     </button>
                   )}
                 </div>
@@ -3309,28 +3309,29 @@ function CemeteryDashboard() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setEditingClient(null);
           }}
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm overflow-y-auto p-2 sm:p-6 flex justify-center items-start cursor-pointer"
         >
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border-4 border-amber-500 cursor-default my-6 space-y-6">
-            <div className="flex items-center justify-between border-b-2 border-stone-200 pb-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border-4 border-amber-500 cursor-default my-2 sm:my-6 flex flex-col max-h-[92vh]">
+            {/* スティッキーヘッダー（特大文字でも上に切れず常に表示） */}
+            <div className="sticky top-0 z-20 bg-white pb-3 border-b-2 border-stone-200 flex items-center justify-between shrink-0">
               <div>
                 <span className="text-xs font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
                   施主お墓情報 登録・変更
                 </span>
-                <h3 className="text-2xl font-black text-stone-900 mt-1 flex items-center gap-2">
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900 mt-1 flex items-center gap-2">
                   <span>📸</span> {editingClient.name} 様のお墓情報
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingClient(null)}
-                className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center cursor-pointer"
+                className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold flex items-center justify-center cursor-pointer transition shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveGraveInfo} className="space-y-5 text-xs sm:text-sm">
+            <form onSubmit={handleSaveGraveInfo} className="flex-1 overflow-y-auto pt-4 pr-1 space-y-5 text-xs sm:text-sm">
               {/* お墓特定用写真（正面写真 ＆ 側面建立者写真の2枚） */}
               <div className="bg-stone-50 p-4 rounded-2xl border-2 border-stone-200 space-y-4">
                 <div className="flex items-center justify-between border-b border-stone-200 pb-2">
@@ -3566,18 +3567,18 @@ function CemeteryDashboard() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-stone-200 flex items-center justify-end gap-3">
+              <div className="sticky bottom-0 bg-white/95 backdrop-blur-xs pt-3 pb-1 border-t border-stone-200 flex items-center justify-end gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditingClient(null)}
-                  className="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold cursor-pointer transition"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingGraveInfo}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-stone-950 font-black shadow-md flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-stone-950 font-black shadow-md flex items-center gap-2 cursor-pointer transition"
                 >
                   <span>💾</span> {isSavingGraveInfo ? '保存中...' : 'お墓情報を保存する'}
                 </button>
