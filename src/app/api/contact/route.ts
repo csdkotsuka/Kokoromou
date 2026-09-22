@@ -32,7 +32,8 @@ export async function POST(req: Request) {
     const isAreaRequest = type === 'area_request';
     const contactMethodLabel = preferredContactMethod === 'phone' ? '📞 お電話でのご連絡を希望' : '📧 メールでのご連絡';
     const adminEmail = SAMPLE_ADMIN_INFO.email || 'kokoromou@inteve-cloud.com';
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'ココロモウ運営本部 <onboarding@resend.dev>';
+    const rawFrom = process.env.RESEND_FROM_EMAIL || 'noreply@inteve-cloud.com';
+    const fromEmail = rawFrom.includes('<') ? rawFrom : `ココロモウ運営本部 <${rawFrom}>`;
 
     // お問い合わせ種別の日本語ラベル
     const inquiryTypeLabel = 
@@ -247,7 +248,8 @@ export async function GET(req: Request) {
   const adminEmail = SAMPLE_ADMIN_INFO.email || 'kokoromou@inteve-cloud.com';
   const hasKey = !!process.env.RESEND_API_KEY;
   const keyPrefix = hasKey ? `${process.env.RESEND_API_KEY?.substring(0, 7)}...` : 'NONE';
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'ココロモウ運営本部 <onboarding@resend.dev>';
+  const rawFrom = process.env.RESEND_FROM_EMAIL || 'noreply@inteve-cloud.com';
+  const fromEmail = rawFrom.includes('<') ? rawFrom : `ココロモウ運営本部 <${rawFrom}>`;
 
   const url = new URL(req.url);
   const triggerTest = url.searchParams.get('test') === 'true';
