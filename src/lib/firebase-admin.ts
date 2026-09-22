@@ -229,7 +229,7 @@ export async function seedInitialDataToFirestore() {
     results.cemeteryCompaniesCount++;
   }
 
-  // 3. 作業代行業者（四国4県 12社）
+  // 3. 作業代行業者（四国4県 16社）
   for (const vendor of SAMPLE_VENDORS) {
     const docRef = adminDb.collection('vendors').doc(vendor.id);
     batch.set(docRef, { ...vendor, updatedAt: FieldValue.serverTimestamp() }, { merge: true });

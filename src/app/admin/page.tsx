@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
 
   // Firebase（Firestore）へ初期データを投入する
   const handleSeedFirestore = async () => {
-    if (!confirm('Firebase（Firestore）に四国4県（愛媛・香川・徳島・高知）の墓地管理会社（11社）・提携代行業者（12社）・本部情報・ログインアカウントを含むマスターデータを一括投入します。よろしいですか？')) {
+    if (!confirm('Firebase（Firestore）に四国4県（愛媛・香川・徳島・高知）の墓地管理会社（11社）・提携代行業者（16社）・本部情報・ログインアカウントを含むマスターデータを一括投入します。よろしいですか？')) {
       return;
     }
     setIsSeeding(true);
