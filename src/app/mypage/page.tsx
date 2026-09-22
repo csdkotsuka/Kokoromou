@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   HeartHandshake, 
@@ -23,12 +23,18 @@ import {
   ExternalLink,
   HelpCircle,
   Share2,
-  LogOut
+  LogOut,
+  ArrowLeft
 } from 'lucide-react';
 
-export default function CustomerMyPage() {
+function CustomerMyPageContent() {
   const router = useRouter();
-  const [authUser, setAuthUser] = useState<{ name?: string; email?: string } | null>(null);
+  const searchParams = useSearchParams();
+  const fromSource = searchParams.get('from'); // 'cemetery' | 'admin'
+  const previewClientId = searchParams.get('clientId');
+  const previewClientName = searchParams.get('clientName');
+
+  const [authUser, setAuthUser] = useState<{ name?: string; email?: string; role?: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -41,10 +47,19 @@ export default function CustomerMyPage() {
     if (cookieMatch) {
       try {
         const userData = JSON.parse(decodeURIComponent(cookieMatch.split('=').slice(1).join('=')));
-        if (userData.role === 'customer' || userData.role === 'admin') {
-          setAuthUser(userData);
+        // customer, admin, cemeteryロールを許可（管理会社の施主代理プレビュー対応）
+        if (userData.role === 'customer' || userData.role === 'admin' || userData.role === 'cemetery') {
+          // もし管理会社が特定の施主を代理プレビューしている場合、表示名を反映
+          if ((userData.role === 'cemetery' || userData.role === 'admin') && previewClientName) {
+            setAuthUser({
+              ...userData,
+              name: previewClientName,
+              previewRole: userData.role,
+            });
+          } else {
+            setAuthUser(userData);
+          }
         } else {
-          // 別ロールのアカウントはマイページ不可
           router.push('/mypage/login');
           return;
         }
@@ -57,7 +72,7 @@ export default function CustomerMyPage() {
       return;
     }
     setAuthChecked(true);
-  }, [router]);
+  }, [router, previewClientName]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -138,7 +153,26 @@ export default function CustomerMyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50/70 py-10 sm:py-14">
+    <div className="min-h-screen bg-stone-50/70 py-6 sm:py-10">
+      {/* 管理会社からの代理プレビュー案内バー */}
+      {(fromSource === 'cemetery' || (authUser as any)?.previewRole === 'cemetery') && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <div className="bg-emerald-800 text-white p-4 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-sm font-bold">
+              <span className="text-xl">👀</span>
+              <span>【霊園管理所 代理プレビュー】施主様（{authUser?.name} 様）のマイページ表示確認中です</span>
+            </div>
+            <Link
+              href="/cemetery"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-extrabold rounded-xl shadow-xs transition"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>霊園管理画面に戻る</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* ヘッダー・施主歓迎バナー */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -424,5 +458,13 @@ export default function CustomerMyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CustomerMyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-stone-100 font-bold text-stone-600">マイページ読み込み中...</div>}>
+      <CustomerMyPageContent />
+    </Suspense>
   );
 }

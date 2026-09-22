@@ -72,6 +72,7 @@ export interface CemeteryClient {
   importedAt: string; // インポート日時 (ISO 8601)
   lastOrderDate?: string; // 最終利用日
   orderCount?: number; // 利用回数
+  updatedAt?: string; // 更新日時
 }
 
 export interface EmailTemplate {

@@ -15,6 +15,7 @@ import {
   Flower2,
   HelpCircle,
 } from 'lucide-react';
+import ServicePlansSection from '@/components/ServicePlansSection';
 
 export default function Home() {
   // よくある質問（FAQ）
@@ -331,66 +332,7 @@ export default function Home() {
       </section>
 
       {/* プラン・料金 */}
-      <section id="plans" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-emerald-700">Plans & Pricing</h2>
-          <p className="mt-2 text-3xl font-bold text-stone-900 sm:text-4xl">選べるサービスプラン</p>
-          <p className="mt-3 text-stone-600">お墓の状況やご予算に合わせて、最適なプランをお選びいただけます。</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {SAMPLE_SERVICE_PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative bg-white rounded-2xl border flex flex-col justify-between p-8 transition-all ${
-                plan.isPopular
-                  ? 'border-emerald-600 shadow-xl ring-2 ring-emerald-600/20 md:-translate-y-2'
-                  : 'border-stone-200 shadow-sm hover:shadow-md'
-              }`}
-            >
-              {plan.isPopular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-700 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                  一番人気
-                </div>
-              )}
-
-              <div>
-                <h3 className="text-xl font-bold text-stone-900">{plan.name}</h3>
-                <p className="mt-2 text-xs text-stone-500 min-h-[36px]">{plan.description}</p>
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-stone-900">¥{plan.price.toLocaleString()}</span>
-                  <span className="text-xs text-stone-500 font-medium">（税込 / 目安 {plan.estimatedDuration}）</span>
-                </div>
-
-                <div className="mt-6 border-t border-stone-100 pt-6">
-                  <p className="text-xs font-bold text-stone-700 uppercase tracking-wider mb-4">含まれる作業内容：</p>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-xs text-stone-600">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-stone-100">
-                <Link
-                  href={`/order?planId=${plan.id}`}
-                  className={`w-full inline-flex items-center justify-center py-3.5 px-4 rounded-xl font-bold text-sm transition-all ${
-                    plan.isPopular
-                      ? 'bg-emerald-800 hover:bg-emerald-900 text-white shadow-md hover:shadow-lg'
-                      : 'bg-stone-100 hover:bg-stone-200 text-stone-900'
-                  }`}
-                >
-                  このプランで申し込む
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ServicePlansSection plans={SAMPLE_SERVICE_PLANS} />
 
       {/* よくある質問（FAQ）セクション */}
       <section id="faq" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
