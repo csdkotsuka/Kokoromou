@@ -3592,23 +3592,24 @@ function CemeteryDashboard() {
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowDmModal(false);
           }}
-          className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm overflow-y-auto cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-y-auto p-2 sm:p-6 flex justify-center items-start cursor-pointer"
         >
-          <div className="bg-stone-100 rounded-3xl max-w-5xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-900 cursor-default my-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-stone-300 pb-4 no-print">
+          <div className="bg-stone-100 rounded-3xl max-w-5xl w-full p-4 sm:p-6 shadow-2xl border-4 border-blue-900 cursor-default my-2 sm:my-6 flex flex-col max-h-[94vh]">
+            {/* スティッキーヘッダー（常に上部に固定され、特大フォントでも絶対に隠れない） */}
+            <div className="sticky top-0 z-30 bg-stone-100/95 backdrop-blur-xs pb-3 pt-1 border-b-2 border-stone-300 no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
               <div>
-                <span className="text-xs font-bold text-blue-900 bg-blue-100 px-3 py-1 rounded-full">
+                <span className="text-xs font-bold text-blue-900 bg-blue-100 px-3 py-0.5 rounded-full">
                   印刷プレビュー（全{targetPrintClients.length}名）
                 </span>
-                <h3 className="text-2xl font-extrabold text-stone-900 mt-1 flex items-center gap-2">
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900 mt-1 flex items-center gap-2">
                   <span>📮</span> パーソナライズ案内DM（ハガキ・差込用紙）
                 </h3>
-                <p className="text-stone-600 text-xs mt-1">
+                <p className="text-stone-600 text-xs mt-0.5">
                   差出人名義: <strong>{currentCompany?.name} 管理事務所</strong>（施主様専用QRコード自動印字済み）
                 </p>
               </div>
 
-              <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 {/* 印刷レイアウト切替 */}
                 <div className="flex bg-white rounded-xl p-1 border-2 border-stone-300 shadow-xs">
                   <button
@@ -3649,14 +3650,14 @@ function CemeteryDashboard() {
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer text-sm"
                 >
                   <span>🖨️</span> 印刷する（PDF保存も可）
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowDmModal(false)}
-                  className="w-9 h-9 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold flex items-center justify-center cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold flex items-center justify-center cursor-pointer shadow-xs"
                 >
                   ✕
                 </button>
@@ -3665,7 +3666,7 @@ function CemeteryDashboard() {
 
             {/* A4ハガキ確認PDFモードの案内メモ */}
             {dmPrintLayout === 'a4_postcard' && (
-              <div className="bg-emerald-50 border-2 border-emerald-300 p-3 rounded-xl text-emerald-950 text-xs flex items-center gap-2 no-print">
+              <div className="bg-emerald-50 border-2 border-emerald-300 p-2.5 rounded-xl text-emerald-950 text-xs flex items-center gap-2 no-print my-2 shrink-0">
                 <span className="text-lg">💡</span>
                 <span>
                   <strong>ハガキ確認・PDF保存に最適化されています：</strong>
@@ -3674,8 +3675,8 @@ function CemeteryDashboard() {
               </div>
             )}
 
-            {/* 印刷対象DMシート群 */}
-            <div id="printable-dm-container" className="space-y-12 max-h-[75vh] overflow-y-auto p-4 bg-stone-200/60 rounded-2xl">
+            {/* 印刷対象DMシート群（中身がスムーズに全画面スクロール可能） */}
+            <div id="printable-dm-container" className="flex-1 overflow-y-auto space-y-12 p-3 sm:p-6 bg-stone-200/60 rounded-2xl mt-1">
               {targetPrintClients.map((client, idx) => {
                 const cleanPhone = (client.phoneNumber || client.phone || '').replace(/\D/g, '');
                 const pass = client.initialPassword || (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : 'client1234');
