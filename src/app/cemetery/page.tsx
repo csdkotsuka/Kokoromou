@@ -1837,23 +1837,24 @@ function CemeteryDashboard() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* 左側: 施主様（顧客）一覧名簿 (col-span-6 または 7) */}
-            <div className="lg:col-span-6 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-100 p-4 rounded-2xl border border-stone-200">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* 左側: 施主様（顧客）一覧名簿（右側と高さを揃えた完全枠線ボックス） */}
+            <div className="lg:col-span-6 bg-stone-50 rounded-2xl p-5 sm:p-6 border-2 border-stone-300 flex flex-col justify-between h-full">
+              {/* ヘッダー部（固定表示） */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200 shrink-0">
                 <div>
-                  <span className="font-extrabold text-stone-900 text-lg block">
-                    対象の施主様を選択
+                  <span className="font-extrabold text-stone-900 text-lg flex items-center gap-1.5">
+                    <span>👥</span> 対象の施主様を選択
                   </span>
-                  <span className="text-sm text-stone-600 font-bold">
-                    現在: <strong className="text-blue-700 text-base">{selectedClientIds.length}</strong> / {clientsSummary.length} 名選択中
+                  <span className="text-xs text-stone-600 font-bold block mt-0.5">
+                    現在: <strong className="text-blue-700 text-sm">{selectedClientIds.length}</strong> / {clientsSummary.length} 名選択中
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={handleToggleSelectAllClients}
-                    className="px-3.5 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer"
+                    className="px-3.5 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer shadow-2xs"
                   >
                     {selectedClientIds.length === clientsSummary.length ? 'すべての選択を解除' : '全員を選択する'}
                   </button>
@@ -1872,8 +1873,8 @@ function CemeteryDashboard() {
                 </div>
               </div>
 
-              {/* 顧客名簿リスト */}
-              <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
+              {/* 顧客名簿リスト（枠線の内側に収まり、下端まで伸びて内部スクロール） */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 pt-3 mt-1 min-h-[500px] max-h-[720px]">
                 {clientsSummary.length === 0 ? (
                   <div className="text-center py-12 bg-stone-50 rounded-2xl border border-dashed border-stone-300 text-stone-500">
                     現在、利用履歴のある施主様データはありません。
