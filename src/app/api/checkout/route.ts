@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { saveOrderToFirestore } from '@/lib/firebase-admin';
-import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_ADMIN_INFO } from '@/mocks/sample-data';
+import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_ADMIN_INFO, ANNUAL_PLAN_OPTIONS } from '@/mocks/sample-data';
 import { Order, OrderStatus } from '@/types/firestore';
 
 interface CheckoutRequestBody {
@@ -24,6 +24,9 @@ interface CheckoutRequestBody {
   landmarksDescription?: string;
   specialRequests?: string;
   preferredDate?: string;
+  billingType?: 'single' | 'annual';
+  annualFrequency?: 2 | 3 | 4;
+  scheduledPeriods?: string[];
 }
 
 export async function POST(req: NextRequest) {
@@ -50,6 +53,9 @@ export async function POST(req: NextRequest) {
       landmarksDescription,
       specialRequests,
       preferredDate,
+      billingType,
+      annualFrequency,
+      scheduledPeriods,
     } = body;
 
     // 必須入力のバリデーション（建立者名 builderName も必須！）
@@ -94,7 +100,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // オプション料金計算
+    // オプション料金計算（1回あたり）
     const basePlanFee = plan.price;
     // 基数追加: 1基目無料、2基目以降 1基あたり +3,000円
     const count = Math.max(1, Number(graveCount) || 1);
@@ -108,9 +114,21 @@ export async function POST(req: NextRequest) {
       extraPlotFee = 6000;
     }
 
+    // 1回あたりの定価合計
+    const singleTotal = basePlanFee + extraGraveFee + extraPlotFee;
+
+    // 年間定期管理（パターンB: 年2回 10%OFF, 年3回 12%OFF, 年4回 15%OFF の年間前払い一括契約）
+    const isAnnual = billingType === 'annual';
+    const frequency = isAnnual ? (annualFrequency || 3) : 1;
+    const annualOption = ANNUAL_PLAN_OPTIONS.find((opt) => opt.frequency === frequency);
+    const discountPercent = isAnnual && annualOption ? annualOption.discountPercent : 0;
+    const discountedPerTime = Math.round(singleTotal * (1 - discountPercent / 100));
+
+    // 施主が支払う総額（年間一括または1回単発）
+    const totalAmount = isAnnual ? discountedPerTime * frequency : singleTotal;
+    const annualDiscountAmount = isAnnual ? (singleTotal * frequency) - totalAmount : 0;
+
     // 手数料計算 (Destination Charges)
-    // 施主が支払う総額
-    const totalAmount = basePlanFee + extraGraveFee + extraPlotFee;
     // プラットフォーム手数料 (20%)
     const platformFeeAmount = Math.round(totalAmount * (plan.platformFeePercent / 100));
     // 提携業者への自動送金予定額
@@ -138,6 +156,11 @@ export async function POST(req: NextRequest) {
       vendorStripeAccountId: connectAccountId,
       servicePlanId: plan.id,
       servicePlanName: plan.name,
+      billingType: isAnnual ? 'annual' : 'single',
+      annualFrequency: isAnnual ? (frequency as 2 | 3 | 4) : undefined,
+      annualDiscountPercent: isAnnual ? discountPercent : undefined,
+      annualDiscountAmount: isAnnual ? annualDiscountAmount : undefined,
+      scheduledPeriods: isAnnual ? (scheduledPeriods || []) : undefined,
       basePlanFee,
       extraGraveFee,
       extraPlotFee,
@@ -196,8 +219,12 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'jpy',
             product_data: {
-              name: `ココロモウ: ${plan.name}`,
-              description: `担当: ${vendor.displayName} / 霊園: ${cemeteryName} (${sectionPlotNumber}) / 建立者: ${builderName.trim()} / ${count}基 / ${plotSizeLabel}`,
+              name: isAnnual
+                ? `ココロモウ: 【年間定期管理・年${frequency}回（${discountPercent}%OFF）】${plan.name}`
+                : `ココロモウ: ${plan.name}`,
+              description: isAnnual
+                ? `担当: ${vendor.displayName} / 霊園: ${cemeteryName} (${sectionPlotNumber}) / 建立者: ${builderName.trim()} / ${count}基 / ${plotSizeLabel} / 希望時期: ${scheduledPeriods && scheduledPeriods.length > 0 ? scheduledPeriods.join('・') : '年間定期'} / 年間一括前払い（1回実質¥${discountedPerTime.toLocaleString()}）`
+                : `担当: ${vendor.displayName} / 霊園: ${cemeteryName} (${sectionPlotNumber}) / 建立者: ${builderName.trim()} / ${count}基 / ${plotSizeLabel}`,
             },
             unit_amount: totalAmount,
           },
@@ -217,6 +244,8 @@ export async function POST(req: NextRequest) {
           vendorId: vendor.id,
           vendorName: vendor.displayName,
           planId: plan.id,
+          billingType: isAnnual ? 'annual' : 'single',
+          annualFrequency: isAnnual ? String(frequency) : '1',
         },
       },
       customer_email: clientEmail,
@@ -225,6 +254,8 @@ export async function POST(req: NextRequest) {
         orderNumber,
         vendorId: vendor.id,
         servicePlanId: plan.id,
+        billingType: isAnnual ? 'annual' : 'single',
+        annualFrequency: isAnnual ? String(frequency) : '1',
       },
       success_url: `${baseUrl}/order/success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
       cancel_url: `${baseUrl}/order?canceled=true&order_id=${orderId}`,

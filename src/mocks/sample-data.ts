@@ -406,6 +406,51 @@ export const SAMPLE_SERVICE_PLANS: ServicePlan[] = [
 ];
 
 /**
+ * 年間定期管理プランの割引設定（パターンB: 年2回10% / 年3回12% / 年4回15%）
+ */
+export interface AnnualPlanOption {
+  frequency: 2 | 3 | 4;
+  discountPercent: number; // 10 | 12 | 15
+  label: string;
+  recommendedDescription: string;
+  badge: string;
+  isPopular?: boolean;
+}
+
+export const ANNUAL_PLAN_OPTIONS: AnnualPlanOption[] = [
+  {
+    frequency: 2,
+    discountPercent: 10,
+    label: '年2回 定期管理',
+    recommendedDescription: 'お盆 ＆ 春彼岸（または秋彼岸・年末）',
+    badge: '10% OFF',
+  },
+  {
+    frequency: 3,
+    discountPercent: 12,
+    label: '年3回 定期管理',
+    recommendedDescription: 'お盆 ＋ 春彼岸 ＋ 秋彼岸',
+    badge: '12% OFF・一番人気',
+    isPopular: true,
+  },
+  {
+    frequency: 4,
+    discountPercent: 15,
+    label: '年4回 四季定期管理',
+    recommendedDescription: '春彼岸 ＋ お盆 ＋ 秋彼岸 ＋ 年末年始',
+    badge: '最大15% OFF・最安単価',
+  },
+];
+
+export const SCHEDULED_PERIOD_CANDIDATES = [
+  { id: 'spring_higan', label: '春のお彼岸', season: '3月頃' },
+  { id: 'obon', label: 'お盆・夏参り', season: '8月頃（一部地域は7月）' },
+  { id: 'autumn_higan', label: '秋のお彼岸', season: '9月頃' },
+  { id: 'year_end', label: '年末・新年準備', season: '12月頃' },
+  { id: 'memorial_day', label: 'ご命日・法要', season: 'ご希望月' },
+];
+
+/**
  * 提携業者サンプル（松山エリアの特色あるダミー提携会社）
  */
 export const SAMPLE_VENDORS: User[] = [

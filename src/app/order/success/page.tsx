@@ -88,6 +88,19 @@ function SuccessContent() {
               {order?.servicePlanName || '通常プラン（水洗い・墓石点検・シキミ）'}
             </span>
           </div>
+          {order?.billingType === 'annual' && (
+            <div className="flex justify-between border-b border-stone-200 pb-2 bg-emerald-50/60 -mx-2 px-2 py-1 rounded">
+              <span className="text-emerald-800 font-bold">年間定期管理（割引適用）</span>
+              <span className="text-emerald-900 font-bold text-right">
+                年{order.annualFrequency}回（{order.annualDiscountPercent}%OFF）
+                {order.scheduledPeriods && order.scheduledPeriods.length > 0 && (
+                  <span className="block text-[11px] font-normal text-stone-600">
+                    時期: {order.scheduledPeriods.join('・')}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between border-b border-stone-200 pb-2">
             <span className="text-stone-500">対象霊園 / 区画</span>
             <span className="font-medium text-stone-800">

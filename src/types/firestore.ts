@@ -204,6 +204,12 @@ export interface Order {
   basePlanFee?: number; // 基本プラン料金
   extraGraveFee?: number; // 基数追加料金
   extraPlotFee?: number; // 区画広さ追加料金
+  // 年間定期管理オプション
+  billingType?: 'single' | 'annual';
+  annualFrequency?: 2 | 3 | 4; // 年2回 / 年3回 / 年4回
+  annualDiscountPercent?: number; // 10 | 12 | 15
+  annualDiscountAmount?: number; // 割引額
+  scheduledPeriods?: string[]; // 実施希望時期（例: ['春彼岸（3月）', 'お盆（8月）']）
   totalAmount: number; // 施主支払総額 (例: 12,000)
   platformFeeAmount: number; // プラットフォーム手数料 (例: 2,400)
   vendorPayoutAmount: number; // 提携業者への送金予定額 (例: 9,600)

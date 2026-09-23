@@ -3,7 +3,14 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { SAMPLE_SERVICE_PLANS, SAMPLE_VENDORS, SAMPLE_CEMETERY_COMPANIES, PREFECTURES } from '@/mocks/sample-data';
+import { 
+  SAMPLE_SERVICE_PLANS, 
+  SAMPLE_VENDORS, 
+  SAMPLE_CEMETERY_COMPANIES, 
+  PREFECTURES,
+  ANNUAL_PLAN_OPTIONS,
+  SCHEDULED_PERIOD_CANDIDATES
+} from '@/mocks/sample-data';
 import { 
   ShieldCheck, 
   CreditCard, 
@@ -32,7 +39,9 @@ import {
   ArrowRight,
   Building2,
   Compass,
-  FileQuestion
+  FileQuestion,
+  Calendar,
+  Tag
 } from 'lucide-react';
 
 function OrderFormContent() {
@@ -40,9 +49,26 @@ function OrderFormContent() {
   const defaultPlanId = searchParams.get('planId') || SAMPLE_SERVICE_PLANS[1].id;
   const initialMode = searchParams.get('mode') === 'inquiry' ? 'inquiry' : 'order';
   const paramCemeteryId = searchParams.get('cemeteryId') || '';
+  const paramBilling = searchParams.get('billing');
+  const paramFreq = Number(searchParams.get('freq'));
+  const initialBillingType = paramBilling === 'annual' ? 'annual' : 'single';
+  const initialFreq = (paramFreq === 2 || paramFreq === 4) ? (paramFreq as 2 | 4) : 3;
 
   // 注文モード（'order': 正式本申し込み / 'inquiry': 無料事前相談・見積り）
   const [orderMode, setOrderMode] = useState<'order' | 'inquiry'>(initialMode);
+
+  // 契約種別（'single': 1回のみ / 'annual': 年間定期管理）
+  const [billingType, setBillingType] = useState<'single' | 'annual'>(initialBillingType);
+  // 年間定期管理の回数（2 | 3 | 4）
+  const [annualFrequency, setAnnualFrequency] = useState<2 | 3 | 4>(initialFreq);
+  // 年間定期管理の実施希望時期
+  const [scheduledPeriods, setScheduledPeriods] = useState<string[]>(
+    initialFreq === 2
+      ? ['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）']
+      : initialFreq === 4
+      ? ['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）', '秋のお彼岸（9月頃）', '年末・新年準備（12月頃）']
+      : ['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）', '秋のお彼岸（9月頃）']
+  );
 
   // 墓地管理会社 & 提携業者リスト（Firebaseから動的取得・初期値は静的モック）
   const [cemeteryCompanies, setCemeteryCompanies] = useState<typeof SAMPLE_CEMETERY_COMPANIES>(SAMPLE_CEMETERY_COMPANIES);
@@ -401,11 +427,28 @@ function OrderFormContent() {
   const selectedPlan = SAMPLE_SERVICE_PLANS.find((p) => p.id === selectedPlanId) || SAMPLE_SERVICE_PLANS[0];
   const selectedVendor = SAMPLE_VENDORS.find((v) => v.id === selectedVendorId) || SAMPLE_VENDORS[0];
 
-  // オプション料金の計算
+  // 選択中の年間定期割引設定（パターンB）
+  const activeAnnualOption = ANNUAL_PLAN_OPTIONS.find((opt) => opt.frequency === annualFrequency) || ANNUAL_PLAN_OPTIONS[1];
+  const discountPercent = billingType === 'annual' ? activeAnnualOption.discountPercent : 0;
+
+  // オプション料金の計算（1回あたり）
   const basePlanFee = selectedPlan.price;
   const extraGraveFee = (graveCount - 1) * 3000;
   const extraPlotFee = plotSize === 'large' ? 3000 : plotSize === 'extra_large' ? 6000 : 0;
-  const totalAmount = basePlanFee + extraGraveFee + extraPlotFee;
+  
+  // 1回あたりの定価合計
+  const singleTotalBeforeDiscount = basePlanFee + extraGraveFee + extraPlotFee;
+  // 1回あたりの実質割引後価格
+  const discountedPerTime = Math.round(singleTotalBeforeDiscount * (1 - discountPercent / 100));
+
+  // お支払い総額（年間一括前払い額 または 1回単発額）
+  const totalAmount = billingType === 'annual'
+    ? discountedPerTime * activeAnnualOption.frequency
+    : singleTotalBeforeDiscount;
+
+  // 割引額（お得になった金額）
+  const totalOriginalWithoutDiscount = singleTotalBeforeDiscount * (billingType === 'annual' ? activeAnnualOption.frequency : 1);
+  const annualDiscountAmount = totalOriginalWithoutDiscount - totalAmount;
 
   // Destination Charges の手数料計算プレビュー (20%)
   const platformFee = Math.round(totalAmount * (selectedPlan.platformFeePercent / 100));
@@ -443,6 +486,11 @@ function OrderFormContent() {
           plotSize,
           frontInscriptionPhotoUrl: frontInscriptionPhoto,
           builderNamePhotoUrl: builderNamePhoto,
+          billingType,
+          annualFrequency: billingType === 'annual' ? annualFrequency : undefined,
+          annualDiscountPercent: billingType === 'annual' ? discountPercent : 0,
+          annualDiscountAmount: billingType === 'annual' ? annualDiscountAmount : 0,
+          scheduledPeriods: billingType === 'annual' ? scheduledPeriods : undefined,
           ...formData,
         }),
       });
@@ -1084,14 +1132,161 @@ function OrderFormContent() {
           </div>
 
           {/* 2. プラン選択 */}
-          <div id="step-plan" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36">
-            <h2 className="text-base font-bold text-stone-900 mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">2</span>
-              <span>サービスプランの選択</span>
-            </h2>
+          <div id="step-plan" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+              <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">2</span>
+                <span>サービスプランの選択</span>
+              </h2>
+
+              {/* 1回のみ vs 年間定期管理 切替タブ */}
+              <div className="inline-flex p-1 bg-stone-100 rounded-xl border border-stone-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setBillingType('single')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    billingType === 'single'
+                      ? 'bg-white text-stone-900 shadow-xs'
+                      : 'text-stone-500 hover:text-stone-900'
+                  }`}
+                >
+                  1回のみ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillingType('annual')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    billingType === 'annual'
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'text-stone-600 hover:text-emerald-900'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>📅 年間定期管理</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-black ${
+                    billingType === 'annual' ? 'bg-amber-400 text-stone-950' : 'bg-emerald-100 text-emerald-800'
+                  }`}>
+                    最大15%OFF
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* 年間定期管理選択時の回数・時期設定パネル（パターンB） */}
+            {billingType === 'annual' && (
+              <div className="p-4 sm:p-5 bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl space-y-4 animate-in fade-in duration-200">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-extrabold text-emerald-950 flex items-center gap-1.5">
+                      <Tag className="w-4 h-4 text-emerald-700" />
+                      <span>① 年間のお参り回数（前払い一括契約）</span>
+                    </span>
+                    <span className="text-[11px] text-emerald-800 font-bold">
+                      回数が多いほど割引率UP！
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {ANNUAL_PLAN_OPTIONS.map((opt) => {
+                      const isFreqSelected = annualFrequency === opt.frequency;
+                      return (
+                        <button
+                          key={opt.frequency}
+                          type="button"
+                          onClick={() => {
+                            setAnnualFrequency(opt.frequency);
+                            // 推奨時期の自動更新
+                            if (opt.frequency === 2) {
+                              setScheduledPeriods(['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）']);
+                            } else if (opt.frequency === 3) {
+                              setScheduledPeriods(['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）', '秋のお彼岸（9月頃）']);
+                            } else {
+                              setScheduledPeriods(['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）', '秋のお彼岸（9月頃）', '年末・新年準備（12月頃）']);
+                            }
+                          }}
+                          className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between ${
+                            isFreqSelected
+                              ? 'border-emerald-600 bg-white shadow-sm ring-2 ring-emerald-500/20'
+                              : 'border-emerald-200 bg-white/70 hover:bg-white text-stone-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="font-extrabold text-xs text-stone-900">{opt.label}</span>
+                            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                              opt.isPopular
+                                ? 'bg-amber-400 text-stone-950'
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {opt.badge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-stone-500 leading-tight">
+                            {opt.recommendedDescription}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 実施希望時期の選択 */}
+                <div className="pt-3 border-t border-emerald-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-emerald-950">
+                      ② 実施を希望する時期（{annualFrequency}回分をお選びください）:
+                    </span>
+                    <span className="text-[11px] text-stone-500">
+                      ※後から日程変更も可能です
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {SCHEDULED_PERIOD_CANDIDATES.map((cand) => {
+                      const periodText = `${cand.label}（${cand.season}）`;
+                      const isChecked = scheduledPeriods.includes(periodText);
+                      return (
+                        <label
+                          key={cand.id}
+                          className={`p-2.5 rounded-lg border text-xs cursor-pointer flex items-center gap-2 transition ${
+                            isChecked
+                              ? 'bg-white border-emerald-600 text-emerald-950 font-bold shadow-2xs'
+                              : 'bg-white/60 border-stone-200 text-stone-600 hover:bg-white'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setScheduledPeriods([...scheduledPeriods, periodText]);
+                              } else {
+                                setScheduledPeriods(scheduledPeriods.filter((p) => p !== periodText));
+                              }
+                            }}
+                            className="rounded text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <div>
+                            <span className="block leading-tight">{cand.label}</span>
+                            <span className="text-[10px] text-stone-400 block">{cand.season}</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* プラン一覧リスト */}
             <div className="space-y-3">
               {SAMPLE_SERVICE_PLANS.map((plan) => {
                 const isSelected = plan.id === selectedPlanId;
+                const singlePrice = plan.price;
+                const discRate = billingType === 'annual' ? activeAnnualOption.discountPercent : 0;
+                const perTimePrice = Math.round(singlePrice * (1 - discRate / 100));
+                const annualPrice = perTimePrice * (billingType === 'annual' ? activeAnnualOption.frequency : 1);
+                const originalTotal = singlePrice * (billingType === 'annual' ? activeAnnualOption.frequency : 1);
+                const saveTotal = originalTotal - annualPrice;
+
                 return (
                   <label
                     key={plan.id}
@@ -1113,11 +1308,15 @@ function OrderFormContent() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-stone-900 text-sm">{plan.name}</span>
-                          {plan.isPopular && (
+                          {billingType === 'annual' ? (
+                            <span className="text-[10px] bg-amber-500 text-stone-950 px-2 py-0.5 rounded-full font-black">
+                              年{activeAnnualOption.frequency}回 {activeAnnualOption.discountPercent}%OFF
+                            </span>
+                          ) : plan.isPopular ? (
                             <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">
                               一番人気
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         <p className="text-xs text-stone-500 mt-1">{plan.description}</p>
                         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -1130,9 +1329,26 @@ function OrderFormContent() {
                         <p className="text-[11px] text-stone-400 mt-1.5">作業目安: {plan.estimatedDuration}</p>
                       </div>
                     </div>
+
                     <div className="text-right shrink-0 ml-3">
-                      <span className="text-base font-extrabold text-stone-900">¥{plan.price.toLocaleString()}</span>
-                      <span className="text-[10px] text-stone-500 block">税込</span>
+                      {billingType === 'annual' ? (
+                        <div>
+                          <div className="text-base font-extrabold text-emerald-800">
+                            ¥{annualPrice.toLocaleString()}
+                          </div>
+                          <span className="text-[10px] text-stone-500 block">
+                            (1回実質 ¥{perTimePrice.toLocaleString()} / 税込)
+                          </span>
+                          <span className="inline-block mt-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">
+                            ¥{saveTotal.toLocaleString()}引
+                          </span>
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="text-base font-extrabold text-stone-900">¥{singlePrice.toLocaleString()}</span>
+                          <span className="text-[10px] text-stone-500 block">税込 / 1回</span>
+                        </div>
+                      )}
                     </div>
                   </label>
                 );
@@ -1723,12 +1939,32 @@ function OrderFormContent() {
                 <span>作業目安時間</span>
                 <span className="font-semibold text-stone-900">{selectedPlan.estimatedDuration}</span>
               </div>
+              <div className="flex justify-between">
+                <span>契約形態</span>
+                <span className="font-semibold text-stone-900">
+                  {billingType === 'annual' ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded text-[11px] font-bold border border-emerald-200">
+                      年間定期管理（年{annualFrequency}回・{discountPercent}%OFF）
+                    </span>
+                  ) : (
+                    '1回のみスポット'
+                  )}
+                </span>
+              </div>
+              {billingType === 'annual' && scheduledPeriods.length > 0 && (
+                <div className="flex justify-between items-start pt-1">
+                  <span>希望時期</span>
+                  <span className="font-medium text-stone-800 text-right">
+                    {scheduledPeriods.join('、')}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* 料金内訳 */}
             <div className="space-y-2 text-xs text-stone-600 pb-4 border-b border-stone-100">
               <div className="flex justify-between">
-                <span>基本プラン料金</span>
+                <span>基本プラン料金（1回あたり）</span>
                 <span className="font-medium text-stone-800">¥{basePlanFee.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
@@ -1743,12 +1979,35 @@ function OrderFormContent() {
                   {extraPlotFee > 0 ? `+¥${extraPlotFee.toLocaleString()}` : '¥0'}
                 </span>
               </div>
+
+              {billingType === 'annual' ? (
+                <>
+                  <div className="pt-2 border-t border-dashed border-stone-200 flex justify-between text-stone-500">
+                    <span>1回あたり通常小計</span>
+                    <span>¥{singleTotalBeforeDiscount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-stone-500">
+                    <span>通常年間合計（{annualFrequency}回）</span>
+                    <span>¥{totalOriginalWithoutDiscount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-amber-700 font-bold bg-amber-50 px-2 py-1 rounded">
+                    <span>年間定期一括割引（{discountPercent}%OFF）</span>
+                    <span>-¥{annualDiscountAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-800 font-medium">
+                    <span>1回あたり実質</span>
+                    <span>¥{discountedPerTime.toLocaleString()} / 回</span>
+                  </div>
+                </>
+              ) : null}
             </div>
 
             {/* 金額合計とDestination Chargesの透明性 */}
             <div className="space-y-3 pb-4 border-b border-stone-100">
               <div className="flex justify-between items-baseline">
-                <span className="text-sm font-semibold text-stone-800">お支払い総額（税込）</span>
+                <span className="text-sm font-semibold text-stone-800">
+                  {billingType === 'annual' ? 'お支払い総額（年間一括・税込）' : 'お支払い総額（税込）'}
+                </span>
                 <span className="text-2xl font-extrabold text-emerald-700">
                   ¥{totalAmount.toLocaleString()}
                 </span>
