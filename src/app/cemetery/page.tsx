@@ -1487,25 +1487,26 @@ function CemeteryDashboard() {
                 当霊園での作業が認定されているパートナー業者です
               </p>
             </div>
-            <div className="xl:ml-auto flex items-center justify-end gap-2.5 flex-nowrap overflow-x-auto max-w-full pb-1 xl:pb-0 shrink-0">
+            {/* 縦並びアクションボタングループ */}
+            <div className="flex flex-col gap-2 shrink-0 md:min-w-[280px]">
               <button
                 type="button"
                 onClick={() => handleDownloadTemplatePdf(null)}
-                className="px-3.5 py-2.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+                className="w-full px-4 py-2.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>📥</span> 契約書PDFテンプレートをDL
               </button>
               <button
                 type="button"
                 onClick={() => setIsAddingNewVendor(true)}
-                className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>➕</span> 新規代行業者・便利屋さんを追加
               </button>
               <button
                 type="button"
                 onClick={handleOpenVendorEdit}
-                className="px-3.5 py-2.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+                className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>🤝</span> 提携の追加・解除（{affiliatedVendors.length}社）
               </button>
@@ -1513,7 +1514,7 @@ function CemeteryDashboard() {
           </div>
 
           {/* 📄 自社公式 契約書テンプレート（PDF原本）の管理・保管バー */}
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="mb-4 p-4 sm:p-5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full">
@@ -1539,11 +1540,11 @@ function CemeteryDashboard() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => handleDownloadTemplatePdf(null)}
-                className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
               >
                 <span>📥</span> PDFをダウンロード
               </button>
@@ -1553,10 +1554,46 @@ function CemeteryDashboard() {
                   setTemplateUploadFile(null);
                   setIsUploadingTemplate(true);
                 }}
-                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
               >
                 <span>📤</span> {currentCompany.contractTemplateUrl ? '差替・更新' : 'PDFを登録'}
               </button>
+            </div>
+          </div>
+
+          {/* 🌸 園内設置・施主配布用 公式三つ折りリーフレット（手作り調整版・QRコード入り）ダウンロードバー */}
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-emerald-50/90 border-2 border-emerald-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold bg-emerald-200 text-emerald-950 px-2.5 py-0.5 rounded-full">
+                  園内設置 ＆ 施主様手渡し用
+                </span>
+                <span className="text-xs font-black bg-amber-500 text-stone-950 px-2.5 py-0.5 rounded-full shadow-2xs">
+                  最新手作り調整版（実用QRコード入り）
+                </span>
+              </div>
+              <h3 className="text-lg font-extrabold text-stone-900 flex items-center gap-1.5">
+                <span>📄</span> ココロモウ お墓参り代行 三つ折りリーフレット (A4横・両面)
+              </h3>
+              <p className="text-xs text-stone-700 leading-relaxed">
+                管理事務所の受付窓口や待合スペース、園内掲示板への設置に最適なA4横3つ折りパンフレットです。裏表紙に<strong>スマホで24時間3分Webお申し込みができる実用QRコード</strong>が埋め込まれています。
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+              <Link
+                href="/flyer"
+                className="px-4 py-2.5 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-2xs transition"
+              >
+                <span>👁️</span> Webでプレビュー
+              </Link>
+              <a
+                href="/pdf/ココロモウ お墓参り代行リーフレット.pdf"
+                download="ココロモウ お墓参り代行リーフレット.pdf"
+                className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>📥</span> リーフレットPDFをDL
+              </a>
             </div>
           </div>
 
