@@ -54,6 +54,17 @@ export interface CemeteryCompany {
   clients?: CemeteryClient[];
 }
 
+export interface AnnualScheduleItem {
+  index: number; // 1回目, 2回目, 3回目, 4回目
+  periodLabel: string; // 例: "春彼岸（3月）", "お盆（8月）", "秋彼岸（9月）", "年末年始（12月）", "祥月命日"
+  scheduledDate?: string; // 施主指定または確定した作業予定日 (YYYY-MM-DD)
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  completedDate?: string; // 実際の作業完了日 (YYYY-MM-DD)
+  reportId?: string; // 提出された写真レポートID
+  vendorNotes?: string; // 業者からの作業備考
+  clientNotes?: string; // 施主からの日付指定・お供え等の要望メモ（例: 「8月13日の午前中までに完了希望」）
+}
+
 export interface CemeteryClient {
   id: string; // 例: "client_xxx"
   cemeteryCompanyId: string; // 所属霊園・管理会社ID
@@ -72,6 +83,12 @@ export interface CemeteryClient {
   importedAt: string; // インポート日時 (ISO 8601)
   lastOrderDate?: string; // 最終利用日
   orderCount?: number; // 利用回数
+  // 定期契約・事前決済情報
+  subscriptionType?: 'single' | 'annual';
+  annualFrequency?: 2 | 3 | 4;
+  annualCompletedCount?: number; // 実施済み回数 (例: 1)
+  nextScheduledDate?: string; // 次回作業予定日
+  currentOrderId?: string; // 現在進行中・契約中の注文ID
   updatedAt?: string; // 更新日時
 }
 
@@ -210,6 +227,7 @@ export interface Order {
   annualDiscountPercent?: number; // 10 | 12 | 15
   annualDiscountAmount?: number; // 割引額
   scheduledPeriods?: string[]; // 実施希望時期（例: ['春彼岸（3月）', 'お盆（8月）']）
+  annualSchedules?: AnnualScheduleItem[]; // 複数回定期管理のスケジュール明細・実施日
   totalAmount: number; // 施主支払総額 (例: 12,000)
   platformFeeAmount: number; // プラットフォーム手数料 (例: 2,400)
   vendorPayoutAmount: number; // 提携業者への送金予定額 (例: 9,600)

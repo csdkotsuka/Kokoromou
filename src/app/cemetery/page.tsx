@@ -323,6 +323,11 @@ function CemeteryDashboard() {
       orderCount: number;
       lastPlanName: string;
       latestAfterPhotoUrl?: string;
+      subscriptionType?: 'single' | 'annual';
+      annualFrequency?: 2 | 3 | 4;
+      annualCompletedCount?: number;
+      nextScheduledDate?: string;
+      currentOrderId?: string;
     }>();
 
     // 1. 管理会社に紐付く事前登録施主データ（CSVインポート施主）
@@ -353,6 +358,11 @@ function CemeteryDashboard() {
           lastOrderDate: c.lastOrderDate || '',
           orderCount: c.orderCount || 0,
           lastPlanName: '',
+          subscriptionType: c.subscriptionType,
+          annualFrequency: c.annualFrequency,
+          annualCompletedCount: c.annualCompletedCount,
+          nextScheduledDate: c.nextScheduledDate,
+          currentOrderId: c.currentOrderId,
         });
       }
     });
@@ -362,6 +372,8 @@ function CemeteryDashboard() {
       const phoneKey = (o.clientPhone || '').replace(/\D/g, '');
       const key = phoneKey || o.clientEmail || `no_email_${o.clientId || o.id}`;
       const existing = map.get(key);
+      const isAnnual = o.billingType === 'annual';
+
       if (!existing) {
         map.set(key, {
           id: o.clientId || o.id,
@@ -382,12 +394,20 @@ function CemeteryDashboard() {
           lastOrderDate: o.createdAt || '',
           orderCount: 1,
           lastPlanName: o.servicePlanName || '',
+          subscriptionType: isAnnual ? 'annual' : 'single',
+          annualFrequency: o.annualFrequency,
+          currentOrderId: o.id,
         });
       } else {
         existing.orderCount += 1;
         if (new Date(o.createdAt) > new Date(existing.lastOrderDate || 0)) {
           existing.lastOrderDate = o.createdAt;
           existing.lastPlanName = o.servicePlanName || existing.lastPlanName;
+        }
+        if (isAnnual) {
+          existing.subscriptionType = 'annual';
+          existing.annualFrequency = o.annualFrequency;
+          existing.currentOrderId = o.id;
         }
       }
     });
@@ -1770,8 +1790,8 @@ function CemeteryDashboard() {
 
         {/* 4. 施主様（顧客）名簿 ＆ 次回お参り・点検ご案内メール作成 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
-          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <div>
+          <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div className="flex-1">
               <span className="text-base font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
                 顧客台帳 ＆ 最強オンボーディングDM発行
               </span>
@@ -1782,25 +1802,26 @@ function CemeteryDashboard() {
                 手元の顧客台帳CSVを取り込めばアカウントとお墓情報が自動生成。専用QRコード付き案内DM（ハガキ/用紙）を一括発行できます。
               </p>
             </div>
-            <div className="xl:ml-auto flex items-center justify-end gap-2.5 flex-wrap shrink-0">
+            {/* 縦並びアクションボタングループ */}
+            <div className="flex flex-col gap-2 shrink-0 md:min-w-[280px]">
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
-                className="px-3.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>📁</span> 施主名簿CSV一括取り込み
               </button>
               <button
                 type="button"
                 onClick={() => handleOpenDmModal()}
-                className="px-3.5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>📮</span> パーソナライズ案内DM印刷（QRコード付）
               </button>
               <button
                 type="button"
                 onClick={() => setIsAddingTemplateModal(true)}
-                className="px-3.5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="w-full px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>➕</span> メール文面追加
               </button>
@@ -1840,21 +1861,22 @@ function CemeteryDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* 左側: 施主様（顧客）一覧名簿（右側と高さを揃えた完全枠線ボックス） */}
             <div className="lg:col-span-6 bg-stone-50 rounded-2xl p-5 sm:p-6 border-2 border-stone-300 flex flex-col justify-between h-full">
-              {/* ヘッダー部（固定表示・1行右揃え） */}
-              <div className="flex items-center justify-between gap-2 pb-3 border-b border-stone-200 shrink-0">
-                <div className="flex items-baseline gap-1.5 sm:gap-2 shrink-0">
-                  <span className="font-extrabold text-stone-900 text-base sm:text-lg flex items-center gap-1 whitespace-nowrap">
+              {/* ヘッダー部（縦並び配置で崩れ防止） */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200 shrink-0">
+                <div>
+                  <span className="font-extrabold text-stone-900 text-lg flex items-center gap-1.5">
                     <span>👥</span> 対象の施主様を選択
                   </span>
-                  <span className="text-xs text-stone-600 font-bold whitespace-nowrap">
-                    (<strong className="text-blue-700">{selectedClientIds.length}</strong>/{clientsSummary.length}名)
-                  </span>
+                  <p className="text-xs text-stone-600 font-bold mt-0.5">
+                    選択中: <strong className="text-blue-700 text-sm">{selectedClientIds.length}</strong> / {clientsSummary.length} 名
+                  </p>
                 </div>
-                <div className="ml-auto flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
+                {/* 縦並び選択・DMボタン */}
+                <div className="flex flex-col gap-1.5 shrink-0 sm:min-w-[160px]">
                   <button
                     type="button"
                     onClick={handleToggleSelectAllClients}
-                    className="px-2.5 sm:px-3 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer shadow-2xs whitespace-nowrap"
+                    className="w-full px-3 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer shadow-2xs text-center"
                   >
                     {selectedClientIds.length === clientsSummary.length ? 'すべての選択を解除' : '全員を選択する'}
                   </button>
@@ -1865,7 +1887,7 @@ function CemeteryDashboard() {
                         const targets = clientsSummary.filter((c) => selectedClientIds.includes(c.id));
                         handleOpenDmModal(targets);
                       }}
-                      className="px-2.5 sm:px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                      className="w-full px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <span>📮</span> DM印刷（{selectedClientIds.length}名）
                     </button>
@@ -1907,36 +1929,56 @@ function CemeteryDashboard() {
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-extrabold text-stone-900 text-lg">
                                   {client.name} 様
                                 </span>
-                                {client.orderCount > 0 && (
+                                {client.subscriptionType === 'annual' ? (
+                                  <span className="text-xs font-black px-2.5 py-0.5 bg-amber-500 text-stone-950 rounded-lg flex items-center gap-1 shadow-2xs">
+                                    <span>🔥</span> 年{client.annualFrequency}回定期（一括決済済）
+                                  </span>
+                                ) : client.orderCount > 0 ? (
                                   <span className="text-xs font-bold px-2 py-0.5 bg-stone-200 text-stone-800 rounded-lg">
                                     利用: {client.orderCount}回
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-normal px-2 py-0.5 bg-stone-100 text-stone-500 rounded-lg">
+                                    未利用
+                                  </span>
+                                )}
+                                {client.nextScheduledDate && (
+                                  <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    次回予定: {client.nextScheduledDate}
                                   </span>
                                 )}
                               </div>
 
                               {/* アクションボタングループ */}
                               <div className="flex items-center gap-1.5 flex-wrap">
+                                <Link
+                                  href={`/cemetery/clients/${client.id}?companyId=${companyId}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-xs font-bold px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg transition flex items-center gap-1 shadow-xs cursor-pointer"
+                                >
+                                  <span>📋</span> 顧客カルテ詳細 ↗
+                                </Link>
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleOpenEditClient(client);
                                   }}
-                                  className="text-xs font-bold px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-amber-300"
+                                  className="text-xs font-bold px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-amber-300"
                                 >
-                                  <span>📸</span> お墓写真・詳細
+                                  <span>📸</span> 写真・お墓編集
                                 </button>
                                 <Link
                                   href={`/mypage?from=cemetery&clientId=${client.id}&clientName=${encodeURIComponent(client.name)}`}
                                   target="_blank"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs font-bold px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-emerald-300"
+                                  className="text-xs font-bold px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-emerald-300"
                                 >
-                                  <span>👤</span> 施主画面確認 ↗
+                                  <span>👤</span> 施主画面 ↗
                                 </Link>
                                 <button
                                   type="button"
@@ -1944,7 +1986,7 @@ function CemeteryDashboard() {
                                     e.stopPropagation();
                                     handleOpenDmModal([client]);
                                   }}
-                                  className="text-xs font-bold px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition flex items-center gap-1 cursor-pointer border border-blue-300"
+                                  className="text-xs font-bold px-2.5 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition flex items-center gap-1 cursor-pointer border border-blue-300"
                                 >
                                   <span>📮</span> DM印刷
                                 </button>
