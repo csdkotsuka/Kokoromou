@@ -52,6 +52,10 @@ export interface CemeteryCompany {
   emailTemplates?: EmailTemplate[];
   // 一括CSV取り込みされた施主台帳データ
   clients?: CemeteryClient[];
+  // Stripe Connect 売上受取口座情報
+  stripeConnectAccountId?: string;
+  stripeChargesEnabled?: boolean;
+  stripePayoutsEnabled?: boolean;
 }
 
 export interface AnnualScheduleItem {

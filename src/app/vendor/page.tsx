@@ -144,6 +144,57 @@ function VendorDashboardContent() {
     }
   };
 
+  // Stripe受取口座連携ハンドラ
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+  const [stripeStatusMsg, setStripeStatusMsg] = useState<string | null>(null);
+
+  const handleStripeConnect = async () => {
+    setIsConnectingStripe(true);
+    setStripeStatusMsg(null);
+    try {
+      const res = await fetch('/api/stripe/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetType: 'vendor',
+          targetId: currentVendor.id,
+          email: currentVendor.email,
+          name: currentVendor.vendorProfile?.companyName || currentVendor.displayName,
+          returnUrl: window.location.href,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.url && !data.isMock) {
+          window.location.href = data.url;
+        } else {
+          setStripeStatusMsg(data.message || 'Stripe受取口座が設定されました！');
+          setVendors((prev) =>
+            prev.map((v) =>
+              v.id === currentVendor.id
+                ? {
+                    ...v,
+                    vendorProfile: {
+                      ...v.vendorProfile!,
+                      stripeConnectAccountId: data.accountId,
+                      stripeChargesEnabled: true,
+                      stripePayoutsEnabled: true,
+                    },
+                  }
+                : v
+            )
+          );
+        }
+      } else {
+        alert(data.error || 'Stripe連携に失敗しました');
+      }
+    } catch (err) {
+      alert('通信エラーが発生しました');
+    } finally {
+      setIsConnectingStripe(false);
+    }
+  };
+
   // 注文ステータスの変更
   const handleUpdateStatus = async (orderId: string, newStatus: Order['status']) => {
     try {
@@ -332,7 +383,87 @@ function VendorDashboardContent() {
           </div>
         </section>
 
-        {/* 2. 担当する作業案件一覧 */}
+        {/* 2. 売上・報酬受取（Stripe Connect） */}
+        <section className="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-indigo-500/30">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-indigo-700/50">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-extrabold text-indigo-300 bg-indigo-950/80 px-3.5 py-1 rounded-full border border-indigo-500/40">
+                  💳 売上・報酬のお受け取り
+                </span>
+                {currentVendor.vendorProfile?.stripePayoutsEnabled ? (
+                  <span className="text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 受取口座 連携済み
+                  </span>
+                ) : (
+                  <span className="text-amber-300 bg-amber-950/80 border border-amber-500/40 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                    ⚠️ 受取口座 未設定（設定が必要です）
+                  </span>
+                )}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+                Stripe 報酬受け取り・振込口座管理
+              </h2>
+              <p className="text-indigo-200/80 text-base mt-1">
+                作業完了した代行報酬（80%）は、Stripeを通じてご登録の指定銀行口座へ安全に自動送金されます。
+              </p>
+            </div>
+
+            {/* Stripe受取ボタン */}
+            <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={handleStripeConnect}
+                disabled={isConnectingStripe}
+                className="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-lg font-black rounded-2xl shadow-lg shadow-emerald-500/25 transition active:scale-95 flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+              >
+                <CreditCard className="w-6 h-6 text-slate-950" />
+                <span>
+                  {isConnectingStripe
+                    ? 'Stripe連携処理中...'
+                    : currentVendor.vendorProfile?.stripePayoutsEnabled
+                    ? '💳 Stripe受取口座・振込履歴を確認する'
+                    : '💳 Stripeの受け取り口座を設定する'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {stripeStatusMsg && (
+            <div className="mt-4 p-4 bg-emerald-900/60 border border-emerald-500 text-emerald-200 text-base font-bold rounded-2xl">
+              ✅ {stripeStatusMsg}
+            </div>
+          )}
+
+          {/* 報酬サマリーと仕組み案内 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+            <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+              <span className="block text-indigo-200 text-sm font-bold">累計受取対象額</span>
+              <span className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 block">
+                {totalEarnings.toLocaleString()} <span className="text-lg font-bold text-white">円</span>
+              </span>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+              <span className="block text-indigo-200 text-sm font-bold">施工完了・レポート済</span>
+              <span className="text-2xl sm:text-3xl font-black text-white mt-1 block">
+                {completedCount} <span className="text-lg font-bold text-indigo-200">件</span>
+              </span>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+              <span className="block text-indigo-200 text-sm font-bold">連携Stripeアカウント</span>
+              <span className="text-base font-mono font-bold text-indigo-300 mt-2 block truncate">
+                {currentVendor.vendorProfile?.stripeConnectAccountId || '未連携（ボタンから設定）'}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 text-xs sm:text-sm text-indigo-200/70 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Stripe Connectによる直接入金のため、プラットフォーム側で銀行口座の暗証番号や詳細口座情報が保持されることはなく安全です。</span>
+          </div>
+        </section>
+
+        {/* 3. 担当する作業案件一覧 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-slate-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>

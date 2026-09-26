@@ -42,6 +42,9 @@ export const SAMPLE_CEMETERY_COMPANIES: CemeteryCompany[] = [
     prefecture: '愛媛県',
     locationAddress: '愛媛県松山市朝日ヶ丘1丁目',
     description: '松山城を望む閑静な旭ヶ丘の高台に位置する歴史ある寺院霊園。同姓の多い共同区画の適正管理と指定業者認定制度を導入。',
+    stripeConnectAccountId: 'acct_1OuTESTConnectCemetery01',
+    stripeChargesEnabled: true,
+    stripePayoutsEnabled: true,
     affiliatedVendorIds: ['vendor_001', 'vendor_003', 'vendor_006'], // 松山まごころ、伊予匠、勝山美装
     vendorContracts: {
       vendor_001: {

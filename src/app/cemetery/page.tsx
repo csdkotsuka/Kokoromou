@@ -214,6 +214,55 @@ function CemeteryDashboard() {
     currentCompany?.affiliatedVendorIds?.includes(v.id)
   );
 
+  // Stripe受取口座連携ステート＆ハンドラ
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+  const [stripeStatusMsg, setStripeStatusMsg] = useState<string | null>(null);
+
+  const handleStripeConnect = async () => {
+    if (!currentCompany) return;
+    setIsConnectingStripe(true);
+    setStripeStatusMsg(null);
+    try {
+      const res = await fetch('/api/stripe/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetType: 'cemetery',
+          targetId: currentCompany.id,
+          email: currentCompany.email,
+          name: currentCompany.name,
+          returnUrl: window.location.href,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.url && !data.isMock) {
+          window.location.href = data.url;
+        } else {
+          setStripeStatusMsg(data.message || 'Stripe受取口座が設定されました！');
+          setCompanies((prev) =>
+            prev.map((c) =>
+              c.id === currentCompany.id
+                ? {
+                    ...c,
+                    stripeConnectAccountId: data.accountId,
+                    stripeChargesEnabled: true,
+                    stripePayoutsEnabled: true,
+                  }
+                : c
+            )
+          );
+        }
+      } else {
+        alert(data.error || 'Stripe連携に失敗しました');
+      }
+    } catch (err) {
+      alert('通信エラーが発生しました');
+    } finally {
+      setIsConnectingStripe(false);
+    }
+  };
+
   // 提携業者の編集モーダルを開く
   const handleOpenVendorEdit = () => {
     setTempAffiliatedVendorIds([...(currentCompany?.affiliatedVendorIds || [])]);
@@ -1469,6 +1518,74 @@ function CemeteryDashboard() {
                   </span>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 1.5. Stripe 売上・手数料の受取口座設定 */}
+        <section className="bg-gradient-to-br from-amber-950 via-stone-900 to-stone-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-amber-600/30">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-amber-800/40">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-extrabold text-amber-300 bg-amber-950/80 px-3.5 py-1 rounded-full border border-amber-500/40">
+                  💳 売上・紹介手数料のお受け取り
+                </span>
+                {currentCompany?.stripePayoutsEnabled ? (
+                  <span className="text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                    ✅ 受取口座 設定完了
+                  </span>
+                ) : (
+                  <span className="text-amber-300 bg-amber-950/80 border border-amber-500/40 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                    ⚠️ 受取口座 未設定（設定が必要です）
+                  </span>
+                )}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+                Stripe 受取口座（紹介料・管理費）の設定・確認
+              </h2>
+              <p className="text-amber-200/80 text-base mt-1">
+                施主様からのお申込みに伴う紹介手数料・管理費用は、Stripeを通じてご登録の銀行口座へ直接安全に自動送金されます。
+              </p>
+            </div>
+
+            {/* Stripe受取ボタン */}
+            <div className="shrink-0 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={handleStripeConnect}
+                disabled={isConnectingStripe}
+                className="px-6 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 text-lg font-black rounded-2xl shadow-lg shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span>💳</span>
+                <span>
+                  {isConnectingStripe
+                    ? 'Stripe連携処理中...'
+                    : currentCompany?.stripePayoutsEnabled
+                    ? 'Stripe受取口座・振込履歴を確認する'
+                    : 'Stripeの受け取り口座を設定する'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {stripeStatusMsg && (
+            <div className="mt-4 p-4 bg-emerald-900/60 border border-emerald-500 text-emerald-200 text-base font-bold rounded-2xl">
+              ✅ {stripeStatusMsg}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+            <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+              <span className="block text-amber-200 text-sm font-bold">連携Stripeアカウント</span>
+              <span className="text-base font-mono font-bold text-amber-300 mt-1 block truncate">
+                {currentCompany?.stripeConnectAccountId || '未連携（上記のボタンから設定してください）'}
+              </span>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+              <span className="block text-amber-200 text-sm font-bold">入金方式</span>
+              <span className="text-base font-bold text-white mt-1 block">
+                Stripe Connect による銀行口座直接振込（安心・非保持化）
+              </span>
             </div>
           </div>
         </section>
