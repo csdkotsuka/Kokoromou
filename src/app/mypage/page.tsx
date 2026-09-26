@@ -194,20 +194,20 @@ function CustomerMyPageContent() {
             </div>
           </div>
 
-          {/* 次回ワンクリック再予約ボタン */}
+          {/* 次回再予約ボタン */}
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-2.5">
             <Link
               href={quickOrderUrl}
-              className="inline-flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all text-sm group"
+              className="inline-flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition-all text-sm group"
             >
               <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-              <span>このお墓でお参り・清掃を予約する</span>
+              <span>再予約</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-3 rounded-xl transition-all text-sm cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold px-4 py-2.5 rounded-xl transition-all text-sm cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>ログアウト</span>
@@ -221,11 +221,11 @@ function CustomerMyPageContent() {
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-100">
               <div>
                 <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full uppercase tracking-wider border border-amber-200">
-                  現在進行中のご依頼
+                  進行中
                 </span>
                 <h2 className="text-lg font-bold text-stone-900 mt-2 flex items-center gap-2">
                   <span>{currentOrder.planName}</span>
-                  <span className="text-sm font-normal text-stone-500">（注文番号: {currentOrder.orderNumber}）</span>
+                  <span className="text-sm font-normal text-stone-500">（{currentOrder.orderNumber}）</span>
                 </h2>
               </div>
               <div className="text-right">
@@ -243,7 +243,7 @@ function CustomerMyPageContent() {
                   return (
                     <div
                       key={st.id}
-                      className={`p-3.5 rounded-2xl border transition-all ${
+                      className={`p-3 rounded-2xl border transition-all ${
                         isCurrent
                           ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs'
                           : isDone
@@ -251,7 +251,7 @@ function CustomerMyPageContent() {
                           : 'bg-white border-stone-100 text-stone-400 opacity-60'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1.5">
+                      <div className="flex items-center gap-2 mb-1">
                         <span
                           className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center ${
                             isCurrent
@@ -274,13 +274,10 @@ function CustomerMyPageContent() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between text-xs text-stone-600 bg-stone-50 p-4 rounded-xl">
+            <div className="flex items-center justify-between text-xs text-stone-600 bg-stone-50 p-3 rounded-xl">
               <div>
-                <span>担当提携先: </span>
+                <span>担当: </span>
                 <strong className="text-stone-900">{currentOrder.vendorName}</strong>
-              </div>
-              <div className="text-stone-500">
-                作業が完了次第、高解像度のBefore/After写真レポートがメールおよび本画面に通知されます。
               </div>
             </div>
           </div>
@@ -293,11 +290,8 @@ function CustomerMyPageContent() {
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
                 <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-emerald-700" />
-                  <span>ご登録済みのお墓情報</span>
+                  <span>登録中のお墓情報</span>
                 </h2>
-                <span className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 font-semibold px-2 py-0.5 rounded-md">
-                  次回自動引き継ぎ
-                </span>
               </div>
 
               {/* 正面写真 & 側面建立者名写真 */}
@@ -305,7 +299,7 @@ function CustomerMyPageContent() {
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-bold text-stone-700 block flex items-center gap-1">
                     <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>正面写真（家名）</span>
+                    <span>正面写真</span>
                   </span>
                   <div className="relative rounded-xl overflow-hidden border border-stone-200 shadow-inner">
                     <img
@@ -322,7 +316,7 @@ function CustomerMyPageContent() {
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-bold text-stone-700 block flex items-center gap-1">
                     <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>側面写真（建立者名・必須）</span>
+                    <span>側面写真</span>
                   </span>
                   <div className="relative rounded-xl overflow-hidden border border-stone-200 shadow-inner">
                     <img
@@ -344,7 +338,7 @@ function CustomerMyPageContent() {
                   <span className="font-bold text-stone-900">{registeredGrave.cemeteryName}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-stone-100">
-                  <span className="text-stone-500">区画番号・墓石番号</span>
+                  <span className="text-stone-500">区画番号</span>
                   <span className="font-semibold text-stone-900">{registeredGrave.sectionPlotNumber}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-stone-100">
@@ -352,23 +346,25 @@ function CustomerMyPageContent() {
                   <span className="font-bold text-emerald-900">{registeredGrave.frontInscription}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-stone-100">
-                  <span className="text-stone-500">側面の建立者名（必須）</span>
+                  <span className="text-stone-500">建立者名</span>
                   <span className="font-bold text-stone-900">{registeredGrave.builderName}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-stone-100">
-                  <span className="text-stone-500">区画内のお墓の基数</span>
-                  <span className="font-semibold text-stone-800">{registeredGrave.graveCount}基（標準）</span>
+                  <span className="text-stone-500">基数</span>
+                  <span className="font-semibold text-stone-800">{registeredGrave.graveCount}基</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-stone-500">敷地（区画）の広さ</span>
-                  <span className="font-semibold text-stone-800">標準区画（〜約1坪）</span>
+                  <span className="text-stone-500">敷地の広さ</span>
+                  <span className="font-semibold text-stone-800">標準区画</span>
                 </div>
               </div>
 
-              <div className="bg-stone-50 p-3.5 rounded-xl text-xs text-stone-600 space-y-1">
-                <span className="font-bold text-stone-800 block">📍 周辺目印・アクセス補足:</span>
-                <p className="text-[11px] leading-relaxed text-stone-600">{registeredGrave.landmarks}</p>
-              </div>
+              {registeredGrave.landmarks && (
+                <div className="bg-stone-50 p-3 rounded-xl text-xs text-stone-600">
+                  <span className="font-bold text-stone-800 mr-1">目印:</span>
+                  <span>{registeredGrave.landmarks}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -378,9 +374,9 @@ function CustomerMyPageContent() {
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
                 <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-emerald-700" />
-                  <span>作業完了レポート履歴（アルバム）</span>
+                  <span>作業完了レポート履歴</span>
                 </h2>
-                <span className="text-xs text-stone-500">{pastReports.length}件の記録</span>
+                <span className="text-xs text-stone-500">{pastReports.length}件</span>
               </div>
 
               <div className="space-y-4">
@@ -392,7 +388,7 @@ function CustomerMyPageContent() {
                         <span className="text-[11px] text-emerald-800 font-medium">{rep.planName}</span>
                       </div>
                       <span className="text-[10px] text-stone-400 bg-white px-2 py-0.5 rounded border border-stone-200">
-                        施工: {rep.vendor}
+                        {rep.vendor}
                       </span>
                     </div>
 
@@ -413,15 +409,15 @@ function CustomerMyPageContent() {
                     </div>
 
                     <p className="text-[11px] text-stone-600 leading-relaxed bg-white p-2.5 rounded-lg border border-stone-100">
-                      💡 職人報告: {rep.artisanNote}
+                      {rep.artisanNote}
                     </p>
 
-                    <div className="pt-2 flex justify-end gap-2">
+                    <div className="pt-1 flex justify-end">
                       <Link
                         href={rep.reportUrl}
                         className="inline-flex items-center gap-1.5 text-xs text-emerald-800 hover:text-emerald-950 font-bold bg-white hover:bg-emerald-50 px-3 py-1.5 rounded-lg border border-stone-200 transition"
                       >
-                        <span>高解像度レポート全文を見る</span>
+                        <span>詳細を見る</span>
                         <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
                     </div>
@@ -430,17 +426,17 @@ function CustomerMyPageContent() {
               </div>
 
               {/* ご家族・親戚への共有 */}
-              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900">
+              <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between text-xs text-emerald-900">
                 <div className="flex items-center gap-2">
                   <Share2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>離れて暮らすご家族や親戚へ写真報告を共有できます</span>
+                  <span>ご家族へ共有</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="bg-white hover:bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-300 transition shrink-0"
+                  className="bg-white hover:bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-300 transition shrink-0 cursor-pointer"
                 >
-                  {copied ? 'コピー完了！' : 'URLを共有'}
+                  {copied ? '完了' : 'URLを共有'}
                 </button>
               </div>
             </div>
@@ -448,12 +444,12 @@ function CustomerMyPageContent() {
         </div>
 
         {/* フッターナビゲーション */}
-        <div className="text-center pt-6">
+        <div className="text-center pt-4">
           <a
             href="/"
-            className="text-sm text-stone-600 hover:text-stone-900 underline font-bold cursor-pointer inline-flex items-center gap-1.5"
+            className="text-xs text-stone-500 hover:text-stone-900 font-bold cursor-pointer inline-flex items-center gap-1"
           >
-            <span>←</span> ココロモウ トップページへ戻る
+            <span>←</span> トップへ
           </a>
         </div>
       </div>

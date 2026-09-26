@@ -515,50 +515,40 @@ function OrderFormContent() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* ページ見出し */}
       <div className="text-center max-w-2xl mx-auto mb-6">
-        <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>現場の職人が真心を込めて代行いたします</span>
-        </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900">
-          {orderMode === 'order' ? 'お墓参り・お掃除代行のお申し込み' : 'お墓参り・お掃除代行の無料事前相談'}
+          {orderMode === 'order' ? 'お申込み' : '事前相談・お見積り'}
         </h1>
-        <p className="mt-2 text-sm text-stone-600">
-          {orderMode === 'order' 
-            ? 'プラン・基数（複数のお墓）と墓石の特定情報（正面文字・側面建立者名・写真）を入力し、安全に決済いただけます。'
-            : '「うちのお墓でも来てもらえる？」「雑草がひどい」「日程を確認したい」など、お気軽にご相談ください。'}
-        </p>
       </div>
 
       {/* モード切り替えタブ */}
-      <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-8 bg-stone-200/80 p-1.5 rounded-2xl">
+      <div className="flex flex-col sm:flex-row gap-2 max-w-xl mx-auto mb-8 bg-stone-200/80 p-1.5 rounded-2xl">
         <button
           type="button"
           onClick={() => setOrderMode('order')}
-          className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
             orderMode === 'order'
               ? 'bg-white text-emerald-950 shadow-md border border-emerald-200'
               : 'text-stone-600 hover:text-stone-900'
           }`}
         >
           <CreditCard className="w-4 h-4 text-emerald-600" />
-          <span>① すぐに本申込み（即時カード決済）</span>
+          <span>本申込み</span>
         </button>
 
         <button
           type="button"
           onClick={() => setOrderMode('inquiry')}
-          className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
             orderMode === 'inquiry'
               ? 'bg-white text-emerald-950 shadow-md border border-amber-300'
               : 'text-stone-600 hover:text-stone-900'
           }`}
         >
           <MessageCircle className="w-4 h-4 text-amber-600" />
-          <span>② まずは無料事前相談・お見積り</span>
-          <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">安心</span>
+          <span>事前相談・お見積り</span>
         </button>
       </div>
 
@@ -572,26 +562,12 @@ function OrderFormContent() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-black text-stone-900">
-                  事前相談・お見積りを受け付けました
+                  送信完了
                 </h2>
                 <p className="text-stone-600 text-sm leading-relaxed">
-                  お問い合わせいただき誠にありがとうございます。<br />
-                  受付完了の自動返信メールを <strong className="text-emerald-900 font-mono">{inquiryData.email}</strong> 宛てにお送りいたしました。<br />
-                  {inquiryData.preferredContactMethod === 'phone' ? (
-                    <span className="text-amber-800 font-semibold block mt-1">
-                      ※「お電話でのご連絡」をご希望いただきましたので、担当者よりご都合の良い時間帯にお電話（{inquiryData.phone || 'ご登録の番号'}）にて折り返しご連絡いたします。
-                    </span>
-                  ) : (
-                    <span className="text-emerald-800 font-semibold block mt-1">
-                      ※現地の墓所環境を確認の上、<strong>原則24時間以内</strong>にメールにて丁寧にお見積り・日程をご案内いたします。
-                    </span>
-                  )}
+                  受付メールを <strong className="text-emerald-900 font-mono">{inquiryData.email}</strong> 宛てにお送りしました。<br />
+                  担当者よりご連絡いたします。
                 </p>
-              </div>
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 text-left space-y-1">
-                <p className="font-bold">安心のお約束：</p>
-                <p>・正式なお申し込み前に、日程や概算費用・対応可否をしっかり確認いただけます。</p>
-                <p>・ご納得いただけた場合のみ、折り返しメールからそのまま決済・本申し込みに進んでいただけます。</p>
               </div>
               <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -602,48 +578,22 @@ function OrderFormContent() {
                   }}
                   className="px-6 py-3 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition cursor-pointer"
                 >
-                  本申し込みフォームへ進む
+                  本申し込みへ
                 </button>
                 <Link
                   href="/"
                   className="px-6 py-3 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl text-sm transition text-center"
                 >
-                  トップページへ戻る
+                  トップへ
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-xl space-y-6">
-              <div className="border-b border-stone-100 pb-4">
-                <span className="inline-block px-2.5 py-1 rounded bg-amber-100 text-amber-900 font-bold text-xs mb-2">
-                  費用は一切かかりません（無料）
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black text-stone-900">
-                  お墓参り・お掃除代行の事前ご相談・お見積り
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-xl space-y-6">
+              <div className="border-b border-stone-100 pb-3">
+                <h2 className="text-xl font-bold text-stone-900">
+                  事前相談・お見積り
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-500 mt-1">
-                  「山奥や共同墓地でも来てもらえる？」「雑草や墓石の傷みがひどい」「お盆までに間に合う？」など、気になることを何でもお気軽にご相談ください。
-                </p>
-              </div>
-
-              {/* 安心のWeb受付バナー（電話番号バナーから刷新） */}
-              <div className="bg-emerald-950 text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border border-emerald-800/60 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-800/60 flex items-center justify-center text-emerald-300 shrink-0">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-white text-sm block">
-                      24時間Web受付・専任担当が丁寧にご案内
-                    </span>
-                    <span className="text-emerald-200/80 text-[11px] block mt-0.5">
-                      無理な営業電話等は一切ございません。お見積り・事前調査は完全無料です。
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[11px] text-emerald-300 bg-emerald-900/80 border border-emerald-700/50 px-3 py-1 rounded-full font-semibold shrink-0">
-                  自動返信メール即時送付
-                </span>
               </div>
 
               {inquiryError && (
@@ -717,11 +667,11 @@ function OrderFormContent() {
                 {/* ご希望のご連絡方法セレクター */}
                 <div className="pt-1">
                   <label className="block text-xs font-bold text-stone-900 mb-2">
-                    ご希望のご連絡方法 <span className="text-rose-500">*</span>
+                    ご連絡方法 <span className="text-rose-500">*</span>
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <label
-                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex items-center gap-3 ${
+                      className={`p-3 rounded-xl border-2 cursor-pointer transition flex items-center gap-2.5 ${
                         inquiryData.preferredContactMethod === 'email'
                           ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 font-bold'
                           : 'border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
@@ -735,19 +685,14 @@ function OrderFormContent() {
                         onChange={() => setInquiryData({ ...inquiryData, preferredContactMethod: 'email' })}
                         className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                       />
-                      <div>
-                        <div className="text-xs flex items-center gap-1.5 font-bold">
-                          <Mail className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>メールでのご連絡（推奨）</span>
-                        </div>
-                        <span className="text-[10px] text-stone-500 block mt-0.5">
-                          記録が残り、詳細なお見積りや写真確認に便利です
-                        </span>
-                      </div>
+                      <span className="text-xs flex items-center gap-1.5 font-bold">
+                        <Mail className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>メール</span>
+                      </span>
                     </label>
 
                     <label
-                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition flex items-center gap-3 ${
+                      className={`p-3 rounded-xl border-2 cursor-pointer transition flex items-center gap-2.5 ${
                         inquiryData.preferredContactMethod === 'phone'
                           ? 'border-emerald-600 bg-emerald-50/50 text-emerald-950 font-bold'
                           : 'border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
@@ -761,26 +706,12 @@ function OrderFormContent() {
                         onChange={() => setInquiryData({ ...inquiryData, preferredContactMethod: 'phone' })}
                         className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                       />
-                      <div>
-                        <div className="text-xs flex items-center gap-1.5 font-bold">
-                          <Phone className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>お電話でのご連絡を希望</span>
-                        </div>
-                        <span className="text-[10px] text-stone-500 block mt-0.5">
-                          文字入力が苦手な方・直接お話しされたい方
-                        </span>
-                      </div>
+                      <span className="text-xs flex items-center gap-1.5 font-bold">
+                        <Phone className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>お電話</span>
+                      </span>
                     </label>
                   </div>
-                  {inquiryData.preferredContactMethod === 'phone' && (
-                    <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2 animate-in fade-in">
-                      <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <div className="leading-relaxed text-[11px]">
-                        <strong>お電話折り返しについて：</strong><br />
-                        担当者の手が空いている時間帯にお電話番号（{inquiryData.phone || '上記のお電話番号'}）へ折り返しいたします。長時間のセールスや無理な営業電話は一切行いませんのでご安心ください。
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -972,25 +903,18 @@ function OrderFormContent() {
         <div className="lg:col-span-7 space-y-8">
           {/* 1. 霊園・墓地（都道府県 ＆ 管理会社）の選択 */}
           <div id="step-cemetery" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm scroll-mt-36 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">1</span>
                 <span>霊園・墓地・管理会社の選択</span>
               </h2>
-              <span className="text-xs text-stone-500 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>公認提携パートナーが施工</span>
-              </span>
             </div>
 
             {/* 都道府県セレクター */}
             <div>
-              <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-emerald-700" />
-                  <span>対象のお墓がある「都道府県」を選択</span>
-                </span>
-                <span className="text-[11px] text-stone-400">全国47都道府県対応</span>
+              <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-emerald-700" />
+                <span>都道府県</span>
               </label>
               <select
                 value={selectedPrefecture}
@@ -1006,7 +930,7 @@ function OrderFormContent() {
             {/* 選択中の都道府県の管理会社一覧 */}
             <div className="space-y-3">
               <label className="block text-xs font-bold text-stone-800">
-                {selectedPrefecture}内の墓地管理会社・霊園管理事務所
+                {selectedPrefecture}の霊園・管理事務所
               </label>
 
               {availableCemeteries.length > 0 ? (
@@ -1042,14 +966,11 @@ function OrderFormContent() {
                               <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                               <span>所在地: {cemetery.locationAddress}</span>
                             </p>
-                            <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                              {cemetery.description}
-                            </p>
 
                             {/* 管轄霊園の選択ボタン */}
                             <div className="mt-3 pt-2 border-t border-stone-100">
                               <span className="text-[11px] font-bold text-stone-700 block mb-1.5">
-                                管轄霊園・墓苑（該当する霊園をお選びください）：
+                                該当霊園:
                               </span>
                               <div className="flex flex-wrap gap-1.5">
                                 {cemetery.cemeteryNames.map((cemName) => {
@@ -1083,10 +1004,10 @@ function OrderFormContent() {
                   })}
 
                   {/* 登録霊園がある場合でも「見当たらない場合のリクエスト」案内 */}
-                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-600 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 text-stone-600 text-xs flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5">
                       <HelpCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>お探しの霊園・墓地が一覧に見当たりませんか？</span>
+                      <span>見当たらない場合</span>
                     </span>
                     <button
                       type="button"
@@ -1096,23 +1017,22 @@ function OrderFormContent() {
                       }}
                       className="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline cursor-pointer shrink-0"
                     >
-                      霊園・墓地をリクエストする（無料） →
+                      霊園リクエスト →
                     </button>
                   </div>
                 </div>
               ) : (
                 /* 該当都道府県に管理会社が未登録の場合のカード */
-                <div className="p-6 rounded-2xl bg-amber-50/80 border border-amber-200 text-center space-y-4">
-                  <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center mx-auto">
-                    <Compass className="w-6 h-6" />
+                <div className="p-6 rounded-2xl bg-amber-50/80 border border-amber-200 text-center space-y-3">
+                  <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center mx-auto">
+                    <Compass className="w-5 h-5" />
                   </div>
                   <div className="max-w-md mx-auto">
-                    <h3 className="text-sm sm:text-base font-bold text-amber-950">
-                      {selectedPrefecture}は現在エリア開拓・提携準備中です
+                    <h3 className="text-sm font-bold text-amber-950">
+                      {selectedPrefecture}は提携準備中エリアです
                     </h3>
-                    <p className="text-xs text-amber-800 mt-1.5 leading-relaxed">
-                      現在、{selectedPrefecture}に公認登録されている霊園管理会社がございません。<br />
-                      ご希望の霊園・墓地名をリクエストいただければ、<strong>ココロモウ運営本部が現地管理事務所や提携候補業者と直接交渉・調整</strong>いたします。
+                    <p className="text-xs text-amber-800 mt-1">
+                      ご希望の霊園・墓地名をリクエストいただけます。
                     </p>
                   </div>
                   <button
@@ -1121,10 +1041,10 @@ function OrderFormContent() {
                       setAreaRequestData((prev) => ({ ...prev, prefecture: selectedPrefecture }));
                       setShowAreaRequestModal(true);
                     }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>{selectedPrefecture}の霊園・墓地を無料リクエストする</span>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>霊園・墓地をリクエスト</span>
                   </button>
                 </div>
               )}
@@ -1177,12 +1097,9 @@ function OrderFormContent() {
               <div className="p-4 sm:p-5 bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl space-y-4 animate-in fade-in duration-200">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-extrabold text-emerald-950 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                       <Tag className="w-4 h-4 text-emerald-700" />
-                      <span>① 年間のお参り回数（前払い一括契約）</span>
-                    </span>
-                    <span className="text-[11px] text-emerald-800 font-bold">
-                      回数が多いほど割引率UP！
+                      <span>お参り回数</span>
                     </span>
                   </div>
 
@@ -1195,7 +1112,6 @@ function OrderFormContent() {
                           type="button"
                           onClick={() => {
                             setAnnualFrequency(opt.frequency);
-                            // 推奨時期の自動更新
                             if (opt.frequency === 2) {
                               setScheduledPeriods(['春のお彼岸（3月頃）', 'お盆・夏参り（8月頃）']);
                             } else if (opt.frequency === 3) {
@@ -1233,10 +1149,7 @@ function OrderFormContent() {
                 <div className="pt-3 border-t border-emerald-200">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-emerald-950">
-                      ② 実施を希望する時期（{annualFrequency}回分をお選びください）:
-                    </span>
-                    <span className="text-[11px] text-stone-500">
-                      ※後から日程変更も可能です
+                      希望時期（{annualFrequency}回分）:
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1360,26 +1273,20 @@ function OrderFormContent() {
           <div id="step-graves" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5 scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">3</span>
-              <span>区画内のお墓の基数・広さオプション</span>
+              <span>基数・広さオプション</span>
             </h2>
-            <p className="text-xs text-stone-500">
-              同一区画内に複数のお墓がある場合や、広い敷地での清掃・除草作業に応じた適正料金をお選びいただけます。
-            </p>
 
             {/* お墓の基数 */}
             <div className="bg-stone-50 p-4 rounded-xl border border-stone-200/80">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-emerald-700" />
-                  <span>区画内のお墓の基数</span>
+                  <span>お墓の基数</span>
                 </label>
                 <span className="text-xs text-emerald-700 font-semibold">
                   {graveCount === 1 ? '基本料金内 (1基)' : `${graveCount}基 (+¥${((graveCount - 1) * 3000).toLocaleString()})`}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 mb-3">
-                同じ区画内に先祖代々の墓石や個人墓など複数ある場合は、基数を追加いただけます（2基目以降 1基あたり +¥3,000 税込）。
-              </p>
               <div className="flex items-center gap-3">
                 {[1, 2, 3, 4, 5].map((num) => (
                   <button
@@ -1400,18 +1307,15 @@ function OrderFormContent() {
 
             {/* 区画の広さ */}
             <div className="bg-stone-50 p-4 rounded-xl border border-stone-200/80">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
                   <Maximize2 className="w-4 h-4 text-emerald-700" />
-                  <span>区画（敷地）の広さの目安</span>
+                  <span>区画の広さ</span>
                 </label>
                 <span className="text-xs text-emerald-700 font-semibold">
-                  {plotSize === 'standard' ? '基本料金内 (追加なし)' : plotSize === 'large' ? '+¥3,000 (税込)' : '+¥6,000 (税込)'}
+                  {plotSize === 'standard' ? '基本料金内' : plotSize === 'large' ? '+¥3,000' : '+¥6,000'}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 mb-3">
-                草取りや手入れを行う敷地面積の広さに応じて選択してください。
-              </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
                   {
@@ -1524,38 +1428,8 @@ function OrderFormContent() {
           <div id="step-info" className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5 scroll-mt-36">
             <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-emerald-700 text-white text-xs flex items-center justify-center font-bold">4</span>
-              <span>お墓の特定情報・施主情報のご入力</span>
+              <span>お墓・施主情報</span>
             </h2>
-
-            {/* 同姓誤認防止に関する重要案内 */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">お墓の取り違えを防ぐための重要なお願い：</span>
-                <p className="text-amber-800 mt-0.5 leading-relaxed text-[11px]">
-                  地域の共同墓地や寺院墓地では、同姓（同じ家名）のお墓が多数密集しているケースが非常に多くございます。
-                  現場でのお墓の確実な特定のため、<strong>「正面の文字」</strong>に加えて<strong>「側面の建立者名（誰が建てたか）」は必須</strong>とさせていただいております。
-                </p>
-              </div>
-            </div>
-
-            {/* 事前相談・特定サポート案内 */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 text-xs text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>文字や詳しい場所が分からない場合は、職人による事前特定・無料調査も承っております。</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setOrderMode('inquiry');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="text-xs font-bold text-blue-700 hover:text-blue-900 underline shrink-0 cursor-pointer self-start sm:self-auto"
-              >
-                まずは無料事前相談する →
-              </button>
-            </div>
 
             {/* 施主情報 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -1632,45 +1506,32 @@ function OrderFormContent() {
               >
                 <span className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-emerald-700" />
-                  <span>【図解】お墓の「正面文字」と「側面の建立者名」の確認方法を見る</span>
+                  <span>お墓の彫刻文字の確認方法（図解）</span>
                 </span>
                 {showGuideModal ? <ChevronUp className="w-4 h-4 text-stone-500" /> : <ChevronDown className="w-4 h-4 text-stone-500" />}
               </button>
               {showGuideModal && (
-                <div className="p-4 bg-white border-t border-stone-200 space-y-3">
+                <div className="p-4 bg-white border-t border-stone-200 space-y-2">
                   <img
                     src="/images/grave_inscription_guide.jpg"
                     alt="和型墓石の彫刻見方ガイド（正面家名と側面建立者名）"
                     className="w-full rounded-lg border border-stone-200 shadow-sm"
                   />
-                  <p className="text-[11px] text-stone-600 leading-relaxed">
-                    日本の伝統的なお墓（和型墓石）では、正面に家名（例: 〇〇家之墓）、側面または裏面に誰が建てたか（例: 昭和〇〇年 〇〇建之）が刻まれています。同じ姓のお墓が多い共同墓地でも、この「正面文字」と「側面の建立者名」があれば現地で確実に特定できます。
+                  <p className="text-[11px] text-stone-600">
+                    正面に家名、側面または裏面に建立者名が刻まれています。
                   </p>
                 </div>
               )}
             </div>
 
-            {/* お墓の特定情報（正面文字 & 側面の建立者名：必須）＋写真添付（任意） */}
+            {/* お墓の特定情報 */}
             <div className="space-y-4 p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200">
-              {/* 写真がない方への安心案内バナー */}
-              <div className="bg-white/90 border border-emerald-300 rounded-xl p-3.5 text-xs text-emerald-950 space-y-1 shadow-xs">
-                <div className="flex items-center gap-1.5 font-bold text-emerald-900">
-                  <CheckCircle className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>お写真が手元にない・遠方で撮影に行けない場合でもお申し込みいただけます</span>
-                </div>
-                <p className="text-[11px] text-stone-600 leading-relaxed">
-                  お墓の写真の添付は<strong>「任意（なくても可）」</strong>です。遠方にお住まいで写真が手元にない場合は、<strong>空欄（写真なし）のままお申し込みいただけます</strong>。
-                  墓石の「正面文字」と「側面の建立者名」があれば、現地の提携職人が確実にお墓を特定いたします。<br />
-                  <span className="text-emerald-800 font-medium">※場所やお墓の文字自体が分からない場合は、上部の「無料事前相談」より職人による現地特定・事前調査（無料）もご利用いただけます。</span>
-                </p>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* 1. 正面文字 & 写真 */}
                 <div className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs space-y-3">
                   <div>
                     <label className="block text-xs font-bold text-stone-900 mb-1">
-                      正面の刻印文字（家名・題目等） <span className="text-rose-500">*必須</span>
+                      正面の刻印文字 <span className="text-rose-500">*必須</span>
                     </label>
                     <input
                       type="text"
@@ -1681,7 +1542,6 @@ function OrderFormContent() {
                       className="w-full text-sm bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       placeholder="例: 山田家之墓 / 南無阿弥陀仏"
                     />
-                    <p className="text-[10px] text-stone-500 mt-1">墓石の正面に彫られている文字</p>
                   </div>
 
                   {/* 正面写真アップロード & プレビュー */}
@@ -1689,10 +1549,7 @@ function OrderFormContent() {
                     <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1">
                         <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>正面の写真（任意・なくても可）</span>
-                      </span>
-                      <span className="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-semibold">
-                        任意添付
+                        <span>正面写真（任意）</span>
                       </span>
                     </label>
 
@@ -1722,15 +1579,11 @@ function OrderFormContent() {
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="absolute bottom-1.5 left-2 bg-stone-900/80 text-white text-[10px] px-2 py-0.5 rounded">
-                          正面写真添付済
-                        </div>
                       </div>
                     ) : (
                       <label className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-lg p-3 text-center cursor-pointer block transition bg-stone-50 hover:bg-emerald-50/30">
                         <Upload className="w-5 h-5 text-stone-400 mx-auto mb-1" />
-                        <span className="text-xs font-semibold text-stone-700 block">正面の写真を添付する（任意）</span>
-                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択（写真なしでも申込可）</span>
+                        <span className="text-xs font-semibold text-stone-700 block">写真を追加（任意）</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1746,7 +1599,7 @@ function OrderFormContent() {
                 <div className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-xs space-y-3">
                   <div>
                     <label className="block text-xs font-bold text-stone-900 mb-1">
-                      側面の建立者名（建てた方） <span className="text-rose-500">*必須</span>
+                      側面の建立者名 <span className="text-rose-500">*必須</span>
                     </label>
                     <input
                       type="text"
@@ -1755,9 +1608,8 @@ function OrderFormContent() {
                       onChange={handleChange}
                       required
                       className="w-full text-sm bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      placeholder="例: 昭和50年 山田太郎建之"
+                      placeholder="例: 昭和50年 山田太郎建之（お名前のみ可）"
                     />
-                    <p className="text-[10px] text-emerald-800 font-medium mt-1">※特定に必須（年月が不明な場合はお名前だけでも可）</p>
                   </div>
 
                   {/* 側面写真アップロード & プレビュー */}
@@ -1765,10 +1617,7 @@ function OrderFormContent() {
                     <label className="block text-xs font-bold text-stone-800 mb-1.5 flex items-center justify-between">
                       <span className="flex items-center gap-1">
                         <Camera className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>側面（建立者名）の写真（任意・なくても可）</span>
-                      </span>
-                      <span className="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-semibold">
-                        任意添付
+                        <span>側面写真（任意）</span>
                       </span>
                     </label>
 
@@ -1798,15 +1647,11 @@ function OrderFormContent() {
                             <X className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="absolute bottom-1.5 left-2 bg-stone-900/80 text-white text-[10px] px-2 py-0.5 rounded">
-                          側面写真添付済
-                        </div>
                       </div>
                     ) : (
                       <label className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-lg p-3 text-center cursor-pointer block transition bg-stone-50 hover:bg-emerald-50/30">
                         <Upload className="w-5 h-5 text-stone-400 mx-auto mb-1" />
-                        <span className="text-xs font-semibold text-stone-700 block">側面の写真を添付する（任意）</span>
-                        <span className="text-[10px] text-stone-400">スマホで撮影またはアルバムから選択（写真なしでも申込可）</span>
+                        <span className="text-xs font-semibold text-stone-700 block">写真を追加（任意）</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1816,17 +1661,6 @@ function OrderFormContent() {
                       </label>
                     )}
                   </div>
-                </div>
-              </div>
-
-              {/* マイページ登録保存に関する安心案内 */}
-              <div className="bg-emerald-100/60 border border-emerald-300/80 rounded-xl p-3 text-xs text-emerald-950 flex items-start gap-2">
-                <UserCheck className="w-4 h-4 text-emerald-800 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  <span className="font-bold">次回のお参り依頼もスムーズに（マイページ自動連携）：</span>
-                  <p className="text-[11px] text-emerald-900 mt-0.5">
-                    今回ご登録いただいたお墓の情報・写真は、ご注文完了後に施主様専用マイページへ自動保存されます。次回のお盆やお彼岸、ご命日の際には、面倒な情報入力をすることなく1クリックで再依頼いただけます。
-                  </p>
                 </div>
               </div>
             </div>
@@ -1845,15 +1679,10 @@ function OrderFormContent() {
             </div>
 
             {/* Googleマップ位置情報（URL） */}
-            <div className="p-4 bg-stone-50 rounded-xl border border-stone-200">
-              <label className="text-xs font-bold text-stone-800 mb-1 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-emerald-700" />
-                  <span>Googleマップ位置情報（推奨）</span>
-                </span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">
-                  現地到着がスムーズになります
-                </span>
+            <div>
+              <label className="text-xs font-bold text-stone-800 mb-1 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-emerald-700" />
+                <span>Googleマップ位置情報（任意）</span>
               </label>
               <input
                 type="text"
@@ -1861,11 +1690,8 @@ function OrderFormContent() {
                 value={formData.googleMapsUrl}
                 onChange={handleChange}
                 className="w-full text-sm bg-white border border-stone-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none mt-1"
-                placeholder="例: https://maps.app.goo.gl/xxx または 33.8415, 132.7483"
+                placeholder="例: https://maps.app.goo.gl/xxx または 座標"
               />
-              <p className="text-[11px] text-stone-500 mt-1.5 leading-relaxed">
-                💡 スマホのGoogleマップで墓地の位置を長押ししてピンを立て、「共有」→「リンクをコピー」して貼り付けていただくと、提携業者が現地ナビで直行できます。
-              </p>
             </div>
 
             {/* 周辺の目印・特徴 */}
@@ -2044,50 +1870,32 @@ function OrderFormContent() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>決済画面へ接続中...</span>
+                    <span>接続中...</span>
                   </>
                 ) : isAllCompleted ? (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    <span>Stripeで安全に決済する</span>
+                    <span>決済へ進む</span>
                   </>
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5 opacity-40" />
-                    <span>必須項目を入力すると決済できます</span>
+                    <span>必須項目を入力してください</span>
                   </>
                 )}
               </button>
 
-              {/* 未入力時のガイダンス案内 / 入力完了時の確認メッセージ */}
-              {!isAllCompleted ? (
-                <div className="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <div className="space-y-0.5 leading-relaxed">
-                    <span className="font-bold block">お申し込みに必要な未入力項目があります</span>
-                    <p className="text-[11px] text-amber-800">
-                      {!isStep1Completed
-                        ? 'ステップ①の「霊園・管理会社」を選択してください。'
-                        : !isStep5Completed
-                        ? 'ステップ⑤の「正面の刻印文字」「側面の建立者名」「お名前」「メールアドレス」をご入力ください。'
-                        : '必須項目をすべてご入力いただくと決済ボタンが有効になります。'}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs flex items-center justify-center gap-1.5 font-bold">
-                  <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
-                  <span>すべての必須項目の入力が完了しました。決済へ進めます。</span>
-                </div>
+              {/* 未入力時のガイダンス案内 */}
+              {!isAllCompleted && (
+                <p className="text-[11px] text-amber-800 text-center font-medium">
+                  ※未入力の必須項目があります
+                </p>
               )}
             </div>
 
-            <div className="text-[11px] text-stone-500 space-y-1.5 text-center">
-              <div className="flex items-center justify-center gap-1 text-emerald-700 font-semibold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>SSL暗号化通信 / PCI-DSS準拠</span>
-              </div>
-              <p>クレジットカード番号はプラットフォームには保存されず、Stripeにより安全に暗号化処理されます。</p>
+            <div className="text-[11px] text-stone-400 text-center flex items-center justify-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>SSL暗号化 / PCI-DSS準拠</span>
             </div>
           </div>
         </div>
@@ -2098,18 +1906,12 @@ function OrderFormContent() {
       {/* 未登録霊園・エリアのリクエストモーダル */}
       {showAreaRequestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between border-b border-stone-100 pb-3">
               <div>
-                <span className="inline-block px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold mb-1">
-                  無料リクエスト受付
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-stone-900">
-                  未登録霊園・墓地のリクエスト
+                <h3 className="text-base font-bold text-stone-900">
+                  霊園・墓地のリクエスト
                 </h3>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  ご希望の霊園・墓地をお知らせください。ココロモウ運営本部が管理事務所や周辺パートナーと直接交渉いたします。
-                </p>
               </div>
               <button
                 type="button"
@@ -2129,9 +1931,9 @@ function OrderFormContent() {
                 <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
                   <Check className="w-6 h-6 stroke-[3]" />
                 </div>
-                <h4 className="text-base font-bold text-stone-900">リクエストを受け付けました</h4>
-                <p className="text-xs text-stone-600 leading-relaxed max-w-sm mx-auto">
-                  ご希望いただいた霊園・墓地について、ココロモウ運営本部にて現地管理事務所や提携候補業者へ確認・交渉の上、担当者より折り返しメールにてご案内いたします。
+                <h4 className="text-base font-bold text-stone-900">受付完了</h4>
+                <p className="text-xs text-stone-600">
+                  リクエストを受け付けました。担当者よりご連絡いたします。
                 </p>
                 <button
                   type="button"

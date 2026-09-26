@@ -1300,27 +1300,27 @@ function CemeteryDashboard() {
     >
       {/* ⚠️ 本部管理者から来た場合のみ表示する戻りバー */}
       {fromSource === 'admin' && (
-        <aside aria-label="管理者プレビュー案内" className="bg-amber-500 text-slate-950 font-bold px-6 py-3 shadow-md flex items-center justify-between">
-          <div className="flex items-center gap-3 text-lg">
-            <span className="text-2xl">⚠️</span>
-            <span>【本部管理者プレビュー】現在、本部権限で墓地管理会社の画面を表示しています</span>
+        <aside aria-label="管理者プレビュー案内" className="bg-amber-500 text-slate-950 font-bold px-6 py-2.5 shadow-md flex items-center justify-between">
+          <div className="flex items-center gap-2 text-base">
+            <span className="text-xl">⚠️</span>
+            <span>管理者プレビュー表示中（霊園管理画面）</span>
           </div>
           <a
             href="/admin"
-            className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-base rounded-xl font-bold transition shadow"
+            className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-sm rounded-xl font-bold transition shadow"
           >
-            ← 本部統括画面に戻る
+            ← 本部へ戻る
           </a>
         </aside>
       )}
 
       {/* ヘッダー */}
       <header className="bg-stone-800 text-white shadow-lg sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="px-3 py-1 bg-amber-400 text-stone-950 text-xs font-black rounded-lg shadow-2xs whitespace-nowrap">
-                霊園・墓地管理所 専用画面
+              <span className="px-2.5 py-0.5 bg-amber-400 text-stone-950 text-xs font-black rounded-lg shadow-2xs whitespace-nowrap">
+                霊園管理
               </span>
               {/* 文字サイズ切り替えボタングループ */}
               <div className="flex items-center bg-stone-900/90 rounded-lg p-0.5 border border-stone-700 text-xs">
@@ -1328,7 +1328,7 @@ function CemeteryDashboard() {
                 <button
                   type="button"
                   onClick={() => handleSetFontSize('standard')}
-                  className={`px-2.5 py-0.5 rounded font-bold transition cursor-pointer ${
+                  className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
                     fontSize === 'standard' ? 'bg-amber-400 text-stone-950 shadow-xs' : 'text-stone-300 hover:text-white'
                   }`}
                 >
@@ -1337,7 +1337,7 @@ function CemeteryDashboard() {
                 <button
                   type="button"
                   onClick={() => handleSetFontSize('large')}
-                  className={`px-2.5 py-0.5 rounded font-bold transition cursor-pointer ${
+                  className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
                     fontSize === 'large' ? 'bg-amber-400 text-stone-950 shadow-xs' : 'text-stone-300 hover:text-white'
                   }`}
                 >
@@ -1346,7 +1346,7 @@ function CemeteryDashboard() {
                 <button
                   type="button"
                   onClick={() => handleSetFontSize('xlarge')}
-                  className={`px-2.5 py-0.5 rounded font-bold transition cursor-pointer ${
+                  className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
                     fontSize === 'xlarge' ? 'bg-amber-400 text-stone-950 shadow-xs' : 'text-stone-300 hover:text-white'
                   }`}
                 >
@@ -1354,42 +1354,42 @@ function CemeteryDashboard() {
                 </button>
               </div>
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white mt-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
               {currentCompany?.name}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
             {/* トップページへ戻るリンク */}
             <a
               href="/"
-              className="px-4 py-2.5 bg-stone-700 hover:bg-stone-600 text-white text-base font-bold rounded-xl border border-stone-500 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-3.5 py-2 bg-stone-700 hover:bg-stone-600 text-white text-sm font-bold rounded-xl border border-stone-500 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
-              <span>🏠</span> トップへ
+              <span>🏠</span> トップ
             </a>
 
             {/* 操作説明書リンク */}
             <Link
               href="/cemetery/manual"
               target="_blank"
-              className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-base font-bold rounded-xl border border-emerald-500 transition flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl border border-emerald-500 transition flex items-center gap-1.5 shadow-sm"
             >
-              <span>📖</span> 操作説明書
+              <span>📖</span> 説明書
             </Link>
 
             {/* 本部からのプレビューでない場合は、ログアウトボタンを表示 */}
             {fromSource !== 'admin' && (
               <button
                 onClick={handleLogout}
-                className="px-5 py-2.5 bg-stone-700 hover:bg-stone-600 text-white text-base font-bold rounded-xl border border-stone-500 transition cursor-pointer"
+                className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white text-sm font-bold rounded-xl border border-stone-500 transition cursor-pointer"
               >
                 ログアウト
               </button>
             )}
 
             {/* 管理会社切り替え（テスト・デモ用） */}
-            <div className="flex items-center gap-2 bg-stone-900/80 px-3 py-1.5 rounded-xl border border-stone-700">
-              <label htmlFor="cemetery-select" className="text-sm text-stone-300 font-bold whitespace-nowrap">霊園切替:</label>
+            <div className="flex items-center gap-2 bg-stone-900/80 px-2.5 py-1.5 rounded-xl border border-stone-700">
+              <label htmlFor="cemetery-select" className="text-xs text-stone-300 font-bold whitespace-nowrap">霊園切替:</label>
               <select
                 id="cemetery-select"
                 value={companyId}
@@ -1398,7 +1398,7 @@ function CemeteryDashboard() {
                   router.push(`/cemetery?companyId=${e.target.value}${fromSource ? `&from=${fromSource}` : ''}`);
                 }}
                 aria-label="管理会社・霊園の切り替え"
-                className="bg-stone-800 text-white text-base font-bold px-3 py-1.5 rounded-lg border border-stone-600 outline-none"
+                className="bg-stone-800 text-white text-sm font-bold px-2 py-1 rounded-lg border border-stone-600 outline-none"
               >
                 {companies.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1426,7 +1426,7 @@ function CemeteryDashboard() {
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-stone-200">
             <div>
-              <span className="text-base font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
+              <span className="text-sm font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
                 登録情報
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
@@ -1435,36 +1435,36 @@ function CemeteryDashboard() {
             </div>
             <button
               onClick={handleOpenEdit}
-              className="px-6 py-3.5 bg-amber-600 hover:bg-amber-700 text-white text-xl font-bold rounded-2xl shadow-md transition active:scale-95 flex items-center justify-center gap-2"
+              className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-base font-bold rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5"
             >
-              <span>✏️</span> この情報を変更する（編集）
+              <span>✏️</span> 編集
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 text-lg">
             <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200">
-              <span className="block text-stone-500 text-base font-bold">代表・管理責任者</span>
-              <span className="font-extrabold text-stone-900 text-xl">{currentCompany?.representativeName}</span>
+              <span className="block text-stone-500 text-sm font-bold">代表者</span>
+              <span className="font-extrabold text-stone-900 text-lg">{currentCompany?.representativeName}</span>
             </div>
             <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200">
-              <span className="block text-stone-500 text-base font-bold">お電話番号</span>
-              <a href={`tel:${currentCompany?.phoneNumber}`} className="font-extrabold text-amber-800 hover:underline text-2xl">
+              <span className="block text-stone-500 text-sm font-bold">電話番号</span>
+              <a href={`tel:${currentCompany?.phoneNumber}`} className="font-extrabold text-amber-800 hover:underline text-xl">
                 📞 {currentCompany?.phoneNumber}
               </a>
             </div>
             <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200">
-              <span className="block text-stone-500 text-base font-bold">メールアドレス</span>
-              <span className="font-bold text-stone-900 text-lg">{currentCompany?.email}</span>
+              <span className="block text-stone-500 text-sm font-bold">メール</span>
+              <span className="font-bold text-stone-900 text-base">{currentCompany?.email}</span>
             </div>
             <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200">
-              <span className="block text-stone-500 text-base font-bold">所在地</span>
-              <span className="font-bold text-stone-900 text-lg">{currentCompany?.locationAddress}</span>
+              <span className="block text-stone-500 text-sm font-bold">所在地</span>
+              <span className="font-bold text-stone-900 text-base">{currentCompany?.locationAddress}</span>
             </div>
             <div className="md:col-span-2 bg-stone-50 p-4 rounded-2xl border border-stone-200">
-              <span className="block text-stone-500 text-base font-bold mb-2">管轄している霊園・墓所</span>
+              <span className="block text-stone-500 text-sm font-bold mb-2">管轄霊園</span>
               <div className="flex flex-wrap gap-2">
                 {currentCompany?.cemeteryNames?.map((cemName, idx) => (
-                  <span key={idx} className="bg-stone-200 text-stone-900 px-4 py-2 rounded-xl text-lg font-bold">
+                  <span key={idx} className="bg-stone-200 text-stone-900 px-3.5 py-1.5 rounded-xl text-base font-bold">
                     🏛️ {cemName}
                   </span>
                 ))}
@@ -1477,38 +1477,35 @@ function CemeteryDashboard() {
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
           <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div>
-              <span className="text-base font-bold text-blue-800 bg-blue-100 px-3 py-1 rounded-full">
-                現場の職人・パートナー
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-                提携作業代行業者（{affiliatedVendors.length}社）
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900">
+                提携代行業者（{affiliatedVendors.length}社）
               </h2>
-              <p className="text-stone-600 text-base font-medium mt-1">
-                当霊園での作業が認定されているパートナー業者です
+              <p className="text-stone-600 text-sm font-medium mt-1">
+                認定業者の一覧です
               </p>
             </div>
             {/* 縦並びアクションボタングループ */}
-            <div className="flex flex-col gap-2 shrink-0 md:min-w-[280px]">
+            <div className="flex flex-col gap-2 shrink-0 md:min-w-[260px]">
               <button
                 type="button"
                 onClick={() => handleDownloadTemplatePdf(null)}
-                className="w-full px-4 py-2.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full px-4 py-2.5 bg-stone-800 hover:bg-stone-900 active:scale-95 text-white text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>📥</span> 契約書PDFテンプレートをDL
+                <span>📥</span> 契約書テンプレートDL
               </button>
               <button
                 type="button"
                 onClick={() => setIsAddingNewVendor(true)}
-                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>➕</span> 新規代行業者・便利屋さんを追加
+                <span>➕</span> 新規業者を追加
               </button>
               <button
                 type="button"
                 onClick={handleOpenVendorEdit}
-                className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>🤝</span> 提携の追加・解除（{affiliatedVendors.length}社）
+                <span>🤝</span> 提携設定（{affiliatedVendors.length}社）
               </button>
             </div>
           </div>
@@ -1518,15 +1515,15 @@ function CemeteryDashboard() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full">
-                  自社公式 契約書テンプレート（PDF原本保管）
+                  契約書原本
                 </span>
                 {currentCompany.contractTemplateUrl ? (
                   <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
-                    登録済み ✓
+                    登録済
                   </span>
                 ) : (
                   <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
-                    標準雛形適用中
+                    標準雛形
                   </span>
                 )}
               </div>
@@ -1534,19 +1531,18 @@ function CemeteryDashboard() {
                 {currentCompany.contractTemplateFileName || '自社契約書テンプレートPDF（未登録）'}
               </h3>
               <p className="text-xs text-stone-600">
-                {currentCompany.contractTemplateUrl
-                  ? '各社独自の実際の契約書PDFが保管されています。代行業者に手渡す際はここからダウンロードして印刷できます。'
-                  : '寺院・霊園で普段お使いの実際の契約書・誓約書（PDF）をアップロードして保管・配布できます。'}
+                登録した契約書原本のダウンロード・差替ができます。
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+            {/* 縦並びボタングループ */}
+            <div className="flex flex-col gap-2 shrink-0 w-full md:w-44">
               <button
                 type="button"
                 onClick={() => handleDownloadTemplatePdf(null)}
-                className="px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
+                className="w-full px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
               >
-                <span>📥</span> PDFをダウンロード
+                <span>📥</span> ダウンロード
               </button>
               <button
                 type="button"
@@ -1554,45 +1550,46 @@ function CemeteryDashboard() {
                   setTemplateUploadFile(null);
                   setIsUploadingTemplate(true);
                 }}
-                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
+                className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer"
               >
-                <span>📤</span> {currentCompany.contractTemplateUrl ? '差替・更新' : 'PDFを登録'}
+                <span>📤</span> {currentCompany.contractTemplateUrl ? '差替' : '登録'}
               </button>
             </div>
           </div>
 
-          {/* 🌸 園内設置・施主配布用 公式三つ折りリーフレット（手作り調整版・QRコード入り）ダウンロードバー */}
+          {/* 🌸 園内設置・施主配布用 公式三つ折りリーフレット */}
           <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-emerald-50/90 border-2 border-emerald-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold bg-emerald-200 text-emerald-950 px-2.5 py-0.5 rounded-full">
-                  園内設置 ＆ 施主様手渡し用
+                  園内設置・配布用
                 </span>
                 <span className="text-xs font-black bg-amber-500 text-stone-950 px-2.5 py-0.5 rounded-full shadow-2xs">
-                  最新手作り調整版（実用QRコード入り）
+                  QRコード付
                 </span>
               </div>
               <h3 className="text-lg font-extrabold text-stone-900 flex items-center gap-1.5">
-                <span>📄</span> ココロモウ お墓参り代行 三つ折りリーフレット (A4横・両面)
+                <span>📄</span> 三つ折りリーフレット (A4横・両面)
               </h3>
               <p className="text-xs text-stone-700 leading-relaxed">
-                管理事務所の受付窓口や待合スペース、園内掲示板への設置に最適なA4横3つ折りパンフレットです。裏表紙に<strong>スマホで24時間3分Webお申し込みができる実用QRコード</strong>が埋め込まれています。
+                窓口設置・配布用パンフレット。Web申込QRコード入り。
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+            {/* 縦並びボタングループ */}
+            <div className="flex flex-col gap-2 shrink-0 w-full md:w-44">
               <Link
                 href="/flyer"
-                className="px-4 py-2.5 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-2xs transition"
+                className="w-full px-4 py-2.5 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-2xs transition"
               >
-                <span>👁️</span> Webでプレビュー
+                <span>👁️</span> Webプレビュー
               </Link>
               <a
                 href="/pdf/ココロモウ お墓参り代行リーフレット.pdf"
                 download="ココロモウ お墓参り代行リーフレット.pdf"
-                className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer"
+                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>📥</span> リーフレットPDFをDL
+                <span>📥</span> PDFダウンロード
               </a>
             </div>
           </div>
@@ -1612,47 +1609,47 @@ function CemeteryDashboard() {
                       <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900">
                         {vendor.displayName}
                       </h3>
-                      <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                        ★ 認定パートナー
+                      <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                        認定
                       </span>
                     </div>
-                    <p className="text-base text-stone-600 font-bold mb-3">
-                      代表・責任者: <span className="text-stone-900">{vendor.vendorProfile?.representativeName}</span>
+                    <p className="text-sm text-stone-600 font-bold mb-2">
+                      代表: <span className="text-stone-900">{vendor.vendorProfile?.representativeName}</span>
                     </p>
-                    <p className="text-base text-stone-700 mb-4 line-clamp-2">
+                    <p className="text-sm text-stone-700 mb-3 line-clamp-2">
                       {vendor.vendorProfile?.description}
                     </p>
-                    <div className="text-base text-stone-600 space-y-1 mb-4 bg-white p-3 rounded-xl border border-stone-200">
-                      <div>📞 連絡先: <strong className="text-stone-900">{vendor.phoneNumber}</strong></div>
-                      <div>📍 対応エリア: {vendor.vendorProfile?.serviceAreas?.join(', ')}</div>
-                      <div>⭐ 実績評価: <strong className="text-amber-700">{vendor.vendorProfile?.rating}点</strong>（施工件数: {vendor.vendorProfile?.completedJobsCount}件）</div>
+                    <div className="text-sm text-stone-600 space-y-1 mb-3 bg-white p-3 rounded-xl border border-stone-200">
+                      <div>📞 <strong className="text-stone-900">{vendor.phoneNumber}</strong></div>
+                      <div>📍 {vendor.vendorProfile?.serviceAreas?.join(', ')}</div>
+                      <div>⭐ <strong className="text-amber-700">{vendor.vendorProfile?.rating}点</strong>（{vendor.vendorProfile?.completedJobsCount}件完了）</div>
                     </div>
 
                     {/* 契約書・誓約書 締結状況エリア */}
-                    <div className="mt-4 pt-4 border-t-2 border-stone-200">
+                    <div className="mt-3 pt-3 border-t-2 border-stone-200">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-base font-bold text-stone-800 flex items-center gap-1.5">
-                          <span>📋</span> 墓地内作業契約書・誓約書
+                        <span className="text-sm font-bold text-stone-800 flex items-center gap-1.5">
+                          <span>📋</span> 作業契約書
                         </span>
                         {hasContract ? (
-                          <span className="text-sm font-extrabold bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1 shadow-xs">
-                            <span>✅</span> 締結済み
+                          <span className="text-xs font-extrabold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1 shadow-xs">
+                            <span>✅</span> 締結済
                           </span>
                         ) : (
-                          <span className="text-sm font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full border border-amber-300 flex items-center gap-1">
-                            <span>⚠️</span> 未提出（未締結）
+                          <span className="text-xs font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 flex items-center gap-1">
+                            <span>⚠️</span> 未締結
                           </span>
                         )}
                       </div>
 
                       {hasContract ? (
-                        <div className="bg-emerald-50/90 border border-emerald-300 rounded-2xl p-4 text-sm text-stone-800 space-y-3">
+                        <div className="bg-emerald-50/90 border border-emerald-300 rounded-2xl p-3 text-sm text-stone-800 space-y-2.5">
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-emerald-950 truncate max-w-[220px]" title={contract?.contractFileName}>
-                              📎 {contract?.contractFileName || '締結済み契約書'}
+                            <span className="font-bold text-emerald-950 truncate max-w-[220px] text-xs" title={contract?.contractFileName}>
+                              📎 {contract?.contractFileName || '締結済契約書'}
                             </span>
                             <span className="text-stone-500 text-xs">
-                              {contract?.uploadedAt ? new Date(contract.uploadedAt).toLocaleDateString('ja-JP') : ''} 添付
+                              {contract?.uploadedAt ? new Date(contract.uploadedAt).toLocaleDateString('ja-JP') : ''}
                             </span>
                           </div>
                           {contract?.notes && (
@@ -1660,13 +1657,13 @@ function CemeteryDashboard() {
                               📝 {contract.notes}
                             </p>
                           )}
-                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <div className="flex flex-wrap items-center gap-2 pt-0.5">
                             <button
                               type="button"
                               onClick={() => setViewingContract({ vendorName: vendor.displayName, contract: contract! })}
-                              className="flex-1 py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-1.5 cursor-pointer transition shadow-xs"
+                              className="flex-1 py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition shadow-xs"
                             >
-                              <span>👁️</span> 契約書を表示・確認
+                              <span>👁️</span> 確認
                             </button>
                             <button
                               type="button"
@@ -1675,15 +1672,15 @@ function CemeteryDashboard() {
                                 setContractUploadFile(null);
                                 setContractUploadNotes(contract?.notes || '');
                               }}
-                              className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-sm cursor-pointer transition"
+                              className="py-2 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-xs cursor-pointer transition"
                               title="別のファイルで差し替える"
                             >
-                              🔄 差替
+                              差替
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteContract(vendor.id, vendor.displayName)}
-                              className="py-2.5 px-3 bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl text-sm cursor-pointer transition"
+                              className="py-2 px-3 bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl text-xs cursor-pointer transition"
                               title="契約書を削除する"
                             >
                               🗑️
@@ -1691,9 +1688,9 @@ function CemeteryDashboard() {
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 text-sm text-stone-800 space-y-3">
+                        <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-3 text-sm text-stone-800 space-y-2.5">
                           <p className="text-stone-700 text-xs leading-relaxed">
-                            ※墓石破損時の賠償責任や霊園管理規則を担保するため、契約書を交わして添付してください。
+                            ※作業に関する契約書を添付してください。
                           </p>
                           <div className="flex flex-wrap items-center gap-2 pt-0.5">
                             <button
@@ -1703,22 +1700,22 @@ function CemeteryDashboard() {
                                 setContractUploadFile(null);
                                 setContractUploadNotes('');
                               }}
-                              className="flex-1 py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-1.5 cursor-pointer transition shadow-sm"
+                              className="flex-1 py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition shadow-sm"
                             >
-                              <span>📎</span> 記入・捺印済み契約書を添付する
+                              <span>📎</span> 契約書を添付
                             </button>
                             <button
                               type="button"
                               onClick={() => {
                                 if (currentCompany.contractTemplateUrl) {
-                                  handleDownloadTemplatePdf(vendor);
+                                    handleDownloadTemplatePdf(vendor);
                                 } else {
                                   setContractPrintTargetVendor(vendor);
                                   setShowContractTemplateModal(true);
                                 }
                               }}
-                              className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-sm flex items-center justify-center gap-1 cursor-pointer transition"
-                              title="この業者に渡す契約書をダウンロード・印刷"
+                              className="py-2 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer transition"
+                              title="雛形ダウンロード"
                             >
                               <span>📄</span> 雛形DL
                             </button>
@@ -1728,12 +1725,12 @@ function CemeteryDashboard() {
                     </div>
                   </div>
 
-                  {/* 作業代行業者の画面を見に行くボタン（from=cemetery を付与） */}
+                  {/* 作業代行業者の画面を見に行くボタン */}
                   <Link
                     href={`/vendor?vendorId=${vendor.id}&from=cemetery&companyId=${currentCompany.id}`}
-                    className="mt-4 w-full py-3.5 px-4 bg-blue-700 hover:bg-blue-800 text-white text-lg font-bold rounded-2xl text-center shadow-md transition flex items-center justify-center gap-2"
+                    className="mt-4 w-full py-2.5 px-4 bg-blue-700 hover:bg-blue-800 text-white text-base font-bold rounded-xl text-center shadow transition flex items-center justify-center gap-1.5"
                   >
-                    <span>👁️</span> この代行業者の画面を確認する
+                    <span>👁️</span> 業者画面を確認
                   </Link>
                 </div>
               );
@@ -1744,14 +1741,14 @@ function CemeteryDashboard() {
         {/* 3. 管轄霊園のお申込み・作業進捗一覧 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
           <div className="mb-6">
-            <span className="text-base font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
-              ご依頼案件の進捗
+            <span className="text-sm font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
+              作業進捗
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-              当霊園での作業・ご供養の状況（{companyOrders.length}件）
+              作業状況（{companyOrders.length}件）
             </h2>
-            <p className="text-stone-600 text-base font-medium mt-1">
-              施主様からお申込みがあったお墓参り・清掃代行の最新状況です
+            <p className="text-stone-600 text-sm font-medium mt-1">
+              申込案件の作業進捗状況です
             </p>
           </div>
 
@@ -1759,11 +1756,11 @@ function CemeteryDashboard() {
             {companyOrders.map((order) => {
               const statusBadge =
                 order.status === 'completed'
-                  ? { label: '作業完了（報告済み）', bg: 'bg-emerald-600' }
+                  ? { label: '完了', bg: 'bg-emerald-600' }
                   : order.status === 'in_progress'
-                  ? { label: '現地作業中', bg: 'bg-blue-600' }
+                  ? { label: '作業中', bg: 'bg-blue-600' }
                   : order.status === 'paid'
-                  ? { label: '作業予定（準備中）', bg: 'bg-amber-600' }
+                  ? { label: '作業予定', bg: 'bg-amber-600' }
                   : { label: '確認中', bg: 'bg-stone-500' };
 
               return (
@@ -1773,50 +1770,50 @@ function CemeteryDashboard() {
                 >
                   <div className="space-y-3 flex-1">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className={`text-white text-base font-bold px-4 py-1.5 rounded-full ${statusBadge.bg}`}>
+                      <span className={`text-white text-sm font-bold px-3 py-1 rounded-full ${statusBadge.bg}`}>
                         {statusBadge.label}
                       </span>
-                      <span className="text-stone-500 text-base font-bold">
+                      <span className="text-stone-500 text-sm font-bold">
                         注文番号: {order.orderNumber}
                       </span>
                     </div>
 
-                    <div className="text-xl sm:text-2xl font-extrabold text-stone-900">
-                      正面文字:「{order.graveInfo.frontInscription}」様墓
-                      <span className="text-base font-normal text-stone-600 ml-3">
+                    <div className="text-xl font-extrabold text-stone-900">
+                      「{order.graveInfo.frontInscription}」様墓
+                      <span className="text-sm font-normal text-stone-600 ml-2">
                         （建立者: {order.graveInfo.builderName}）
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-base text-stone-700 bg-white p-4 rounded-2xl border border-stone-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-stone-700 bg-white p-3.5 rounded-2xl border border-stone-200">
                       <div>
-                        <span className="block text-stone-500 font-bold">区画・墓所番号</span>
-                        <span className="font-extrabold text-stone-900 text-lg">{order.graveInfo.sectionPlotNumber}</span>
+                        <span className="block text-stone-500 text-xs font-bold">区画番号</span>
+                        <span className="font-extrabold text-stone-900 text-base">{order.graveInfo.sectionPlotNumber}</span>
                       </div>
                       <div>
-                        <span className="block text-stone-500 font-bold">お申込プラン</span>
-                        <span className="font-extrabold text-stone-900 text-lg">{order.servicePlanName}</span>
+                        <span className="block text-stone-500 text-xs font-bold">プラン</span>
+                        <span className="font-extrabold text-stone-900 text-base">{order.servicePlanName}</span>
                       </div>
                       <div>
-                        <span className="block text-stone-500 font-bold">担当代行業者</span>
-                        <span className="font-extrabold text-blue-900 text-lg">👷 {order.vendorName}</span>
+                        <span className="block text-stone-500 text-xs font-bold">担当業者</span>
+                        <span className="font-extrabold text-blue-900 text-base">👷 {order.vendorName}</span>
                       </div>
                     </div>
 
                     {order.graveInfo.specialRequests && (
-                      <div className="text-base bg-amber-50 p-3 rounded-xl border border-amber-200 text-amber-900">
-                        <strong>施主様からのご要望:</strong> {order.graveInfo.specialRequests}
+                      <div className="text-sm bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-amber-900">
+                        <strong>ご要望:</strong> {order.graveInfo.specialRequests}
                       </div>
                     )}
                   </div>
 
                   {/* 担当代行業者の画面へ飛ぶボタン */}
-                  <div className="lg:w-60 flex flex-col gap-2">
+                  <div className="lg:w-56 flex flex-col gap-2">
                     <Link
                       href={`/vendor/reports/${order.id}`}
-                      className="w-full py-3.5 px-4 bg-stone-800 hover:bg-stone-900 text-white text-base font-bold rounded-2xl text-center shadow transition"
+                      className="w-full py-2.5 px-4 bg-stone-800 hover:bg-stone-900 text-white text-sm font-bold rounded-xl text-center shadow transition"
                     >
-                      担当業者の作業レポートを見る →
+                      作業レポートを見る →
                     </Link>
                   </div>
                 </div>
@@ -1829,61 +1826,61 @@ function CemeteryDashboard() {
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-stone-200">
           <div className="mb-6 pb-6 border-b-2 border-stone-200 flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="flex-1">
-              <span className="text-base font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
-                顧客台帳 ＆ 最強オンボーディングDM発行
+              <span className="text-sm font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
+                施主名簿・DM
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-                施主様名簿 ＆ 案内DM・メール一括配信（{clientsSummary.length}名登録中）
+                施主名簿・案内配信（{clientsSummary.length}名）
               </h2>
-              <p className="text-stone-600 text-base font-medium mt-1">
-                手元の顧客台帳CSVを取り込めばアカウントとお墓情報が自動生成。専用QRコード付き案内DM（ハガキ/用紙）を一括発行できます。
+              <p className="text-stone-600 text-sm font-medium mt-1">
+                顧客CSV取り込み、案内DM（QR付）の印刷、案内メール作成が行えます
               </p>
             </div>
             {/* 縦並びアクションボタングループ */}
-            <div className="flex flex-col gap-2 shrink-0 md:min-w-[280px]">
+            <div className="flex flex-col gap-2 shrink-0 md:min-w-[260px]">
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
-                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>📁</span> 施主名簿CSV一括取り込み
+                <span>📁</span> CSV一括取込
               </button>
               <button
                 type="button"
                 onClick={() => handleOpenDmModal()}
-                className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>📮</span> パーソナライズ案内DM印刷（QRコード付）
+                <span>📮</span> 案内DM印刷（QR付）
               </button>
               <button
                 type="button"
                 onClick={() => setIsAddingTemplateModal(true)}
                 className="w-full px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-bold rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>➕</span> メール文面追加
+                <span>➕</span> 文面追加
               </button>
             </div>
           </div>
 
-          {/* 💡 最強オンボーディング戦略と送信方式の解説パネル */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="bg-emerald-50/90 border-2 border-emerald-300 rounded-2xl p-5 text-stone-800 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-lg">
-                <span className="text-xl">🚀</span>
-                <span>摩擦ゼロ！成約率を跳ね上げるパーソナライズ案内DM</span>
+          {/* 案内DMとメール送信のシンプル解説パネル */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-emerald-50/90 border border-emerald-300 rounded-2xl p-4 text-stone-800 space-y-1.5">
+              <div className="flex items-center gap-2 text-emerald-900 font-bold text-base">
+                <span>📮</span>
+                <span>パーソナライズ案内DM</span>
               </div>
-              <p className="text-sm text-stone-700 leading-relaxed">
-                施主様のお墓の写真や区画番号、ログインID（電話番号）が<strong>すでに設定された状態の案内DM（ハガキ/A4）</strong>を印刷できます。施主様はスマホでQRコードを読み込み、<strong>「日程とプランを選ぶだけ」</strong>でお墓参り・清掃代行の注文が完了します。
+              <p className="text-xs text-stone-700 leading-relaxed">
+                お墓情報やQRコードが印字されたDMを発行できます。施主様はQRコードから簡単に申込可能です。
               </p>
             </div>
 
-            <div className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 text-stone-800 space-y-2">
-              <div className="flex items-center gap-2 text-amber-900 font-extrabold text-lg">
-                <span className="text-xl">💡</span>
-                <span>案内メールは、霊園様のメールソフト（Outlook・Gmail等）のBCCで送信</span>
+            <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 text-stone-800 space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-base">
+                <span>✉️</span>
+                <span>案内メールのBCC送信</span>
               </div>
-              <p className="text-sm text-stone-700 leading-relaxed">
-                施主様からの「次回もお願いしたい」「希望日を変更したい」などの返信を霊園事務所の普段の受信トレイで確実に受け取れるよう、<strong>メールソフトのBCC宛先として一発起動・送信</strong>できます。
+              <p className="text-xs text-stone-700 leading-relaxed">
+                霊園でお使いのメールソフト（Outlook/Gmail等）をBCC宛先設定で起動し、直接送信できます。
               </p>
             </div>
           </div>
@@ -1901,21 +1898,21 @@ function CemeteryDashboard() {
               {/* ヘッダー部（縦並び配置で崩れ防止） */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-200 shrink-0">
                 <div>
-                  <span className="font-extrabold text-stone-900 text-lg flex items-center gap-1.5">
-                    <span>👥</span> 対象の施主様を選択
+                  <span className="font-extrabold text-stone-900 text-base flex items-center gap-1.5">
+                    <span>👥</span> 施主一覧
                   </span>
                   <p className="text-xs text-stone-600 font-bold mt-0.5">
                     選択中: <strong className="text-blue-700 text-sm">{selectedClientIds.length}</strong> / {clientsSummary.length} 名
                   </p>
                 </div>
                 {/* 縦並び選択・DMボタン */}
-                <div className="flex flex-col gap-1.5 shrink-0 sm:min-w-[160px]">
+                <div className="flex flex-col gap-1.5 shrink-0 sm:min-w-[140px]">
                   <button
                     type="button"
                     onClick={handleToggleSelectAllClients}
-                    className="w-full px-3 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer shadow-2xs text-center"
+                    className="w-full px-3 py-1.5 bg-white hover:bg-stone-200 border border-stone-300 text-stone-800 text-xs font-bold rounded-xl transition cursor-pointer shadow-2xs text-center"
                   >
-                    {selectedClientIds.length === clientsSummary.length ? 'すべての選択を解除' : '全員を選択する'}
+                    {selectedClientIds.length === clientsSummary.length ? '全解除' : '全選択'}
                   </button>
                   {selectedClientIds.length > 0 && (
                     <button
@@ -1924,7 +1921,7 @@ function CemeteryDashboard() {
                         const targets = clientsSummary.filter((c) => selectedClientIds.includes(c.id));
                         handleOpenDmModal(targets);
                       }}
-                      className="w-full px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1 cursor-pointer"
+                      className="w-full px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <span>📮</span> DM印刷（{selectedClientIds.length}名）
                     </button>
@@ -1936,7 +1933,7 @@ function CemeteryDashboard() {
               <div className="flex-1 overflow-y-auto space-y-3 pr-1 pt-3 mt-1 min-h-[500px] max-h-[720px]">
                 {clientsSummary.length === 0 ? (
                   <div className="text-center py-12 bg-stone-50 rounded-2xl border border-dashed border-stone-300 text-stone-500">
-                    現在、利用履歴のある施主様データはありません。
+                    施主データはありません。
                   </div>
                 ) : (
                   clientsSummary.map((client) => {
@@ -1962,30 +1959,30 @@ function CemeteryDashboard() {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleToggleClientId(client.id)}
-                            className="w-6 h-6 mt-1 text-blue-600 rounded cursor-pointer shrink-0 accent-blue-600"
+                            className="w-5 h-5 mt-1 text-blue-600 rounded cursor-pointer shrink-0 accent-blue-600"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-extrabold text-stone-900 text-lg">
+                                <span className="font-extrabold text-stone-900 text-base">
                                   {client.name} 様
                                 </span>
                                 {client.subscriptionType === 'annual' ? (
-                                  <span className="text-xs font-black px-2.5 py-0.5 bg-amber-500 text-stone-950 rounded-lg flex items-center gap-1 shadow-2xs">
-                                    <span>🔥</span> 年{client.annualFrequency}回定期（一括決済済）
+                                  <span className="text-[11px] font-bold px-2 py-0.5 bg-amber-500 text-stone-950 rounded-lg flex items-center gap-1 shadow-2xs">
+                                    年{client.annualFrequency}回定期
                                   </span>
                                 ) : client.orderCount > 0 ? (
-                                  <span className="text-xs font-bold px-2 py-0.5 bg-stone-200 text-stone-800 rounded-lg">
-                                    利用: {client.orderCount}回
+                                  <span className="text-[11px] font-bold px-2 py-0.5 bg-stone-200 text-stone-800 rounded-lg">
+                                    {client.orderCount}回利用
                                   </span>
                                 ) : (
-                                  <span className="text-xs font-normal px-2 py-0.5 bg-stone-100 text-stone-500 rounded-lg">
+                                  <span className="text-[11px] font-normal px-2 py-0.5 bg-stone-100 text-stone-500 rounded-lg">
                                     未利用
                                   </span>
                                 )}
                                 {client.nextScheduledDate && (
                                   <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                    次回予定: {client.nextScheduledDate}
+                                    次回: {client.nextScheduledDate}
                                   </span>
                                 )}
                               </div>
@@ -1995,9 +1992,9 @@ function CemeteryDashboard() {
                                 <Link
                                   href={`/cemetery/clients/${client.id}?companyId=${companyId}`}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs font-bold px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg transition flex items-center gap-1 shadow-xs cursor-pointer"
+                                  className="text-xs font-bold px-2.5 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg transition flex items-center gap-1 shadow-xs cursor-pointer"
                                 >
-                                  <span>📋</span> 顧客カルテ詳細 ↗
+                                  <span>📋</span> 詳細 ↗
                                 </Link>
                                 <button
                                   type="button"
@@ -2005,15 +2002,15 @@ function CemeteryDashboard() {
                                     e.stopPropagation();
                                     handleOpenEditClient(client);
                                   }}
-                                  className="text-xs font-bold px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-amber-300"
+                                  className="text-xs font-bold px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-amber-300"
                                 >
-                                  <span>📸</span> 写真・お墓編集
+                                  <span>📸</span> 編集
                                 </button>
                                 <Link
                                   href={`/mypage?from=cemetery&clientId=${client.id}&clientName=${encodeURIComponent(client.name)}`}
                                   target="_blank"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs font-bold px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-emerald-300"
+                                  className="text-xs font-bold px-2 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg transition flex items-center gap-1 cursor-pointer border border-emerald-300"
                                 >
                                   <span>👤</span> 施主画面 ↗
                                 </Link>
@@ -2023,7 +2020,7 @@ function CemeteryDashboard() {
                                     e.stopPropagation();
                                     handleOpenDmModal([client]);
                                   }}
-                                  className="text-xs font-bold px-2.5 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition flex items-center gap-1 cursor-pointer border border-blue-300"
+                                  className="text-xs font-bold px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition flex items-center gap-1 cursor-pointer border border-blue-300"
                                 >
                                   <span>📮</span> DM印刷
                                 </button>
@@ -2037,7 +2034,7 @@ function CemeteryDashboard() {
                                 <div
                                   onClick={() => handleOpenEditClient(client)}
                                   className="w-14 h-14 rounded-lg bg-stone-100 border border-stone-300 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center shadow-2xs"
-                                  title="正面写真（クリックで編集）"
+                                  title="正面写真"
                                 >
                                   {client.photoUrl ? (
                                     <img
@@ -2059,7 +2056,7 @@ function CemeteryDashboard() {
                                 <div
                                   onClick={() => handleOpenEditClient(client)}
                                   className="w-14 h-14 rounded-lg bg-stone-100 border border-stone-300 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center shadow-2xs"
-                                  title="側面建立者写真（クリックで編集）"
+                                  title="側面建立者写真"
                                 >
                                   {client.builderPhotoUrl ? (
                                     <img
@@ -2082,7 +2079,7 @@ function CemeteryDashboard() {
                                   <div
                                     onClick={() => handleOpenEditClient(client)}
                                     className="w-14 h-14 rounded-lg bg-emerald-50 border-2 border-emerald-500 overflow-hidden shrink-0 cursor-pointer relative group flex items-center justify-center shadow-2xs"
-                                    title="提携業者清掃後写真（最新実績）"
+                                    title="清掃後写真"
                                   >
                                     <img
                                       src={client.latestAfterPhotoUrl}
@@ -2121,7 +2118,7 @@ function CemeteryDashboard() {
                                 ✉️ {client.email ? (
                                   <strong className="text-stone-700">{client.email}</strong>
                                 ) : (
-                                  <span className="text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded">メール未登録（DMハガキ送付推奨）</span>
+                                  <span className="text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded">メール未登録</span>
                                 )}
                               </span>
                               {lastDate && (
@@ -2145,35 +2142,35 @@ function CemeteryDashboard() {
               </div>
             </div>
 
-            {/* 右側: 案内メール作成 ＆ 送信アクション (col-span-6 または 5) */}
+            {/* 右側: 案内メール作成 ＆ 送信アクション */}
             <div className="lg:col-span-6 bg-stone-50 rounded-2xl p-5 sm:p-6 border-2 border-stone-300 flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200">
-                  <span className="font-extrabold text-stone-900 text-lg flex items-center gap-1.5">
-                    <span>✉️</span> 案内メールの文面編集
+                  <span className="font-extrabold text-stone-900 text-base flex items-center gap-1.5">
+                    <span>✉️</span> 案内メール作成
                   </span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       disabled={isSavingTemplateLoading}
                       onClick={handleSaveEmailTemplate}
-                      className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold rounded-xl shadow transition active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:bg-stone-400"
+                      className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow transition active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:bg-stone-400"
                     >
-                      <span>💾</span> {isSavingTemplateLoading ? '保存中...' : 'この文面を上書き保存'}
+                      <span>💾</span> {isSavingTemplateLoading ? '保存中...' : '文面保存'}
                     </button>
                   </div>
                 </div>
 
                 {/* テンプレート選択 */}
                 <div>
-                  <label htmlFor="email-template-select" className="block text-sm font-bold text-stone-700 mb-1">
-                    文面テンプレート選択（時期・用途別）:
+                  <label htmlFor="email-template-select" className="block text-xs font-bold text-stone-700 mb-1">
+                    テンプレート:
                   </label>
                   <select
                     id="email-template-select"
                     value={selectedTemplateId}
                     onChange={(e) => handleSelectTemplate(e.target.value)}
-                    className="w-full bg-white text-stone-900 font-bold px-4 py-2.5 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-base shadow-xs"
+                    className="w-full bg-white text-stone-900 font-bold px-3.5 py-2 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-sm shadow-xs"
                   >
                     {activeTemplates.map((t) => (
                       <option key={t.id} value={t.id}>
@@ -2185,63 +2182,63 @@ function CemeteryDashboard() {
 
                 {/* 件名 */}
                 <div>
-                  <label htmlFor="email-subject-input" className="block text-sm font-bold text-stone-700 mb-1">
-                    メール件名:
+                  <label htmlFor="email-subject-input" className="block text-xs font-bold text-stone-700 mb-1">
+                    件名:
                   </label>
                   <input
                     id="email-subject-input"
                     type="text"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
-                    className="w-full bg-white text-stone-900 font-bold px-4 py-2.5 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-base shadow-xs"
+                    className="w-full bg-white text-stone-900 font-bold px-3.5 py-2 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-sm shadow-xs"
                     placeholder="メールの件名を入力"
                   />
                 </div>
 
                 {/* 本文 */}
                 <div>
-                  <label htmlFor="email-body-textarea" className="block text-sm font-bold text-stone-700 mb-1">
-                    メール本文（自由に加筆・修正できます）:
+                  <label htmlFor="email-body-textarea" className="block text-xs font-bold text-stone-700 mb-1">
+                    本文:
                   </label>
                   <textarea
                     id="email-body-textarea"
                     rows={12}
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
-                    className="w-full bg-white text-stone-900 font-medium px-4 py-3 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-base leading-relaxed shadow-xs"
+                    className="w-full bg-white text-stone-900 font-medium px-3.5 py-2.5 rounded-xl border-2 border-stone-300 focus:border-blue-500 outline-none text-sm leading-relaxed shadow-xs"
                     placeholder="メールの本文を入力"
                   />
                 </div>
               </div>
 
               {/* 送信アクションボタン群 */}
-              <div className="mt-6 pt-5 border-t-2 border-stone-300 space-y-3">
+              <div className="mt-5 pt-4 border-t-2 border-stone-300 space-y-2.5">
                 <button
                   type="button"
                   onClick={handleLaunchMailer}
-                  className="w-full py-4 px-6 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-xl font-extrabold rounded-2xl shadow-lg transition flex items-center justify-center gap-3 cursor-pointer"
+                  className="w-full py-3 px-4 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-base font-extrabold rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>✉️</span>
-                  <span>メールソフトを起動して送信（BCC {selectedClientEmails.length}件）</span>
+                  <span>メールソフト起動（BCC {selectedClientEmails.length}件）</span>
                 </button>
                 <p className="text-center text-xs text-stone-500">
-                  ※お使いのPCのメールソフト（Outlook、Mac Mail、Thunderbird等）が起動し、BCC宛先と本文が自動入力されます。
+                  ※メールソフトが起動し、BCC宛先と本文が自動入力されます。
                 </p>
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={handleCopyBcc}
-                    className="py-3 px-3 bg-white hover:bg-stone-100 border-2 border-stone-300 text-stone-800 font-bold text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                   >
-                    <span>📋</span> BCC宛先アドレスをコピー
+                    <span>📋</span> BCC宛先コピー
                   </button>
                   <button
                     type="button"
                     onClick={handleCopyBody}
-                    className="py-3 px-3 bg-white hover:bg-stone-100 border-2 border-stone-300 text-stone-800 font-bold text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="py-2.5 px-3 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                   >
-                    <span>📋</span> 件名と本文をコピー
+                    <span>📋</span> 件名・本文コピー
                   </button>
                 </div>
               </div>
@@ -2257,16 +2254,16 @@ function CemeteryDashboard() {
           className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-amber-500 max-h-[90vh] overflow-y-auto cursor-default">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mb-2">
-              管理会社情報の変更・編集
+            <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mb-1">
+              霊園管理情報の編集
             </h3>
-            <p className="text-stone-600 text-base mb-6 font-medium">
-              入力内容を修正して「更新を保存する」ボタンを押してください。
+            <p className="text-stone-600 text-sm mb-5 font-medium">
+              登録情報を入力して保存してください。
             </p>
 
-            <form onSubmit={handleSaveCompany} className="space-y-5">
+            <form onSubmit={handleSaveCompany} className="space-y-4">
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
+                <label className="block text-base font-bold text-stone-800 mb-1">
                   会社・事務所名
                 </label>
                 <input
@@ -2274,90 +2271,90 @@ function CemeteryDashboard() {
                   required
                   value={editFormData.name || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
+                  className="w-full text-base p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-lg font-bold text-stone-800 mb-1">
-                    代表・管理責任者名
+                  <label className="block text-base font-bold text-stone-800 mb-1">
+                    代表者名
                   </label>
                   <input
                     type="text"
                     required
                     value={editFormData.representativeName || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, representativeName: e.target.value })}
-                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
+                    className="w-full text-base p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-lg font-bold text-stone-800 mb-1">
-                    お電話番号
+                  <label className="block text-base font-bold text-stone-800 mb-1">
+                    電話番号
                   </label>
                   <input
                     type="text"
                     required
                     value={editFormData.phoneNumber || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, phoneNumber: e.target.value })}
-                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
+                    className="w-full text-base p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  メールアドレス
+                <label className="block text-base font-bold text-stone-800 mb-1">
+                  メール
                 </label>
                 <input
                   type="email"
                   required
                   value={editFormData.email || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
+                  className="w-full text-base p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  所在地・住所
+                <label className="block text-base font-bold text-stone-800 mb-1">
+                  所在地
                 </label>
                 <input
                   type="text"
                   required
                   value={editFormData.locationAddress || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, locationAddress: e.target.value })}
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
+                  className="w-full text-base p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  霊園の説明・備考
+                <label className="block text-base font-bold text-stone-800 mb-1">
+                  説明・備考
                 </label>
                 <textarea
                   rows={3}
                   value={editFormData.description || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
+                  className="w-full text-base p-3 rounded-xl border-2 border-stone-300 focus:border-amber-600 outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t-2 border-stone-200 flex gap-4">
+              <div className="pt-3 border-t-2 border-stone-200 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsEditingCompany(false)}
-                  className="flex-1 py-4 px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xl font-bold rounded-2xl transition"
+                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 text-base font-bold rounded-xl transition"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-4 px-6 bg-amber-600 hover:bg-amber-700 text-white text-xl font-bold rounded-2xl shadow-lg transition"
+                  className="flex-1 py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white text-base font-bold rounded-xl shadow transition"
                 >
-                  {loading ? '保存中...' : '更新を保存する'}
+                  {loading ? '保存中...' : '保存'}
                 </button>
               </div>
             </form>
@@ -2365,24 +2362,22 @@ function CemeteryDashboard() {
         </div>
       )}
 
-      {/* 提携代行業者 編集モーダル（高齢者向け特大UI） */}
+      {/* 提携代行業者 編集モーダル */}
       {isEditingVendors && (
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsEditingVendors(false); }}
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-600 max-h-[90vh] flex flex-col cursor-default">
-            <div className="pb-4 border-b-2 border-stone-200">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-blue-100 text-blue-900 text-base font-extrabold rounded-full">
-                  出入り認定・提携設定
-                </span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-                提携作業代行業者の追加・解除
+            <div className="pb-3 border-b-2 border-stone-200">
+              <span className="px-2.5 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded-full">
+                提携設定
+              </span>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mt-1">
+                提携業者の設定
               </h3>
-              <p className="text-stone-600 text-lg mt-1 font-medium">
-                当霊園（{currentCompany?.name}）で作業を認める代行業者を選んでチェックを入れてください。
+              <p className="text-stone-600 text-sm mt-0.5 font-medium">
+                作業を認可する代行業者を選択してください。
               </p>
             </div>
 
@@ -2394,48 +2389,48 @@ function CemeteryDashboard() {
                   <div
                     key={vendor.id}
                     onClick={() => handleToggleVendorId(vendor.id)}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition flex items-start justify-between gap-4 ${
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition flex items-start justify-between gap-4 ${
                       isChecked
                         ? 'bg-blue-50/80 border-blue-500 shadow-sm'
                         : 'bg-stone-50 border-stone-300 hover:border-stone-400 opacity-80 hover:opacity-100'
                     }`}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => {}} // 親divのonClickでトグル
-                        className="mt-1.5 w-6 h-6 rounded text-blue-700 focus:ring-blue-500 cursor-pointer accent-blue-700 shrink-0"
+                        className="mt-1 w-5 h-5 rounded text-blue-700 focus:ring-blue-500 cursor-pointer accent-blue-700 shrink-0"
                       />
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-xl sm:text-2xl font-extrabold text-stone-900">
+                          <h4 className="text-lg font-extrabold text-stone-900">
                             {vendor.displayName}
                           </h4>
                           {isChecked ? (
-                            <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-full">
-                              ✅ 提携・出入り認可
+                            <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                              ✅ 提携認可
                             </span>
                           ) : (
-                            <span className="bg-stone-200 text-stone-600 text-sm font-bold px-3 py-1 rounded-full">
+                            <span className="bg-stone-200 text-stone-600 text-xs font-bold px-2 py-0.5 rounded-full">
                               未提携
                             </span>
                           )}
                         </div>
-                        <p className="text-base text-stone-700 font-bold mt-1">
+                        <p className="text-sm text-stone-700 font-bold mt-0.5">
                           代表: {vendor.vendorProfile?.representativeName} • 電話: {vendor.phoneNumber}
                         </p>
-                        <p className="text-base text-stone-600 mt-1 line-clamp-1">
+                        <p className="text-xs text-stone-600 mt-0.5 line-clamp-1">
                           {vendor.vendorProfile?.description}
                         </p>
-                        <div className="text-sm text-stone-500 mt-1">
-                          対応地域: {vendor.vendorProfile?.serviceAreas?.join(', ')} / 実績: {vendor.vendorProfile?.completedJobsCount}件完了
+                        <div className="text-xs text-stone-500 mt-0.5">
+                          対応: {vendor.vendorProfile?.serviceAreas?.join(', ')} / 実績: {vendor.vendorProfile?.completedJobsCount}件
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-base font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-lg border border-amber-300">
+                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-300">
                         ★ {vendor.vendorProfile?.rating}点
                       </span>
                     </div>
@@ -2445,11 +2440,11 @@ function CemeteryDashboard() {
             </div>
 
             {/* モーダルフッター */}
-            <div className="pt-4 border-t-2 border-stone-200 flex gap-4">
+            <div className="pt-3 border-t-2 border-stone-200 flex gap-3">
               <button
                 type="button"
                 onClick={() => setIsEditingVendors(false)}
-                className="flex-1 py-4 px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xl font-bold rounded-2xl transition"
+                className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 text-base font-bold rounded-xl transition cursor-pointer"
               >
                 キャンセル
               </button>
@@ -2457,120 +2452,112 @@ function CemeteryDashboard() {
                 type="button"
                 disabled={loading}
                 onClick={handleSaveVendors}
-                className="flex-1 py-4 px-6 bg-blue-700 hover:bg-blue-800 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 bg-blue-700 hover:bg-blue-800 text-white text-base font-bold rounded-xl shadow transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                {loading ? '保存中...' : '提携業者の変更を保存する'}
+                {loading ? '保存中...' : '保存'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 新規代行業者・便利屋さん 登録モーダル（注意喚起付き） */}
+      {/* 新規代行業者・便利屋さん 登録モーダル */}
       {isAddingNewVendor && (
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsAddingNewVendor(false); }}
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto cursor-default">
-            <div className="pb-4 border-b-2 border-stone-200">
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-900 text-base font-extrabold rounded-full">
-                パートナー新規追加
+            <div className="pb-3 border-b-2 border-stone-200">
+              <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full">
+                パートナー追加
               </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-2">
-                作業代行業者・便利屋さんの新規登録
+              <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mt-1">
+                作業代行業者の新規登録
               </h3>
-              <p className="text-stone-600 text-base mt-1 font-medium">
-                当霊園（{currentCompany?.name}）で作業を行う代行業者または個人の便利屋さんを新しく登録します。
+              <p className="text-stone-600 text-sm mt-0.5 font-medium">
+                作業を委託する業者または便利屋さんを登録します。
               </p>
             </div>
 
-            {/* ⚠️ 注意喚起・重要確認事項ボックス */}
-            <div className="my-5 p-5 bg-amber-50 border-2 border-amber-400 rounded-2xl text-stone-800 space-y-3">
-              <div className="flex items-center gap-2 text-amber-900 font-extrabold text-lg">
-                <span className="text-2xl">⚠️</span>
-                <span>【重要】業者・個人を登録する前の確認事項</span>
+            {/* 注意事項ボックス */}
+            <div className="my-4 p-4 bg-amber-50 border border-amber-300 rounded-2xl text-stone-800 space-y-2">
+              <div className="flex items-center gap-1.5 text-amber-900 font-bold text-sm">
+                <span>⚠️</span>
+                <span>登録前の確認事項</span>
               </div>
-              <ul className="text-base space-y-2 list-disc list-inside text-stone-700 font-medium">
-                <li>
-                  <strong className="text-stone-900">墓石清掃の安全遵守:</strong> 金属たわしや酸性・塩素系洗剤の使用は禁止です（水垢落としは専用中性洗剤と柔らかい布・スポンジのみ）。
-                </li>
-                <li>
-                  <strong className="text-stone-900">他家墓所への配慮:</strong> ご依頼区画以外の墓石・敷地・花立て等には一切手を触れないようご指導ください。
-                </li>
-                <li>
-                  <strong className="text-stone-900">身元・連絡先の確認:</strong> 確実につながるお電話番号とご担当者氏名を正しくご入力ください。
-                </li>
-                <li>
-                  <strong className="text-stone-900">破損時の賠償責任:</strong> 万が一の墓石破損やトラブルが生じた際の責任と対応ルールをご周知ください。
-                </li>
+              <ul className="text-xs space-y-1 list-disc list-inside text-stone-700">
+                <li>墓石清掃の安全遵守（金属たわし・酸性洗剤の禁止）</li>
+                <li>他家墓所への配慮（依頼区画以外には触れない）</li>
+                <li>連絡先の確認（電話番号・担当者名）</li>
+                <li>破損時の賠償責任ルールの周知</li>
               </ul>
 
               <div className="pt-2 border-t border-amber-200">
-                <label className="flex items-start gap-3 cursor-pointer select-none">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={agreedToSafetyWarnings}
                     onChange={(e) => setAgreedToSafetyWarnings(e.target.checked)}
-                    className="mt-1 w-6 h-6 rounded text-amber-700 focus:ring-amber-500 accent-amber-700 shrink-0 cursor-pointer"
+                    className="w-5 h-5 rounded text-amber-700 focus:ring-amber-500 accent-amber-700 shrink-0 cursor-pointer"
                   />
-                  <span className="text-base font-extrabold text-amber-950">
-                    上記の安全注意事項を確認し、責任を持って代行業者・便利屋さんを登録します（必須チェック）
+                  <span className="text-xs font-bold text-amber-950">
+                    上記の注意事項を確認しました（必須）
                   </span>
                 </label>
               </div>
             </div>
 
             {/* 登録フォーム */}
-            <form onSubmit={handleCreateVendor} className="space-y-4">
+            <form onSubmit={handleCreateVendor} className="space-y-3.5">
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  事業形態・種別
+                <label className="block text-sm font-bold text-stone-800 mb-1">
+                  種別
                 </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 text-lg font-bold text-stone-800 cursor-pointer p-3 bg-stone-50 rounded-xl border border-stone-300 flex-1">
+                <div className="flex gap-3">
+                  <label className="flex items-center gap-2 text-sm font-bold text-stone-800 cursor-pointer p-2.5 bg-stone-50 rounded-xl border border-stone-300 flex-1">
                     <input
                       type="radio"
                       name="businessType"
                       value="individual"
                       checked={newVendorData.businessType === 'individual'}
                       onChange={() => setNewVendorData({ ...newVendorData, businessType: 'individual' })}
-                      className="w-5 h-5 text-emerald-700"
+                      className="w-4 h-4 text-emerald-700"
                     />
-                    <span>個人事業主・便利屋さん</span>
+                    <span>個人事業主・便利屋</span>
                   </label>
-                  <label className="flex items-center gap-2 text-lg font-bold text-stone-800 cursor-pointer p-3 bg-stone-50 rounded-xl border border-stone-300 flex-1">
+                  <label className="flex items-center gap-2 text-sm font-bold text-stone-800 cursor-pointer p-2.5 bg-stone-50 rounded-xl border border-stone-300 flex-1">
                     <input
                       type="radio"
                       name="businessType"
                       value="corporation"
                       checked={newVendorData.businessType === 'corporation'}
                       onChange={() => setNewVendorData({ ...newVendorData, businessType: 'corporation' })}
-                      className="w-5 h-5 text-emerald-700"
+                      className="w-4 h-4 text-emerald-700"
                     />
-                    <span>法人・石材店・清掃会社</span>
+                    <span>法人・石材店</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  屋号・業者名・個人名 <span className="text-red-600 text-sm font-bold">必須</span>
+                <label className="block text-sm font-bold text-stone-800 mb-1">
+                  業者名・屋号 <span className="text-red-600 text-xs font-bold">必須</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={newVendorData.displayName}
                   onChange={(e) => setNewVendorData({ ...newVendorData, displayName: e.target.value })}
-                  placeholder="例: 松山おそうじサポート、便利屋 山田"
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  placeholder="例: 松山おそうじサポート"
+                  className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-lg font-bold text-stone-800 mb-1">
-                    代表者・担当者氏名 <span className="text-red-600 text-sm font-bold">必須</span>
+                  <label className="block text-sm font-bold text-stone-800 mb-1">
+                    代表者名 <span className="text-red-600 text-xs font-bold">必須</span>
                   </label>
                   <input
                     type="text"
@@ -2578,29 +2565,29 @@ function CemeteryDashboard() {
                     value={newVendorData.representativeName}
                     onChange={(e) => setNewVendorData({ ...newVendorData, representativeName: e.target.value })}
                     placeholder="例: 山田 太郎"
-                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                    className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-lg font-bold text-stone-800 mb-1">
-                    お電話番号 <span className="text-red-600 text-sm font-bold">必須</span>
+                  <label className="block text-sm font-bold text-stone-800 mb-1">
+                    電話番号 <span className="text-red-600 text-xs font-bold">必須</span>
                   </label>
                   <input
                     type="tel"
                     required
                     value={newVendorData.phoneNumber}
                     onChange={(e) => setNewVendorData({ ...newVendorData, phoneNumber: e.target.value })}
-                    placeholder="例: 089-999-0000 または 携帯"
-                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                    placeholder="例: 089-999-0000"
+                    className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-lg font-bold text-stone-800 mb-1">
-                    メールアドレス（ログインID） <span className="text-red-600 text-sm font-bold">必須</span>
+                  <label className="block text-sm font-bold text-stone-800 mb-1">
+                    メールアドレス <span className="text-red-600 text-xs font-bold">必須</span>
                   </label>
                   <input
                     type="email"
@@ -2608,12 +2595,12 @@ function CemeteryDashboard() {
                     value={newVendorData.email}
                     onChange={(e) => setNewVendorData({ ...newVendorData, email: e.target.value })}
                     placeholder="例: yamada@example.com"
-                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                    className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-lg font-bold text-stone-800 mb-1">
+                  <label className="block text-sm font-bold text-stone-800 mb-1">
                     初期パスワード
                   </label>
                   <input
@@ -2621,56 +2608,55 @@ function CemeteryDashboard() {
                     required
                     value={newVendorData.password}
                     onChange={(e) => setNewVendorData({ ...newVendorData, password: e.target.value })}
-                    placeholder="例: vendor1234"
-                    className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                    className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  対応可能エリア
+                <label className="block text-sm font-bold text-stone-800 mb-1">
+                  対応エリア
                 </label>
                 <input
                   type="text"
                   value={newVendorData.serviceAreas}
                   onChange={(e) => setNewVendorData({ ...newVendorData, serviceAreas: e.target.value })}
-                  placeholder="例: 松山市全域、東温市、伊予市"
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  placeholder="例: 松山市全域"
+                  className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-stone-800 mb-1">
-                  自己紹介・アピール点・備考
+                <label className="block text-sm font-bold text-stone-800 mb-1">
+                  備考
                 </label>
                 <textarea
                   rows={2}
                   value={newVendorData.description}
                   onChange={(e) => setNewVendorData({ ...newVendorData, description: e.target.value })}
-                  placeholder="例: 松山市内で草刈り・便利屋業を営んでいます。丁寧にお参りとお掃除をいたします。"
-                  className="w-full text-lg p-3.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  placeholder="備考を入力"
+                  className="w-full text-base p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t-2 border-stone-200 flex gap-4">
+              <div className="pt-3 border-t-2 border-stone-200 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddingNewVendor(false)}
-                  className="flex-1 py-4 px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xl font-bold rounded-2xl transition"
+                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 text-base font-bold rounded-xl transition"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !agreedToSafetyWarnings}
-                  className={`flex-1 py-4 px-6 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-3 px-4 text-white text-base font-bold rounded-xl shadow transition flex items-center justify-center gap-2 ${
                     loading || !agreedToSafetyWarnings
                       ? 'bg-stone-400 cursor-not-allowed'
                       : 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer'
                   }`}
                 >
-                  {loading ? '登録中...' : 'この業者を登録して提携先に追加'}
+                  {loading ? '登録中...' : '登録する'}
                 </button>
               </div>
             </form>
@@ -2691,12 +2677,12 @@ function CemeteryDashboard() {
         >
           <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden my-4 cursor-default">
             {/* モーダル操作ヘッダー（印刷時は非表示） */}
-            <div className="no-print p-5 bg-stone-900 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div className="no-print p-4 bg-stone-900 text-white flex flex-wrap items-center justify-between gap-3 shrink-0">
               <div>
                 <span className="text-xs bg-amber-500 text-stone-950 font-bold px-2.5 py-0.5 rounded-full">
-                  {contractPrintTargetVendor ? `専用契約書（${contractPrintTargetVendor.displayName}）` : '契約書標準雛形（手書き用）'}
+                  {contractPrintTargetVendor ? `専用契約書（${contractPrintTargetVendor.displayName}）` : '契約書雛形'}
                 </span>
-                <h3 className="text-xl font-bold mt-1">
+                <h3 className="text-lg font-bold mt-1">
                   📄 墓地内作業代行業務 基本契約書 兼 遵守誓約書
                 </h3>
               </div>
@@ -2704,16 +2690,16 @@ function CemeteryDashboard() {
                 <button
                   type="button"
                   onClick={handlePrintContract}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition cursor-pointer"
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
                 >
-                  <span>🖨️</span> PDF保存・印刷する（A4）
+                  <span>🖨️</span> 印刷（PDF保存）
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDownloadContractHtml(contractPrintTargetVendor)}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm flex items-center gap-1.5 shadow-md transition cursor-pointer"
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
                 >
-                  <span>📥</span> HTML文書をDL
+                  <span>📥</span> HTMLダウンロード
                 </button>
                 <button
                   type="button"
@@ -2721,9 +2707,9 @@ function CemeteryDashboard() {
                     setShowContractTemplateModal(false);
                     setContractPrintTargetVendor(null);
                   }}
-                  className="px-3.5 py-2.5 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded-xl text-sm transition cursor-pointer"
+                  className="px-3 py-2 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded-xl text-xs transition cursor-pointer"
                 >
-                  ✕ 閉じる
+                  閉じる
                 </button>
               </div>
             </div>
@@ -2849,13 +2835,13 @@ function CemeteryDashboard() {
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl cursor-default">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-stone-200">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-stone-200">
               <div>
-                <span className="text-xs font-bold bg-amber-100 text-amber-900 px-3 py-1 rounded-full">
-                  契約書の電子保管
+                <span className="text-xs font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">
+                  契約書保管
                 </span>
                 <h3 className="text-xl font-extrabold text-stone-900 mt-1">
-                  📎 記入・捺印済み契約書の添付
+                  📎 契約書の添付
                 </h3>
               </div>
               <button
@@ -2870,18 +2856,18 @@ function CemeteryDashboard() {
               </button>
             </div>
 
-            <div className="mb-4 bg-stone-50 p-4 rounded-2xl border border-stone-200">
-              <span className="text-xs font-bold text-stone-500 block">対象の作業代行業者</span>
-              <span className="text-lg font-extrabold text-stone-900">{uploadTargetVendor.displayName}</span>
-              <span className="text-sm text-stone-600 block">責任者: {uploadTargetVendor.vendorProfile?.representativeName} 様</span>
+            <div className="mb-4 bg-stone-50 p-3 rounded-xl border border-stone-200">
+              <span className="text-xs font-bold text-stone-500 block">対象業者</span>
+              <span className="text-base font-extrabold text-stone-900">{uploadTargetVendor.displayName}</span>
+              <span className="text-xs text-stone-600 block">代表: {uploadTargetVendor.vendorProfile?.representativeName} 様</span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-base font-bold text-stone-800 mb-2">
-                  契約書ファイルを選択（PDF または スマホで撮影した画像）
+                <label className="block text-sm font-bold text-stone-800 mb-1.5">
+                  契約書ファイル（PDF または 画像）
                 </label>
-                <div className="border-2 border-dashed border-stone-300 hover:border-emerald-600 rounded-2xl p-6 text-center bg-stone-50 transition">
+                <div className="border-2 border-dashed border-stone-300 hover:border-emerald-600 rounded-2xl p-5 text-center bg-stone-50 transition">
                   <input
                     type="file"
                     id="contract-file-input"
@@ -2891,14 +2877,14 @@ function CemeteryDashboard() {
                   />
                   <label
                     htmlFor="contract-file-input"
-                    className="cursor-pointer flex flex-col items-center justify-center gap-2"
+                    className="cursor-pointer flex flex-col items-center justify-center gap-1.5"
                   >
-                    <span className="text-4xl">📄</span>
-                    <span className="text-base font-bold text-emerald-800 hover:underline">
-                      ここをクリックしてファイルを選択
+                    <span className="text-3xl">📄</span>
+                    <span className="text-sm font-bold text-emerald-800 hover:underline">
+                      クリックしてファイルを選択
                     </span>
                     <span className="text-xs text-stone-500">
-                      PDF、またはスマホカメラで撮影したJPG / PNG写真（最大12MB）
+                      PDF、または写真（最大12MB）
                     </span>
                   </label>
                 </div>
@@ -2915,7 +2901,7 @@ function CemeteryDashboard() {
                       <span className="font-bold text-emerald-950 text-sm block truncate">
                         {contractUploadFile.fileName}
                       </span>
-                      <span className="text-xs text-emerald-700">アップロード準備完了</span>
+                      <span className="text-xs text-emerald-700">準備完了</span>
                     </div>
                   </div>
                   <button
@@ -2929,26 +2915,26 @@ function CemeteryDashboard() {
               )}
 
               <div>
-                <label className="block text-sm font-bold text-stone-800 mb-1">
-                  備考・確認メモ（任意）
+                <label className="block text-xs font-bold text-stone-800 mb-1">
+                  備考（任意）
                 </label>
                 <input
                   type="text"
                   value={contractUploadNotes}
                   onChange={(e) => setContractUploadNotes(e.target.value)}
-                  placeholder="例: 2026年9月締結。賠償責任保険証書の写しも確認済み。"
-                  className="w-full text-sm p-3 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
+                  placeholder="備考を入力"
+                  className="w-full text-sm p-2.5 rounded-xl border-2 border-stone-300 focus:border-emerald-600 outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t-2 border-stone-200 flex gap-3">
+              <div className="pt-3 border-t-2 border-stone-200 flex gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setUploadTargetVendor(null);
                     setContractUploadFile(null);
                   }}
-                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition"
+                  className="flex-1 py-2.5 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition text-sm cursor-pointer"
                 >
                   キャンセル
                 </button>
@@ -2956,13 +2942,13 @@ function CemeteryDashboard() {
                   type="button"
                   disabled={!contractUploadFile || isUploadingContract}
                   onClick={handleSaveContract}
-                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-2.5 px-4 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 text-sm ${
                     !contractUploadFile || isUploadingContract
                       ? 'bg-stone-400 cursor-not-allowed'
                       : 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer'
                   }`}
                 >
-                  {isUploadingContract ? '保存中...' : '契約書を保存して締結済みにする'}
+                  {isUploadingContract ? '保存中...' : '保存'}
                 </button>
               </div>
             </div>
@@ -2981,13 +2967,13 @@ function CemeteryDashboard() {
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden cursor-default">
-            <div className="p-5 bg-stone-900 text-white flex items-center justify-between gap-3 shrink-0">
+            <div className="p-4 bg-stone-900 text-white flex items-center justify-between gap-3 shrink-0">
               <div>
-                <span className="text-xs bg-emerald-600 text-white font-bold px-2.5 py-0.5 rounded-full">
-                  締結済み契約書
+                <span className="text-xs bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">
+                  締結済
                 </span>
-                <h3 className="text-xl font-bold mt-1">
-                  👁️ {viewingContract.vendorName} の契約書
+                <h3 className="text-lg font-bold mt-1">
+                  👁️ 契約書確認（{viewingContract.vendorName}）
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -2995,7 +2981,7 @@ function CemeteryDashboard() {
                   <a
                     href={viewingContract.contract.contractFileUrl}
                     download={viewingContract.contract.contractFileName || '契約書'}
-                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1"
                   >
                     <span>📥</span> ダウンロード
                   </a>
@@ -3003,9 +2989,9 @@ function CemeteryDashboard() {
                 <button
                   type="button"
                   onClick={() => setViewingContract(null)}
-                  className="px-3.5 py-2 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                  className="px-3 py-1.5 bg-stone-700 hover:bg-stone-600 text-white font-bold rounded-xl text-xs transition cursor-pointer"
                 >
-                  ✕ 閉じる
+                  閉じる
                 </button>
               </div>
             </div>
@@ -3033,11 +3019,11 @@ function CemeteryDashboard() {
                 <div className="text-stone-500 font-bold p-8">ファイルデータがありません</div>
               )}
 
-              <div className="w-full max-w-xl mt-4 bg-white p-3.5 rounded-xl border border-stone-200 text-xs text-stone-700 space-y-1">
+              <div className="w-full max-w-xl mt-4 bg-white p-3 rounded-xl border border-stone-200 text-xs text-stone-700 space-y-1">
                 <div>📎 ファイル名: <strong>{viewingContract.contract.contractFileName || '不明'}</strong></div>
                 <div>📅 添付日時: {viewingContract.contract.uploadedAt ? new Date(viewingContract.contract.uploadedAt).toLocaleString('ja-JP') : '不明'}</div>
                 {viewingContract.contract.notes && (
-                  <div>📝 備考メモ: {viewingContract.contract.notes}</div>
+                  <div>📝 備考: {viewingContract.contract.notes}</div>
                 )}
               </div>
             </div>
@@ -3057,13 +3043,13 @@ function CemeteryDashboard() {
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border-4 border-blue-600 cursor-default">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-stone-200">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-stone-200">
               <div>
-                <span className="text-xs font-bold bg-blue-100 text-blue-900 px-3 py-1 rounded-full">
-                  自社書類テンプレート管理
+                <span className="text-xs font-bold bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded-full">
+                  契約書管理
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mt-1">
-                  📄 公式契約書PDFテンプレートの登録
+                  📄 契約書テンプレートの登録
                 </h3>
               </div>
               <button
@@ -3079,16 +3065,15 @@ function CemeteryDashboard() {
             </div>
 
             <p className="text-stone-600 text-sm mb-4 leading-relaxed">
-              霊園で実際に使用されている<strong>公式の契約書・誓約書PDF原本</strong>をアップロードして保管します。
-              登録した原本PDFは、提携作業代行業者への配布や印刷にそのまま利用できます。
+              霊園で使用する契約書・誓約書PDF原本をアップロードします。
             </p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-base font-bold text-stone-800 mb-2">
+                <label className="block text-sm font-bold text-stone-800 mb-2">
                   PDFファイルを選択
                 </label>
-                <div className="border-2 border-dashed border-stone-300 hover:border-blue-600 rounded-2xl p-6 text-center bg-stone-50 transition">
+                <div className="border-2 border-dashed border-stone-300 hover:border-blue-600 rounded-2xl p-5 text-center bg-stone-50 transition">
                   <input
                     type="file"
                     id="template-pdf-input"
@@ -3098,14 +3083,14 @@ function CemeteryDashboard() {
                   />
                   <label
                     htmlFor="template-pdf-input"
-                    className="cursor-pointer flex flex-col items-center justify-center gap-2"
+                    className="cursor-pointer flex flex-col items-center justify-center gap-1.5"
                   >
-                    <span className="text-4xl">📄</span>
-                    <span className="text-base font-bold text-blue-800 hover:underline">
-                      ここをクリックしてPDF原本を選択
+                    <span className="text-3xl">📄</span>
+                    <span className="text-sm font-bold text-blue-800 hover:underline">
+                      クリックしてPDF原本を選択
                     </span>
                     <span className="text-xs text-stone-500">
-                      PDF形式（最大20MBまで対応）
+                      PDF形式（最大20MB）
                     </span>
                   </label>
                 </div>
@@ -3113,14 +3098,14 @@ function CemeteryDashboard() {
 
               {/* 選択されたテンプレートファイル情報 */}
               {templateUploadFile && (
-                <div className="p-3.5 bg-blue-50 border border-blue-300 rounded-xl flex items-center justify-between">
+                <div className="p-3 bg-blue-50 border border-blue-300 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-2 truncate">
-                    <span className="text-2xl shrink-0">📑</span>
+                    <span className="text-xl shrink-0">📑</span>
                     <div className="truncate">
                       <span className="font-bold text-blue-950 text-sm block truncate">
                         {templateUploadFile.fileName}
                       </span>
-                      <span className="text-xs text-blue-700">登録準備完了</span>
+                      <span className="text-xs text-blue-700">準備完了</span>
                     </div>
                   </div>
                   <button
@@ -3134,24 +3119,19 @@ function CemeteryDashboard() {
               )}
 
               {currentCompany?.contractTemplateFileName && !templateUploadFile && (
-                <div className="p-3 bg-stone-100 rounded-xl text-xs text-stone-600">
-                  <span>現在登録中の原本: <strong>{currentCompany.contractTemplateFileName}</strong></span>
-                  {currentCompany.contractTemplateUpdatedAt && (
-                    <span className="block text-stone-500 mt-0.5">
-                      （最終更新: {new Date(currentCompany.contractTemplateUpdatedAt).toLocaleDateString('ja-JP')}）
-                    </span>
-                  )}
+                <div className="p-2.5 bg-stone-100 rounded-xl text-xs text-stone-600">
+                  <span>登録中の原本: <strong>{currentCompany.contractTemplateFileName}</strong></span>
                 </div>
               )}
 
-              <div className="pt-4 border-t-2 border-stone-200 flex gap-3">
+              <div className="pt-3 border-t-2 border-stone-200 flex gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setIsUploadingTemplate(false);
                     setTemplateUploadFile(null);
                   }}
-                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer"
+                  className="flex-1 py-2.5 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer text-sm"
                 >
                   キャンセル
                 </button>
@@ -3159,13 +3139,13 @@ function CemeteryDashboard() {
                   type="button"
                   disabled={!templateUploadFile || isSavingTemplate}
                   onClick={handleSaveTemplatePdf}
-                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-2.5 px-4 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 text-sm ${
                     !templateUploadFile || isSavingTemplate
                       ? 'bg-stone-400 cursor-not-allowed'
                       : 'bg-blue-700 hover:bg-blue-800 cursor-pointer'
                   }`}
                 >
-                  {isSavingTemplate ? '保管中...' : 'テンプレート原本を登録・保存'}
+                  {isSavingTemplate ? '保存中...' : '保存'}
                 </button>
               </div>
             </div>
@@ -3182,17 +3162,17 @@ function CemeteryDashboard() {
           className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-4 border-stone-800 cursor-default">
-            <h3 className="text-2xl font-extrabold text-stone-900 mb-2">
-              新しい文面テンプレートの追加
+            <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mb-1">
+              文面テンプレートの追加
             </h3>
-            <p className="text-stone-600 text-sm mb-5 font-medium">
-              現在編集中の件名・本文をもとに、新しいテンプレートとして名前を付けて保存します。
+            <p className="text-stone-600 text-sm mb-4 font-medium">
+              現在の件名・本文を新しいテンプレートとして保存します。
             </p>
 
             <form onSubmit={handleCreateNewEmailTemplate} className="space-y-4">
               <div>
-                <label htmlFor="new-template-title-input" className="block text-base font-bold text-stone-800 mb-1">
-                  テンプレート名称（例: 年末墓所大掃除のご案内）:
+                <label htmlFor="new-template-title-input" className="block text-sm font-bold text-stone-800 mb-1">
+                  テンプレート名:
                 </label>
                 <input
                   id="new-template-title-input"
@@ -3200,29 +3180,29 @@ function CemeteryDashboard() {
                   required
                   value={newTemplateTitleInput}
                   onChange={(e) => setNewTemplateTitleInput(e.target.value)}
-                  placeholder="時期や行事名を入力してください"
-                  className="w-full bg-white text-stone-900 font-bold px-4 py-3 rounded-xl border-2 border-stone-300 focus:border-blue-600 outline-none text-base"
+                  placeholder="例: 年末大掃除のご案内"
+                  className="w-full bg-white text-stone-900 font-bold px-3.5 py-2.5 rounded-xl border-2 border-stone-300 focus:border-blue-600 outline-none text-base"
                 />
               </div>
 
-              <div className="pt-4 border-t-2 border-stone-200 flex gap-3">
+              <div className="pt-3 border-t-2 border-stone-200 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddingTemplateModal(false)}
-                  className="flex-1 py-3 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer"
+                  className="flex-1 py-2.5 px-4 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer text-sm"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={!newTemplateTitleInput.trim() || isSavingTemplateLoading}
-                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-2.5 px-4 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2 text-sm ${
                     !newTemplateTitleInput.trim() || isSavingTemplateLoading
                       ? 'bg-stone-400 cursor-not-allowed'
                       : 'bg-emerald-700 hover:bg-emerald-800 cursor-pointer'
                   }`}
                 >
-                  {isSavingTemplateLoading ? '登録中...' : 'テンプレートを保存'}
+                  {isSavingTemplateLoading ? '登録中...' : '保存'}
                 </button>
               </div>
             </form>
@@ -3238,49 +3218,49 @@ function CemeteryDashboard() {
           }}
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto cursor-pointer"
         >
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-800 cursor-default my-8 space-y-6">
-            <div className="flex items-start justify-between border-b-2 border-stone-200 pb-4">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-800 cursor-default my-8 space-y-5">
+            <div className="flex items-start justify-between border-b-2 border-stone-200 pb-3">
               <div>
-                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
-                  最強オンボーディング機能
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                  施主名簿取込
                 </span>
-                <h3 className="text-2xl font-extrabold text-stone-900 mt-1">
-                  施主台帳CSV一括取り込み
+                <h3 className="text-xl sm:text-2xl font-extrabold text-stone-900 mt-1">
+                  施主CSV一括取込
                 </h3>
-                <p className="text-stone-600 text-sm mt-1">
-                  霊園・お寺でお持ちの施主様名簿（CSV・エクセル）を取り込むと、全員分の専用アカウント・お墓データが一瞬で自動生成されます。
+                <p className="text-stone-600 text-sm mt-0.5">
+                  施主名簿CSVを取り込み、アカウントとお墓情報を一括作成します。
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className="w-10 h-10 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 text-xl font-bold flex items-center justify-center cursor-pointer transition"
+                className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 text-lg font-bold flex items-center justify-center cursor-pointer transition"
               >
                 ✕
               </button>
             </div>
 
             {/* テンプレート案内 & ダウンロード */}
-            <div className="bg-stone-50 border-2 border-stone-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h4 className="font-extrabold text-stone-900 text-base flex items-center gap-1.5">
+                <h4 className="font-bold text-stone-900 text-sm flex items-center gap-1.5">
                   <span>📄</span> CSVフォーマット見本
                 </h4>
                 <p className="text-xs text-stone-600 mt-0.5">
-                  氏名、電話番号、郵便番号、住所、区画番号、正面文字、初期PWなどが入ったExcel対応CSVです。
+                  氏名、電話番号、住所、区画番号、正面文字などが入った見本CSVです。
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleDownloadSampleCsv}
-                className="px-4 py-2.5 bg-white hover:bg-stone-100 border-2 border-emerald-600 text-emerald-800 font-bold text-sm rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
+                className="px-3.5 py-2 bg-white hover:bg-stone-100 border border-emerald-600 text-emerald-800 font-bold text-xs rounded-xl transition shadow-2xs flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                <span>⬇️</span> 見本CSVをダウンロード
+                <span>⬇️</span> 見本CSVダウンロード
               </button>
             </div>
 
             {/* ファイル選択エリア */}
-            <div className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-2xl p-6 text-center bg-stone-50/50 transition">
+            <div className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-2xl p-5 text-center bg-stone-50/50 transition">
               <input
                 type="file"
                 id="csv-file-input"
@@ -3290,12 +3270,12 @@ function CemeteryDashboard() {
               />
               <label
                 htmlFor="csv-file-input"
-                className="cursor-pointer block space-y-2"
+                className="cursor-pointer block space-y-1.5"
               >
-                <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-2xl shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-xl shadow-2xs">
                   📁
                 </div>
-                <div className="text-base font-bold text-stone-900">
+                <div className="text-sm font-bold text-stone-900">
                   {csvFileName ? (
                     <span className="text-emerald-800">選択中: {csvFileName}</span>
                   ) : (
@@ -3303,44 +3283,44 @@ function CemeteryDashboard() {
                   )}
                 </div>
                 <p className="text-xs text-stone-500">
-                  カンマ区切りテキスト（.csv）形式に対応しています（UTF-8 / Shift-JIS）
+                  CSV形式（UTF-8 / Shift-JIS）
                 </p>
               </label>
             </div>
 
             {/* 取り込みプレビュー */}
             {parsedPreviewClients.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-extrabold text-stone-900 text-base flex items-center gap-2">
-                    <span>👀</span> 取り込みプレビュー（{parsedPreviewClients.length}名）
+                  <h4 className="font-bold text-stone-900 text-sm flex items-center gap-1.5">
+                    <span>👀</span> 取込プレビュー（{parsedPreviewClients.length}名）
                   </h4>
-                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
-                    正常に解析されました
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                    解析完了
                   </span>
                 </div>
 
-                <div className="max-h-60 overflow-y-auto border-2 border-stone-200 rounded-xl">
+                <div className="max-h-60 overflow-y-auto border border-stone-200 rounded-xl">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="bg-stone-100 text-stone-700 font-bold sticky top-0 border-b border-stone-200">
                       <tr>
-                        <th className="p-2.5">氏名</th>
-                        <th className="p-2.5">電話番号（ID）</th>
-                        <th className="p-2.5">区画番号</th>
-                        <th className="p-2.5">正面文字</th>
-                        <th className="p-2.5">住所</th>
-                        <th className="p-2.5">初期PW</th>
+                        <th className="p-2">氏名</th>
+                        <th className="p-2">電話番号（ID）</th>
+                        <th className="p-2">区画番号</th>
+                        <th className="p-2">正面文字</th>
+                        <th className="p-2">住所</th>
+                        <th className="p-2">初期PW</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-200">
                       {parsedPreviewClients.map((client, idx) => (
                         <tr key={idx} className="hover:bg-emerald-50/50 font-medium text-stone-800">
-                          <td className="p-2.5 font-bold text-stone-900">{client.name} 様</td>
-                          <td className="p-2.5">{client.phoneNumber}</td>
-                          <td className="p-2.5">{client.sectionPlotNumber || '-'}</td>
-                          <td className="p-2.5">{client.frontInscription || '-'}</td>
-                          <td className="p-2.5 max-w-[180px] truncate">{client.address || '-'}</td>
-                          <td className="p-2.5 font-mono text-emerald-800 font-bold">{client.initialPassword}</td>
+                          <td className="p-2 font-bold text-stone-900">{client.name} 様</td>
+                          <td className="p-2">{client.phoneNumber}</td>
+                          <td className="p-2">{client.sectionPlotNumber || '-'}</td>
+                          <td className="p-2">{client.frontInscription || '-'}</td>
+                          <td className="p-2 max-w-[180px] truncate">{client.address || '-'}</td>
+                          <td className="p-2 font-mono text-emerald-800 font-bold">{client.initialPassword}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -3351,13 +3331,13 @@ function CemeteryDashboard() {
 
             {/* 完了通知 */}
             {importSuccessMsg && (
-              <div className="p-4 bg-emerald-100 border-2 border-emerald-500 text-emerald-950 font-bold rounded-2xl text-center">
+              <div className="p-3 bg-emerald-100 border border-emerald-500 text-emerald-950 font-bold rounded-xl text-center text-sm">
                 {importSuccessMsg}
               </div>
             )}
 
             {/* フッターアクション */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-stone-200">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t-2 border-stone-200">
               <button
                 type="button"
                 onClick={() => {
@@ -3365,7 +3345,7 @@ function CemeteryDashboard() {
                   setParsedPreviewClients([]);
                   setCsvFileName('');
                 }}
-                className="px-5 py-3 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer"
+                className="px-4 py-2.5 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl transition cursor-pointer text-sm"
               >
                 閉じる
               </button>
@@ -3373,9 +3353,9 @@ function CemeteryDashboard() {
                 type="button"
                 disabled={parsedPreviewClients.length === 0 || importLoading}
                 onClick={handleExecuteImport}
-                className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+                className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed text-sm"
               >
-                <span>{importLoading ? 'インポート実行中...' : `この内容で一括登録する（${parsedPreviewClients.length}件）`}</span>
+                <span>{importLoading ? '登録中...' : `一括登録する（${parsedPreviewClients.length}件）`}</span>
               </button>
             </div>
           </div>
@@ -3391,14 +3371,14 @@ function CemeteryDashboard() {
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm overflow-y-auto p-2 sm:p-6 flex justify-center items-start cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border-4 border-amber-500 cursor-default my-2 sm:my-6 flex flex-col max-h-[92vh]">
-            {/* スティッキーヘッダー（特大文字でも上に切れず常に表示） */}
+            {/* スティッキーヘッダー */}
             <div className="sticky top-0 z-20 bg-white pb-3 border-b-2 border-stone-200 flex items-center justify-between shrink-0">
               <div>
-                <span className="text-xs font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">
-                  施主お墓情報 登録・変更
+                <span className="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                  お墓情報
                 </span>
                 <h3 className="text-xl sm:text-2xl font-black text-stone-900 mt-1 flex items-center gap-2">
-                  <span>📸</span> {editingClient.name} 様のお墓情報
+                  <span>📸</span> お墓情報の編集（{editingClient.name} 様）
                 </h3>
               </div>
               <button
@@ -3410,15 +3390,15 @@ function CemeteryDashboard() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveGraveInfo} className="flex-1 overflow-y-auto pt-4 pr-1 space-y-5 text-xs sm:text-sm">
-              {/* お墓特定用写真（正面写真 ＆ 側面建立者写真の2枚） */}
-              <div className="bg-stone-50 p-4 rounded-2xl border-2 border-stone-200 space-y-4">
+            <form onSubmit={handleSaveGraveInfo} className="flex-1 overflow-y-auto pt-4 pr-1 space-y-4 text-xs sm:text-sm">
+              {/* お墓写真 */}
+              <div className="bg-stone-50 p-4 rounded-2xl border-2 border-stone-200 space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-200 pb-2">
-                  <span className="font-extrabold text-stone-900 text-sm flex items-center gap-1.5">
-                    <span>🪦</span> お墓特定用 写真登録（DMハガキ・マイページ掲載）
+                  <span className="font-bold text-stone-900 text-sm flex items-center gap-1.5">
+                    <span>🪦</span> お墓写真
                   </span>
                   <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">
-                    正面 ＋ 側面の2枚でお墓を100%特定
+                    正面・側面の2枚登録推奨
                   </span>
                 </div>
 
@@ -3657,9 +3637,9 @@ function CemeteryDashboard() {
                 <button
                   type="submit"
                   disabled={isSavingGraveInfo}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-stone-950 font-black shadow-md flex items-center gap-2 cursor-pointer transition"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-stone-950 font-black shadow flex items-center gap-1.5 cursor-pointer transition text-sm"
                 >
-                  <span>💾</span> {isSavingGraveInfo ? '保存中...' : 'お墓情報を保存する'}
+                  <span>💾</span> {isSavingGraveInfo ? '保存中...' : '保存'}
                 </button>
               </div>
             </form>
@@ -3676,23 +3656,23 @@ function CemeteryDashboard() {
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-y-auto p-2 sm:p-6 flex justify-center items-start cursor-pointer"
         >
           <div className="bg-stone-100 rounded-3xl max-w-5xl w-full p-4 sm:p-6 shadow-2xl border-4 border-blue-900 cursor-default my-2 sm:my-6 flex flex-col max-h-[94vh]">
-            {/* スティッキーヘッダー（常に上部に固定され、特大フォントでも絶対に隠れない） */}
+            {/* スティッキーヘッダー */}
             <div className="sticky top-0 z-30 bg-stone-100/95 backdrop-blur-xs pb-3 pt-1 border-b-2 border-stone-300 no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
               <div>
-                <span className="text-xs font-bold text-blue-900 bg-blue-100 px-3 py-0.5 rounded-full">
-                  印刷プレビュー（全{targetPrintClients.length}名）
+                <span className="text-xs font-bold text-blue-900 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                  印刷プレビュー（{targetPrintClients.length}名）
                 </span>
                 <h3 className="text-xl sm:text-2xl font-black text-stone-900 mt-1 flex items-center gap-2">
-                  <span>📮</span> パーソナライズ案内DM（ハガキ・差込用紙）
+                  <span>📮</span> 案内DM印刷プレビュー
                 </h3>
                 <p className="text-stone-600 text-xs mt-0.5">
-                  差出人名義: <strong>{currentCompany?.name} 管理事務所</strong>（施主様専用QRコード自動印字済み）
+                  差出人: <strong>{currentCompany?.name} 管理事務所</strong>（QRコード自動印字）
                 </p>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
                 {/* 印刷レイアウト切替 */}
-                <div className="flex bg-white rounded-xl p-1 border-2 border-stone-300 shadow-xs">
+                <div className="flex bg-white rounded-xl p-1 border border-stone-300 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => setDmPrintLayout('a4_postcard')}
@@ -3702,7 +3682,7 @@ function CemeteryDashboard() {
                         : 'text-stone-700 hover:bg-stone-100'
                     }`}
                   >
-                    <span>📄</span> A4用紙でハガキ確認PDF（推奨）
+                    <span>📄</span> A4（ハガキ確認用）
                   </button>
                   <button
                     type="button"
@@ -3713,7 +3693,7 @@ function CemeteryDashboard() {
                         : 'text-stone-700 hover:bg-stone-100'
                     }`}
                   >
-                    <span>📮</span> はがき直接印刷
+                    <span>📮</span> ハガキ直接印刷
                   </button>
                   <button
                     type="button"
@@ -3724,16 +3704,16 @@ function CemeteryDashboard() {
                         : 'text-stone-700 hover:bg-stone-100'
                     }`}
                   >
-                    <span>📜</span> A4封書案内状
+                    <span>📜</span> A4案内状
                   </button>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer text-sm"
+                  className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer text-sm"
                 >
-                  <span>🖨️</span> 印刷する（PDF保存も可）
+                  <span>🖨️</span> 印刷（PDF保存）
                 </button>
                 <button
                   type="button"
@@ -3747,11 +3727,10 @@ function CemeteryDashboard() {
 
             {/* A4ハガキ確認PDFモードの案内メモ */}
             {dmPrintLayout === 'a4_postcard' && (
-              <div className="bg-emerald-50 border-2 border-emerald-300 p-2.5 rounded-xl text-emerald-950 text-xs flex items-center gap-2 no-print my-2 shrink-0">
-                <span className="text-lg">💡</span>
+              <div className="bg-emerald-50 border border-emerald-300 p-2 rounded-xl text-emerald-950 text-xs flex items-center gap-2 no-print my-2 shrink-0">
+                <span className="text-base">💡</span>
                 <span>
-                  <strong>ハガキ確認・PDF保存に最適化されています：</strong>
-                  一般的なPC・ブラウザの「PDFに保存」は用紙サイズがA4基準のため、A4用紙の中央に実寸のハガキ（100×148mm）と切り取り破線を配置しています。レイアウト崩れなくそのままPDF保存やA4印刷が可能です。
+                  A4用紙の中央に実寸ハガキ（100×148mm）と切り取り破線を配置。そのままPDF保存・印刷が可能です。
                 </span>
               </div>
             )}

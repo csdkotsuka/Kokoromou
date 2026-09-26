@@ -217,9 +217,8 @@ function VendorDashboardContent() {
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="px-3 py-1 bg-emerald-500 text-slate-950 text-sm font-extrabold rounded-md">
-                作業代行業者 専用ポータル
+                業者ポータル
               </span>
-              <span className="text-slate-400 text-sm">文字サイズ：特大</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               {currentVendor?.displayName}
@@ -299,9 +298,9 @@ function VendorDashboardContent() {
             </div>
             <button
               onClick={handleOpenEdit}
-              className="px-6 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xl font-bold rounded-2xl shadow-md transition active:scale-95 flex items-center justify-center gap-2"
+              className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-lg font-bold rounded-2xl shadow-md transition active:scale-95 flex items-center justify-center gap-2"
             >
-              <Edit3 className="w-5 h-5" /> 自社情報を変更する（編集）
+              <Edit3 className="w-5 h-5" /> 情報編集
             </button>
           </div>
 
@@ -321,7 +320,7 @@ function VendorDashboardContent() {
               <span className="font-extrabold text-slate-900 text-2xl">{currentVendor.vendorProfile?.completedJobsCount} 件 完了</span>
             </div>
             <div className="md:col-span-3 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-              <span className="block text-slate-500 text-base font-bold mb-2">提携している墓地管理会社（霊園）</span>
+              <span className="block text-slate-500 text-base font-bold mb-2">提携霊園</span>
               <div className="flex flex-wrap gap-2">
                 {affiliatedCemeteries.map((cem) => (
                   <span key={cem.id} className="bg-amber-100 text-amber-900 border border-amber-300 px-4 py-2 rounded-xl text-lg font-bold">
@@ -333,15 +332,12 @@ function VendorDashboardContent() {
           </div>
         </section>
 
-        {/* 2. 担当する作業案件一覧（現場用・高齢者向け大画面） */}
+        {/* 2. 担当する作業案件一覧 */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-slate-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <span className="text-base font-bold text-blue-800 bg-blue-100 px-3 py-1 rounded-full">
-                現場のお仕事
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
-                担当案件一覧（{vendorOrders.length}件）
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                担当案件（{vendorOrders.length}件）
               </h2>
             </div>
 
@@ -391,11 +387,11 @@ function VendorDashboardContent() {
               filteredOrders.map((order) => {
                 const statusBadge =
                   order.status === 'completed'
-                    ? { label: '作業完了（報告済）', bg: 'bg-emerald-600' }
+                    ? { label: '完了', bg: 'bg-emerald-600' }
                     : order.status === 'in_progress'
-                    ? { label: '現場作業中', bg: 'bg-blue-600' }
+                    ? { label: '作業中', bg: 'bg-blue-600' }
                     : order.status === 'paid'
-                    ? { label: '作業前（準備中）', bg: 'bg-amber-600' }
+                    ? { label: '準備中', bg: 'bg-amber-600' }
                     : { label: '確認中', bg: 'bg-slate-500' };
 
                 return (
@@ -413,26 +409,25 @@ function VendorDashboardContent() {
                         </span>
                       </div>
                       <div className="text-xl font-bold text-slate-800">
-                        受取報酬: <span className="text-emerald-700 text-2xl font-extrabold">{order.vendorPayoutAmount?.toLocaleString()} 円</span>
+                        報酬: <span className="text-emerald-700 text-2xl font-extrabold">{order.vendorPayoutAmount?.toLocaleString()} 円</span>
                       </div>
                     </div>
 
-                    {/* 墓石の特定情報（最重要） */}
+                    {/* 墓石の特定情報 */}
                     <div className="bg-white p-6 rounded-2xl border-2 border-blue-200 shadow-sm space-y-4">
                       <div className="flex items-center gap-2">
-                        <span className="bg-blue-600 text-white text-base font-bold px-3 py-1 rounded-md">
-                          特定情報（同姓誤認防止）
+                        <span className="bg-blue-600 text-white text-sm font-bold px-3 py-1 rounded-md">
+                          墓石照合
                         </span>
-                        <span className="text-lg font-bold text-blue-950">現場で墓石を確認してください</span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
                         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                          <span className="block text-slate-500 text-base font-bold">正面文字（墓石の刻字）</span>
+                          <span className="block text-slate-500 text-base font-bold">正面文字</span>
                           <span className="font-extrabold text-slate-900 text-2xl">「{order.graveInfo.frontInscription}」</span>
                         </div>
                         <div className="p-4 bg-amber-50 rounded-xl border-2 border-amber-300">
-                          <span className="block text-amber-900 text-base font-extrabold">側面建立者名（必須照合）</span>
+                          <span className="block text-amber-900 text-base font-extrabold">側面建立者名</span>
                           <span className="font-extrabold text-amber-950 text-2xl">「{order.graveInfo.builderName}」</span>
                         </div>
                       </div>
@@ -442,19 +437,19 @@ function VendorDashboardContent() {
                         {order.graveInfo.frontInscriptionPhotoUrl && (
                           <button
                             type="button"
-                            onClick={() => setPreviewPhoto({ title: '正面文字の写真', url: order.graveInfo.frontInscriptionPhotoUrl! })}
-                            className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-900 text-base font-bold rounded-xl border border-blue-300 flex items-center gap-2"
+                            onClick={() => setPreviewPhoto({ title: '正面文字', url: order.graveInfo.frontInscriptionPhotoUrl! })}
+                            className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-900 text-base font-bold rounded-xl border border-blue-300 flex items-center gap-2"
                           >
-                            <Camera className="w-5 h-5" /> 正面文字の写真を見る
+                            <Camera className="w-5 h-5" /> 正面写真
                           </button>
                         )}
                         {order.graveInfo.builderNamePhotoUrl && (
                           <button
                             type="button"
-                            onClick={() => setPreviewPhoto({ title: '側面建立者の写真', url: order.graveInfo.builderNamePhotoUrl! })}
-                            className="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-base font-bold rounded-xl border border-amber-300 flex items-center gap-2"
+                            onClick={() => setPreviewPhoto({ title: '側面建立者', url: order.graveInfo.builderNamePhotoUrl! })}
+                            className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 text-base font-bold rounded-xl border border-amber-300 flex items-center gap-2"
                           >
-                            <Camera className="w-5 h-5" /> 側面建立者の写真を見る
+                            <Camera className="w-5 h-5" /> 側面写真
                           </button>
                         )}
                       </div>
@@ -463,33 +458,33 @@ function VendorDashboardContent() {
                     {/* 霊園・区画・プラン内容 */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-slate-800 bg-white p-5 rounded-2xl border border-slate-200">
                       <div>
-                        <span className="block text-slate-500 font-bold">霊園・寺院名</span>
+                        <span className="block text-slate-500 font-bold">霊園</span>
                         <span className="font-extrabold text-slate-900 text-lg">{order.graveInfo.cemeteryName}</span>
                       </div>
                       <div>
-                        <span className="block text-slate-500 font-bold">区画・墓石番号</span>
+                        <span className="block text-slate-500 font-bold">区画番号</span>
                         <span className="font-extrabold text-slate-900 text-lg">{order.graveInfo.sectionPlotNumber}</span>
                       </div>
                       <div>
-                        <span className="block text-slate-500 font-bold">お申込プラン</span>
+                        <span className="block text-slate-500 font-bold">プラン</span>
                         <span className="font-extrabold text-slate-900 text-lg">{order.servicePlanName}</span>
                       </div>
                     </div>
 
                     {order.graveInfo.specialRequests && (
-                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-lg text-amber-950 font-medium">
-                        <strong>施主様からのご要望:</strong> {order.graveInfo.specialRequests}
+                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-base text-amber-950 font-medium">
+                        <strong>要望:</strong> {order.graveInfo.specialRequests}
                       </div>
                     )}
 
-                    {/* 現場操作用の特大ボタングループ */}
+                    {/* 現場操作ボタングループ */}
                     <div className="pt-2 flex flex-wrap gap-4">
                       {order.status === 'paid' && (
                         <button
                           onClick={() => handleUpdateStatus(order.id, 'in_progress')}
                           className="flex-1 py-4 px-6 bg-blue-700 hover:bg-blue-800 active:scale-95 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-3"
                         >
-                          <span>▶️</span> 「作業開始」にする
+                          <span>▶️</span> 作業開始
                         </button>
                       )}
 
@@ -498,13 +493,13 @@ function VendorDashboardContent() {
                           onClick={() => handleUpdateStatus(order.id, 'completed')}
                           className="flex-1 py-4 px-6 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xl font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-3"
                         >
-                          <CheckCircle2 className="w-6 h-6" /> 「作業完了・報告提出」にする
+                          <CheckCircle2 className="w-6 h-6" /> 作業完了・報告提出
                         </button>
                       )}
 
                       {order.status === 'completed' && (
-                        <div className="flex-1 py-4 px-6 bg-emerald-100 border-2 border-emerald-500 text-emerald-900 text-lg font-bold rounded-2xl text-center">
-                          ✅ この案件は作業完了済みです（報告書送付済み）
+                        <div className="flex-1 py-3 px-6 bg-emerald-100 border-2 border-emerald-500 text-emerald-900 text-base font-bold rounded-2xl text-center">
+                          ✅ 作業完了済
                         </div>
                       )}
                     </div>
@@ -552,17 +547,14 @@ function VendorDashboardContent() {
           className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
         >
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border-4 border-emerald-600 max-h-[90vh] overflow-y-auto cursor-default">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
-              自社情報の変更・編集
+            <h3 className="text-2xl font-extrabold text-slate-900 mb-6">
+              自社情報編集
             </h3>
-            <p className="text-slate-600 text-base mb-6 font-medium">
-              入力内容を修正して「更新を保存する」ボタンを押してください。
-            </p>
 
             <form onSubmit={handleSaveProfile} className="space-y-5">
               <div>
-                <label className="block text-lg font-bold text-slate-800 mb-1">
-                  現場責任者名
+                <label className="block text-base font-bold text-slate-800 mb-1">
+                  現場責任者
                 </label>
                 <input
                   type="text"
@@ -574,8 +566,8 @@ function VendorDashboardContent() {
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-slate-800 mb-1">
-                  連絡先お電話番号
+                <label className="block text-base font-bold text-slate-800 mb-1">
+                  電話番号
                 </label>
                 <input
                   type="text"
@@ -587,8 +579,8 @@ function VendorDashboardContent() {
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-slate-800 mb-1">
-                  対応可能エリア（カンマ区切り）
+                <label className="block text-base font-bold text-slate-800 mb-1">
+                  対応エリア（カンマ区切り）
                 </label>
                 <input
                   type="text"
@@ -600,8 +592,8 @@ function VendorDashboardContent() {
               </div>
 
               <div>
-                <label className="block text-lg font-bold text-slate-800 mb-1">
-                  会社・店舗の自己紹介
+                <label className="block text-base font-bold text-slate-800 mb-1">
+                  自己紹介
                 </label>
                 <textarea
                   rows={3}
@@ -615,15 +607,15 @@ function VendorDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setIsEditingProfile(false)}
-                  className="flex-1 py-4 px-6 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xl font-bold rounded-2xl transition"
+                  className="flex-1 py-3 px-6 bg-slate-200 hover:bg-slate-300 text-slate-800 text-lg font-bold rounded-2xl transition"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-4 px-6 bg-emerald-700 hover:bg-emerald-800 text-white text-xl font-bold rounded-2xl shadow-lg transition"
+                  className="flex-1 py-3 px-6 bg-emerald-700 hover:bg-emerald-800 text-white text-lg font-bold rounded-2xl shadow-lg transition"
                 >
-                  更新を保存する
+                  保存
                 </button>
               </div>
             </form>
